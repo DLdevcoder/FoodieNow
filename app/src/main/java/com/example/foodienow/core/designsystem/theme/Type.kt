@@ -1,4 +1,4 @@
-package com.example.foodienow.ui.theme
+package com.example.foodienow.core.designsystem.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

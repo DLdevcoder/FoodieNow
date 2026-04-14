@@ -1,4 +1,4 @@
-package com.example.foodienow.ui.theme
+package com.example.foodienow.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 
