@@ -1,5 +1,6 @@
 package com.example.foodienow.domain.model
 
+@kotlinx.serialization.Serializable
 data class Food(
     val id: String,
     val merchantId: String,
