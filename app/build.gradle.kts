@@ -5,7 +5,8 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
 
     kotlin("kapt")
-    id("com.google.dagger.hilt.android")
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -44,7 +45,18 @@ android {
 }
 
 dependencies {
+    // Supabase
+    val supabaseVersion = "2.5.0"
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:$supabaseVersion")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:$supabaseVersion")
+    implementation("io.github.jan-tennert.supabase:storage-kt:${supabaseVersion}")
 
+    // Ktor & Serialization (Bắt buộc cho Supabase Postgrest)
+    implementation("io.ktor:ktor-client-android:2.3.11")
+    implementation("io.ktor:ktor-client-core:2.3.11")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // AndroidX & Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -53,10 +65,18 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
+
+    // Firebase
     implementation(libs.firebase.firestore)
-    implementation("com.google.dagger:hilt-android:2.49")
-    kapt("com.google.dagger:hilt-compiler:2.49")
+
+    // Hilt (Dependency Injection)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

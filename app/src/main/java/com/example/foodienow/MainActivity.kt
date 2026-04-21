@@ -7,22 +7,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.example.foodienow.core.designsystem.theme.FoodieNowTheme // Đảm bảo import đúng theme của bạn
-import com.example.foodienow.core.navigation.AppNavigation
+import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 
+// BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ HILT HOẠT ĐỘNG
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            FoodieNowTheme {
+            // Bao bọc ứng dụng trong Theme mặc định
+            MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // toàn bộ luồng điều hướng của app
-                    AppNavigation()
+                    CustomerHomeScreen(
+                        onNavigateToCart = {
+                            // Tạm thời để trống, sau này xử lý chuyển trang sau
+                        }
+                    )
                 }
             }
         }
