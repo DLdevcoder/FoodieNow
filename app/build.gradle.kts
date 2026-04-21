@@ -1,12 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
 
     kotlin("kapt")
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -51,7 +51,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:gotrue-kt:$supabaseVersion")
     implementation("io.github.jan-tennert.supabase:storage-kt:${supabaseVersion}")
 
-    // Ktor & Serialization (Bắt buộc cho Supabase Postgrest)
+    // Ktor & Serialization
     implementation("io.ktor:ktor-client-android:2.3.11")
     implementation("io.ktor:ktor-client-core:2.3.11")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
