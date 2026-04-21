@@ -47,14 +47,14 @@ fun FoodItemCard(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = food.description,
+                    text = food.description ?: "",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     maxLines = 2
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "${food.price} VNĐ", // Tạm thời để string chay, sau này format số lại
+                    text = "${food.price} VNĐ",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary
                 )

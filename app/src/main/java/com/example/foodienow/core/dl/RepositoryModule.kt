@@ -1,4 +1,4 @@
-package com.example.foodienow.core.di
+package com.example.foodienow.core.dl
 
 import com.example.foodienow.data.repository.FoodRepositoryImpl
 import com.example.foodienow.data.repository.MerchantRepositoryImpl

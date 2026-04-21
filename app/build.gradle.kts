@@ -49,6 +49,7 @@ dependencies {
     val supabaseVersion = "2.5.0"
     implementation("io.github.jan-tennert.supabase:postgrest-kt:$supabaseVersion")
     implementation("io.github.jan-tennert.supabase:gotrue-kt:$supabaseVersion")
+    implementation("io.github.jan-tennert.supabase:storage-kt:${supabaseVersion}")
 
     // Ktor & Serialization (Bắt buộc cho Supabase Postgrest)
     implementation("io.ktor:ktor-client-android:2.3.11")
@@ -65,6 +66,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt.coil3:coil-compose:3.4.0")
 
     // Firebase
     implementation(libs.firebase.firestore)
