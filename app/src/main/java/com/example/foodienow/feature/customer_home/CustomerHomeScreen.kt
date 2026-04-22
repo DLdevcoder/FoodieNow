@@ -16,19 +16,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.domain.model.Food
+import com.example.foodienow.feature.customer_home.components.FoodItemCard
+
 import com.example.foodienow.core.designsystem.theme.ColorBackground
 import com.example.foodienow.core.designsystem.theme.ColorPrimary
 import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
 import com.example.foodienow.core.designsystem.theme.ColorSurfaceLight
-import com.example.foodienow.feature.customer_home.components.FoodItemCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerHomeScreen(
     viewModel: CustomerHomeViewModel = hiltViewModel(),
-    onNavigateToCart: () -> Unit
+    onNavigateToCart: () -> Unit,
+    onNavigateToFoodDetail: (Food) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
 
     Scaffold(
         topBar = {
@@ -95,8 +99,10 @@ fun CustomerHomeScreen(
                     items(uiState.recommendedFoods) { food ->
                         FoodItemCard(
                             food = food,
-                            onAddToCartClick = { selectedFood ->
-                                println("Đã thêm ${selectedFood.name} vào giỏ")
+                            // ĐÃ SỬA: Đổi onAddToCartClick thành onCardClick
+                            onCardClick = { clickedFood ->
+                                // Truyền tín hiệu món ăn bị click ra ngoài để điều hướng
+                                onNavigateToFoodDetail(clickedFood)
                             }
                         )
                     }
