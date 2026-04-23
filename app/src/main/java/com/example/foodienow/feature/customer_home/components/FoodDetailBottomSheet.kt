@@ -46,7 +46,6 @@ fun FoodDetailBottomSheet(
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 32.dp)
         ) {
-            // 1. Ảnh món ăn to đẹp
             AsyncImage(
                 model = food.imageUrl,
                 contentDescription = "Ảnh món ${food.name}",
@@ -59,7 +58,6 @@ fun FoodDetailBottomSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 2. Tên và Giá
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -82,7 +80,6 @@ fun FoodDetailBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 3. Mô tả
             Text(
                 text = food.description ?: "Chưa có mô tả cho món ăn này.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -91,7 +88,6 @@ fun FoodDetailBottomSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. Thanh tăng giảm số lượng (+ / -)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
