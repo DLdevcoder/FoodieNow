@@ -11,24 +11,33 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.domain.model.Food
+import com.example.foodienow.feature.customer_home.components.FoodItemCard
+
 import com.example.foodienow.core.designsystem.theme.ColorBackground
 import com.example.foodienow.core.designsystem.theme.ColorPrimary
 import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
 import com.example.foodienow.core.designsystem.theme.ColorSurfaceLight
-import com.example.foodienow.feature.customer_home.components.FoodItemCard
+import com.example.foodienow.feature.customer_home.components.FoodDetailBottomSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerHomeScreen(
     viewModel: CustomerHomeViewModel = hiltViewModel(),
-    onNavigateToCart: () -> Unit
+    onNavigateToCart: () -> Unit,
+    onNavigateToFoodDetail: (Food) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var selectedFoodForSheet by remember { mutableStateOf<Food?>(null) }
+
 
     Scaffold(
         topBar = {
@@ -84,19 +93,18 @@ fun CustomerHomeScreen(
 
             // Danh sách món ăn
             if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.fillMaxWidth().wrapContentWidth(),
-                    color = ColorPrimaryDark
-                )
+                CircularProgressIndicator(modifier = Modifier.fillMaxWidth().wrapContentWidth(), color = ColorPrimaryDark)
             } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(uiState.recommendedFoods) { food ->
                         FoodItemCard(
                             food = food,
-                            onAddToCartClick = { selectedFood ->
-                                println("Đã thêm ${selectedFood.name} vào giỏ")
+                            onCardClick = { clickedFood ->
+                                // Chuyển sang trang chi tiết
+                                onNavigateToFoodDetail(clickedFood)
+                            },
+                            onAddToCartClick = { clickedFood ->
+                                selectedFoodForSheet = clickedFood
                             }
                         )
                     }
@@ -104,5 +112,15 @@ fun CustomerHomeScreen(
                 }
             }
         }
+    }
+    selectedFoodForSheet?.let { food ->
+        FoodDetailBottomSheet(
+            food = food,
+            onDismiss = { selectedFoodForSheet = null },
+            onAddToCart = { addedFood, quantity ->
+                println("Đã thêm ${quantity} món ${addedFood.name} vào giỏ")
+                // TODO: Xử lý lưu giỏ hàng
+            }
+        )
     }
 }
