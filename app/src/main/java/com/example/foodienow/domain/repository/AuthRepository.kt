@@ -11,6 +11,15 @@ interface AuthRepository {
     // Input: thông tin đăng ký
     suspend fun register(email: String, pass: String, role: UserRole): Result<User>
 
+    // Gửi lại email xác thực tài khoản
+    suspend fun resendVerificationEmail(email: String): Result<Unit>
+
+    // Gửi email đặt lại mật khẩu
+    suspend fun forgotPassword(email: String): Result<Unit>
+
+    // Đăng xuất và xóa trạng thái đăng nhập hiện tại
+    suspend fun logout(): Result<Unit>
+
     // Output: Flow theo dõi trạng thái đăng nhập để tự động văng ra màn hình Login nếu token hết hạn
     fun getAuthState(): Flow<User?>
 }

@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.google.gms.google.services)
 
     kotlin("kapt")
     alias(libs.plugins.hilt)
@@ -65,11 +64,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("io.coil-kt.coil3:coil-compose:3.4.0")
-
-    // Firebase
-    implementation(libs.firebase.firestore)
 
     // Hilt (Dependency Injection)
     implementation(libs.hilt.android)

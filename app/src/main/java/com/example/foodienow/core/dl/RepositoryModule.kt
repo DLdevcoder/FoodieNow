@@ -1,8 +1,10 @@
 package com.example.foodienow.core.dl
 
 import com.example.foodienow.data.repository.FoodRepositoryImpl
+import com.example.foodienow.data.repository.AuthRepositoryImpl
 import com.example.foodienow.data.repository.MerchantRepositoryImpl
 import com.example.foodienow.data.repository.OrderRepositoryImpl
+import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.CustomerFoodRepository
 import com.example.foodienow.domain.repository.MerchantRepository
 import com.example.foodienow.domain.repository.OrderRepository
@@ -15,6 +17,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        impl: AuthRepositoryImpl
+    ): AuthRepository
 
     @Binds
     @Singleton
