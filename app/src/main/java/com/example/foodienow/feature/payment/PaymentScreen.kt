@@ -22,37 +22,40 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-
-private enum class PaymentMethod(val label: String) {
-    COD("Thanh toan khi nhan hang"),
-    CARD("The ngan hang"),
-    WALLET("Vi dien tu")
-}
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
+import com.example.foodienow.domain.model.PaymentMethod
 
 @Composable
 fun PaymentScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: PaymentViewModel = hiltViewModel()
 ) {
     var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
     var deliveryAddress by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
-    var isProcessing by remember { mutableStateOf(false) }
-    var resultMessage by remember { mutableStateOf<String?>(null) }
+    val uiState by viewModel.uiState.collectAsState()
 
-    val canPay = deliveryAddress.isNotBlank() && !isProcessing
+    val canPay = deliveryAddress.isNotBlank() && !uiState.isProcessing
+
+    LaunchedEffect(deliveryAddress, note, selectedMethod) {
+        viewModel.clearMessage()
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Thanh toan") }
+                title = { Text(stringResource(R.string.payment_title)) }
             )
         }
     ) { padding ->
@@ -64,14 +67,14 @@ fun PaymentScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Thong tin don hang",
+                text = stringResource(R.string.payment_order_information),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-            Text("Tong tam tinh: 120.000 VND")
-            Text("Phi giao hang: 15.000 VND")
+            Text(stringResource(R.string.payment_subtotal))
+            Text(stringResource(R.string.payment_delivery_fee))
             Text(
-                text = "Tong thanh toan: 135.000 VND",
+                text = stringResource(R.string.payment_total),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -79,7 +82,7 @@ fun PaymentScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Phuong thuc thanh toan",
+                text = stringResource(R.string.payment_method_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -88,7 +91,15 @@ fun PaymentScreen(
                     FilterChip(
                         selected = selectedMethod == method,
                         onClick = { selectedMethod = method },
-                        label = { Text(method.label) }
+                        label = {
+                            Text(
+                                text = when (method) {
+                                    PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
+                                    PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
+                                    PaymentMethod.WALLET -> stringResource(R.string.payment_method_wallet)
+                                }
+                            )
+                        }
                     )
                 }
             }
@@ -97,10 +108,9 @@ fun PaymentScreen(
                 value = deliveryAddress,
                 onValueChange = {
                     deliveryAddress = it
-                    resultMessage = null
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Dia chi nhan hang") },
+                label = { Text(stringResource(R.string.payment_delivery_address_label)) },
                 singleLine = true
             )
 
@@ -108,13 +118,19 @@ fun PaymentScreen(
                 value = note,
                 onValueChange = {
                     note = it
-                    resultMessage = null
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Ghi chu (tuy chon)") }
+                label = { Text(stringResource(R.string.payment_note_label)) }
             )
 
-            resultMessage?.let { msg ->
+            uiState.errorMessage?.let { msg ->
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            uiState.infoMessage?.let { msg ->
                 Text(
                     text = msg,
                     color = MaterialTheme.colorScheme.primary
@@ -123,18 +139,22 @@ fun PaymentScreen(
 
             Button(
                 onClick = {
-                    isProcessing = true
-                    resultMessage = null
+                    viewModel.submitPayment(
+                        method = selectedMethod,
+                        deliveryAddress = deliveryAddress,
+                        note = note,
+                        amount = PAYMENT_TOTAL
+                    )
                 },
                 enabled = canPay,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (isProcessing) {
+                if (uiState.isProcessing) {
                     CircularProgressIndicator()
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Dang xu ly")
+                    Text(stringResource(R.string.payment_processing))
                 } else {
-                    Text("Xac nhan thanh toan")
+                    Text(stringResource(R.string.payment_confirm_button))
                 }
             }
 
@@ -142,18 +162,11 @@ fun PaymentScreen(
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Quay lai")
+                Text(stringResource(R.string.common_back))
             }
         }
     }
-
-    if (isProcessing) {
-        // Fake processing state to keep the flow visible before integrating real payment API.
-        androidx.compose.runtime.LaunchedEffect(Unit) {
-            delay(1200)
-            isProcessing = false
-            resultMessage = "Thanh toan thanh cong. Don hang dang cho xac nhan."
-        }
-    }
 }
+
+private const val PAYMENT_TOTAL = 135000.0
 

@@ -1,9 +1,12 @@
 package com.example.foodienow.data.repository
 
 import com.example.foodienow.data.local.AuthSessionDataStore
+import com.example.foodienow.domain.model.Profile
 import com.example.foodienow.domain.model.User
 import com.example.foodienow.domain.model.UserRole
 import com.example.foodienow.domain.repository.AuthRepository
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -17,7 +20,8 @@ import javax.inject.Singleton
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val authSessionDataStore: AuthSessionDataStore
+    private val authSessionDataStore: AuthSessionDataStore,
+    private val supabaseClient: SupabaseClient
 ) : AuthRepository {
 
     override suspend fun login(email: String, pass: String): Result<User> = withContext(Dispatchers.IO) {
@@ -42,9 +46,10 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             }
 
-            val user = userJson.toDomainUser(token)
-            authSessionDataStore.saveSession(user)
-            Result.success(user)
+            val baseUser = userJson.toDomainUser(token)
+            val resolvedUser = loadProfile(baseUser.id)?.toUser(baseUser.token) ?: baseUser
+            authSessionDataStore.saveSession(resolvedUser)
+            Result.success(resolvedUser)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -68,7 +73,19 @@ class AuthRepositoryImpl @Inject constructor(
 
             val userJson = response.body.optJSONObject("user") ?: JSONObject()
             val token = response.body.optString("access_token")
-            Result.success(userJson.toDomainUser(token))
+            val newUser = userJson.toDomainUser(token)
+
+            // Keep app-level account profile in database so profile data is not only local state.
+            upsertProfile(
+                Profile(
+                    id = newUser.id,
+                    email = newUser.email,
+                    fullName = newUser.name,
+                    role = role
+                )
+            )
+
+            Result.success(newUser)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -151,6 +168,33 @@ class AuthRepositoryImpl @Inject constructor(
             .ifBlank { "Khong the ket noi den he thong xac thuc." }
     }
 
+    private suspend fun loadProfile(userId: String): Profile? {
+        return runCatching {
+            supabaseClient.postgrest["profiles"]
+                .select {
+                    filter {
+                        eq("id", userId)
+                    }
+                }
+                .decodeList<Profile>()
+                .firstOrNull()
+        }.getOrNull()
+    }
+
+    private suspend fun upsertProfile(profile: Profile) {
+        runCatching {
+            try {
+                supabaseClient.postgrest["profiles"].insert(profile)
+            } catch (_: Exception) {
+                supabaseClient.postgrest["profiles"].update(profile) {
+                    filter {
+                        eq("id", profile.id)
+                    }
+                }
+            }
+        }
+    }
+
     private fun JSONObject.toDomainUser(token: String): User {
         val metadata = optJSONObject("user_metadata") ?: JSONObject()
         val role = metadata.optString("role")
@@ -168,6 +212,16 @@ class AuthRepositoryImpl @Inject constructor(
     private fun String.toUserRoleOrDefault(): UserRole {
         return runCatching { UserRole.valueOf(this.uppercase()) }
             .getOrDefault(UserRole.CUSTOMER)
+    }
+
+    private fun Profile.toUser(token: String): User {
+        return User(
+            id = id,
+            name = fullName,
+            email = email,
+            role = role,
+            token = token
+        )
     }
 
     private data class HttpResponseData(

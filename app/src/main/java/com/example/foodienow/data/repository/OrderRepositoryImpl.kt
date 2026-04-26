@@ -13,10 +13,14 @@ class OrderRepositoryImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
 ) : OrderRepository {
 
-    override suspend fun createOrder(order: Order): Result<Unit> {
+    override suspend fun createOrder(order: Order): Result<Order> {
         return try {
-            supabaseClient.postgrest["orders"].insert(order)
-            Result.success(Unit)
+            val insertedOrder = supabaseClient.postgrest["orders"]
+                .insert(order) {
+                    select()
+                }
+                .decodeSingle<Order>()
+            Result.success(insertedOrder)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -26,7 +30,18 @@ class OrderRepositoryImpl @Inject constructor(
         val response = supabaseClient.postgrest["orders"]
             .select {
                 filter {
-                    eq("merchantId", merchantId)
+                    eq("merchant_id", merchantId)
+                }
+            }
+            .decodeList<Order>()
+        emit(response)
+    }
+
+    override fun getOrdersByCustomer(customerId: String): Flow<List<Order>> = flow {
+        val response = supabaseClient.postgrest["orders"]
+            .select {
+                filter {
+                    eq("customer_id", customerId)
                 }
             }
             .decodeList<Order>()
@@ -37,7 +52,7 @@ class OrderRepositoryImpl @Inject constructor(
         val response = supabaseClient.postgrest["orders"]
             .select {
                 filter {
-                    eq("status", OrderStatus.PREPARING)
+                    eq("status", OrderStatus.PREPARING.name)
                     // In a real app, you might also check if shipperId is null
                 }
             }
@@ -49,7 +64,7 @@ class OrderRepositoryImpl @Inject constructor(
         return try {
             supabaseClient.postgrest["orders"].update(
                 {
-                    set("status", newStatus)
+                    set("status", newStatus.name)
                 }
             ) {
                 filter {

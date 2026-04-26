@@ -31,6 +31,7 @@ import com.example.foodienow.feature.auth.ForgotPasswordScreen
 import com.example.foodienow.feature.auth.LoginScreen
 import com.example.foodienow.feature.auth.RegisterScreen
 import com.example.foodienow.feature.auth.VerifyAccountScreen
+import com.example.foodienow.feature.activity.ActivityHistoryScreen
 import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.payment.PaymentScreen
@@ -112,12 +113,17 @@ fun AppNavigation() {
         composable(route = Screen.Profile.route) {
             ProfileScreen(
                 onBack = { navController.popBackStack() },
+                onNavigateToHistory = { navController.navigate(Screen.ActivityHistory.route) },
                 onLoggedOut = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.CustomerHome.route) { inclusive = true }
                     }
                 }
             )
+        }
+
+        composable(route = Screen.ActivityHistory.route) {
+            ActivityHistoryScreen(onBack = { navController.popBackStack() })
         }
 
         composable(route = Screen.Notifications.route) {

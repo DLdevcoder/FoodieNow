@@ -39,7 +39,33 @@
     <string name="profile_name_value">Name: %1$s</string>
     <string name="profile_email_value">Email: %1$s</string>
     <string name="profile_role_value">Role: %1$s</string>
+    <string name="profile_name_label">Full name</string>
+    <string name="profile_phone_label">Phone</string>
+    <string name="profile_address_label">Address</string>
+    <string name="profile_save_button">Save profile</string>
     <string name="profile_logout">Sign out</string>
+
+    <string name="payment_title">Payment</string>
+    <string name="payment_order_information">Order information</string>
+    <string name="payment_subtotal">Subtotal: 120,000 VND</string>
+    <string name="payment_delivery_fee">Delivery fee: 15,000 VND</string>
+    <string name="payment_total">Total: 135,000 VND</string>
+    <string name="payment_method_title">Payment method</string>
+    <string name="payment_method_cod">Cash on delivery</string>
+    <string name="payment_method_card">Bank card</string>
+    <string name="payment_method_wallet">E-wallet</string>
+    <string name="payment_delivery_address_label">Delivery address</string>
+    <string name="payment_note_label">Note (optional)</string>
+    <string name="payment_processing">Processing</string>
+    <string name="payment_confirm_button">Confirm payment</string>
+
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_unread_count">Unread: %1$d</string>
+    <string name="notifications_mark_all_read">Mark all as read</string>
+
+    <string name="activity_history_title">Activity history</string>
+    <string name="activity_history_empty">No activities yet.</string>
+    <string name="activity_history_time_unknown">Unknown time</string>
 
     <string name="settings_language_title">Language</string>
     <string name="settings_language_english">English</string>

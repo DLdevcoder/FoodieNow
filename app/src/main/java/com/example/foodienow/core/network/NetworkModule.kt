@@ -3,6 +3,7 @@ package com.example.foodienow.core.network
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
 import dagger.Module
 import dagger.Provides
@@ -27,6 +28,7 @@ object NetworkModule {
             install(Postgrest)
             install(Auth)
             install(Storage)
+            install(Realtime)
         }
     }
 }

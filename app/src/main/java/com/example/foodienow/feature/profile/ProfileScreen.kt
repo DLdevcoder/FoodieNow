@@ -4,6 +4,7 @@ package com.example.foodienow.feature.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,17 +15,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,26 +31,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.AppLanguage
 import com.example.foodienow.domain.model.ThemeMode
-import com.example.foodienow.domain.model.User
 import com.example.foodienow.feature.auth.AuthViewModel
 import com.example.foodienow.feature.settings.UiPreferencesViewModel
 
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     onLoggedOut: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
+    profileViewModel: ProfileViewModel = hiltViewModel(),
     uiPreferencesViewModel: UiPreferencesViewModel = hiltViewModel()
 ) {
-    var user by remember { mutableStateOf<User?>(null) }
-    var isLoadingProfile by remember { mutableStateOf(true) }
-    var isLoggingOut by remember { mutableStateOf(false) }
+    val profileUiState by profileViewModel.uiState.collectAsState()
     val uiPreferences by uiPreferencesViewModel.uiPreferences.collectAsState()
-
-    LaunchedEffect(Unit) {
-        user = authViewModel.resolveStoredSession()
-        isLoadingProfile = false
-    }
 
     Scaffold(
         topBar = {
@@ -61,7 +53,7 @@ fun ProfileScreen(
             )
         }
     ) { padding ->
-        if (isLoadingProfile) {
+        if (profileUiState.isLoading) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -85,9 +77,58 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            Text(stringResource(R.string.profile_name_value, user?.name.orEmpty()))
-            Text(stringResource(R.string.profile_email_value, user?.email.orEmpty()))
-            Text(stringResource(R.string.profile_role_value, user?.role?.toDisplayName() ?: "N/A"))
+
+            profileUiState.profile?.let { profile ->
+                OutlinedTextField(
+                    value = profile.fullName,
+                    onValueChange = profileViewModel::onFullNameChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.profile_name_label)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = profile.email,
+                    onValueChange = { },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.auth_email_label)) },
+                    enabled = false,
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = profile.phone.orEmpty(),
+                    onValueChange = profileViewModel::onPhoneChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.profile_phone_label)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = profile.address.orEmpty(),
+                    onValueChange = profileViewModel::onAddressChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.profile_address_label)) }
+                )
+                Text(stringResource(R.string.profile_role_value, profile.role.toDisplayName()))
+
+                Button(
+                    onClick = profileViewModel::saveProfile,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !profileUiState.isSaving
+                ) {
+                    if (profileUiState.isSaving) {
+                        CircularProgressIndicator()
+                    } else {
+                        Text(stringResource(R.string.profile_save_button))
+                    }
+                }
+            }
+
+            profileUiState.errorMessage?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.error)
+            }
+
+            profileUiState.infoMessage?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.primary)
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -96,7 +137,7 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-            androidx.compose.foundation.layout.Row(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -122,7 +163,7 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-            androidx.compose.foundation.layout.Row(
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -138,19 +179,24 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
+                onClick = onNavigateToHistory,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !profileUiState.isSaving
+            ) {
+                Text(stringResource(R.string.activity_history_title))
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
                 onClick = {
-                    isLoggingOut = true
                     authViewModel.logout()
                     onLoggedOut()
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoggingOut
+                enabled = !profileUiState.isSaving
             ) {
-                if (isLoggingOut) {
-                    CircularProgressIndicator()
-                } else {
-                    Text(stringResource(R.string.profile_logout))
-                }
+                Text(stringResource(R.string.profile_logout))
             }
 
             TextButton(

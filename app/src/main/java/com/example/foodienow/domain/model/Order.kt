@@ -1,5 +1,9 @@
 package com.example.foodienow.domain.model
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class OrderStatus {
     PENDING,    // Chờ chủ quán xác nhận
     PREPARING,  // Đang chuẩn bị món
@@ -8,19 +12,15 @@ enum class OrderStatus {
     CANCELLED   // Đã hủy
 }
 
-// Định nghĩa 1 món trong giỏ hàng (Món ăn + Số lượng)
-data class CartItem(
-    val food: Food,
-    val quantity: Int
-)
-
-// Toàn bộ thông tin của 1 đơn hàng
+@Serializable
 data class Order(
-    val id: String,
-    val customerId: String,
-    val merchantId: String,
-    val shipperId: String? = null,
-    val items: List<CartItem>,
-    val totalPrice: Double,
-    val status: OrderStatus
+    val id: String? = null,
+    @SerialName("customer_id") val customerId: String,
+    @SerialName("merchant_id") val merchantId: String? = null,
+    @SerialName("shipper_id") val shipperId: String? = null,
+    @SerialName("total_price") val totalPrice: Double,
+    val status: OrderStatus = OrderStatus.PENDING,
+    @SerialName("delivery_address") val deliveryAddress: String,
+    val note: String? = null,
+    @SerialName("created_at") val createdAt: String? = null
 )

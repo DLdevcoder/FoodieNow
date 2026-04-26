@@ -1,69 +1,90 @@
 package com.example.foodienow.feature.notification
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.foodienow.domain.model.AppNotification
+import com.example.foodienow.domain.repository.AuthRepository
+import com.example.foodienow.domain.repository.NotificationRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
-data class AppNotification(
-    val id: String,
-    val title: String,
-    val message: String,
-    val timestampLabel: String,
-    val isRead: Boolean
-)
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class NotificationUiState(
-    val notifications: List<AppNotification> = emptyList()
+    val isLoading: Boolean = true,
+    val notifications: List<AppNotification> = emptyList(),
+    val errorMessage: String? = null
 ) {
     val unreadCount: Int = notifications.count { !it.isRead }
 }
 
-class NotificationViewModel : ViewModel() {
+@HiltViewModel
+class NotificationViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val notificationRepository: NotificationRepository
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(
-        NotificationUiState(
-            notifications = listOf(
-                AppNotification(
-                    id = "n1",
-                    title = "Don hang moi",
-                    message = "Don hang #FN2401 da duoc tao thanh cong.",
-                    timestampLabel = "Vua xong",
-                    isRead = false
-                ),
-                AppNotification(
-                    id = "n2",
-                    title = "Cap nhat giao hang",
-                    message = "Shipper dang tren duong giao don #FN2398.",
-                    timestampLabel = "10 phut truoc",
-                    isRead = false
-                ),
-                AppNotification(
-                    id = "n3",
-                    title = "Khuyen mai",
-                    message = "Giam 20% cho don tu 120.000 VND hom nay.",
-                    timestampLabel = "Hom qua",
-                    isRead = true
-                )
-            )
-        )
-    )
+    private val _uiState = MutableStateFlow(NotificationUiState())
     val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
 
-    fun markAsRead(id: String) {
-        _uiState.update { state ->
-            state.copy(
-                notifications = state.notifications.map { item ->
-                    if (item.id == id) item.copy(isRead = true) else item
+    private var currentUserId: String? = null
+
+    init {
+        observeNotifications()
+    }
+
+    private fun observeNotifications() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val user = authRepository.getAuthState().first()
+            if (user == null) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        notifications = emptyList(),
+                        errorMessage = "Khong tim thay phien dang nhap."
+                    )
                 }
-            )
+                return@launch
+            }
+
+            currentUserId = user.id
+            notificationRepository.observeNotifications(user.id).collect { notifications ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        notifications = notifications,
+                        errorMessage = null
+                    )
+                }
+            }
+        }
+    }
+
+    fun markAsRead(id: String) {
+        viewModelScope.launch {
+            notificationRepository.markAsRead(id)
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(errorMessage = error.message ?: "Khong cap nhat duoc thong bao.")
+                    }
+                }
         }
     }
 
     fun markAllAsRead() {
-        _uiState.update { state ->
-            state.copy(notifications = state.notifications.map { it.copy(isRead = true) })
+        val userId = currentUserId ?: return
+        viewModelScope.launch {
+            notificationRepository.markAllAsRead(userId)
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(errorMessage = error.message ?: "Khong cap nhat duoc thong bao.")
+                    }
+                }
         }
     }
 }
