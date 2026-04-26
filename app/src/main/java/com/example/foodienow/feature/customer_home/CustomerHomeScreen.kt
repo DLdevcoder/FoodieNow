@@ -6,7 +6,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,6 +37,9 @@ import com.example.foodienow.feature.customer_home.components.FoodDetailBottomSh
 fun CustomerHomeScreen(
     viewModel: CustomerHomeViewModel = hiltViewModel(),
     onNavigateToCart: () -> Unit,
+    onNavigateToPayment: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToNotifications: () -> Unit,
     onNavigateToFoodDetail: (Food) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -48,6 +55,22 @@ fun CustomerHomeScreen(
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
+                },
+                actions = {
+                    IconButton(onClick = onNavigateToNotifications) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Thong bao",
+                            tint = Color.White
+                        )
+                    }
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Ho so",
+                            tint = Color.White
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = ColorPrimary
@@ -82,6 +105,30 @@ fun CustomerHomeScreen(
             )
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onNavigateToCart,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.ShoppingCart, contentDescription = null)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Gio hang")
+                }
+                Button(
+                    onClick = onNavigateToPayment,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Wallet, contentDescription = null)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Thanh toan")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Gợi ý",

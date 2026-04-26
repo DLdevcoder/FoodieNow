@@ -29,10 +29,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.UserRole
 
 @Composable
@@ -52,6 +54,10 @@ fun RegisterScreen(
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
     val isEmailValid = email.isNotBlank() && EMAIL_REGEX.matches(email.trim())
+    val emptyEmailPasswordError = stringResource(R.string.auth_error_empty_email_password)
+    val invalidEmailError = stringResource(R.string.auth_error_invalid_email)
+    val minPasswordError = stringResource(R.string.auth_error_password_min_length)
+    val passwordMismatchError = stringResource(R.string.auth_error_password_mismatch)
 
     LaunchedEffect(uiState.pendingVerificationEmail) {
         uiState.pendingVerificationEmail?.let { emailForVerify ->
@@ -67,7 +73,7 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Dang ky", style = MaterialTheme.typography.headlineMedium)
+        Text(text = stringResource(R.string.auth_register_title), style = MaterialTheme.typography.headlineMedium)
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -78,7 +84,7 @@ fun RegisterScreen(
                 localError = null
                 viewModel.clearMessage()
             },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.auth_email_label)) },
             modifier = Modifier.fillMaxWidth(),
             isError = email.isNotBlank() && !isEmailValid,
             singleLine = true
@@ -93,13 +99,17 @@ fun RegisterScreen(
                 localError = null
                 viewModel.clearMessage()
             },
-            label = { Text("Mat khau") },
+            label = { Text(stringResource(R.string.auth_password_label)) },
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                     Icon(
                         imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (isPasswordVisible) "An mat khau" else "Hien mat khau"
+                        contentDescription = if (isPasswordVisible) {
+                            stringResource(R.string.auth_hide_password)
+                        } else {
+                            stringResource(R.string.auth_show_password)
+                        }
                     )
                 }
             },
@@ -116,13 +126,17 @@ fun RegisterScreen(
                 localError = null
                 viewModel.clearMessage()
             },
-            label = { Text("Nhap lai mat khau") },
+            label = { Text(stringResource(R.string.auth_confirm_password_label)) },
             visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
                     Icon(
                         imageVector = if (isConfirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (isConfirmPasswordVisible) "An xac nhan mat khau" else "Hien xac nhan mat khau"
+                        contentDescription = if (isConfirmPasswordVisible) {
+                            stringResource(R.string.auth_hide_confirm_password)
+                        } else {
+                            stringResource(R.string.auth_show_confirm_password)
+                        }
                     )
                 }
             },
@@ -132,13 +146,13 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "Vai tro", modifier = Modifier.fillMaxWidth())
+        Text(text = stringResource(R.string.auth_role_label), modifier = Modifier.fillMaxWidth())
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             UserRole.entries.forEach { role ->
                 FilterChip(
                     selected = selectedRole == role,
                     onClick = { selectedRole = role },
-                    label = { Text(role.name) }
+                    label = { Text(role.toDisplayName()) }
                 )
             }
         }
@@ -163,16 +177,16 @@ fun RegisterScreen(
             onClick = {
                 when {
                     email.isBlank() || password.isBlank() -> {
-                        localError = "Email va mat khau khong duoc de trong."
+                        localError = emptyEmailPasswordError
                     }
                     !isEmailValid -> {
-                        localError = "Email khong dung dinh dang."
+                        localError = invalidEmailError
                     }
                     password.length < 6 -> {
-                        localError = "Mat khau toi thieu 6 ky tu."
+                        localError = minPasswordError
                     }
                     password != confirmPassword -> {
-                        localError = "Mat khau nhap lai khong khop."
+                        localError = passwordMismatchError
                     }
                     else -> {
                         localError = null
@@ -186,7 +200,7 @@ fun RegisterScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator()
             } else {
-                Text("Tao tai khoan")
+                Text(stringResource(R.string.auth_create_account_button))
             }
         }
 
@@ -194,8 +208,17 @@ fun RegisterScreen(
             onClick = onBackToLogin,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Da co tai khoan? Quay lai dang nhap")
+            Text(stringResource(R.string.auth_back_to_login_action))
         }
+    }
+}
+
+@Composable
+private fun UserRole.toDisplayName(): String {
+    return when (this) {
+        UserRole.CUSTOMER -> stringResource(R.string.role_customer)
+        UserRole.MERCHANT -> stringResource(R.string.role_merchant)
+        UserRole.SHIPPER -> stringResource(R.string.role_shipper)
     }
 }
 

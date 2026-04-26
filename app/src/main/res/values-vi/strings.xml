@@ -1,0 +1,60 @@
+<resources>
+    <string name="app_name">FoodieNow</string>
+    <string name="common_back">Quay lai</string>
+
+    <string name="auth_checking_session">Dang kiem tra phien dang nhap...</string>
+    <string name="auth_login_title">Dang nhap</string>
+    <string name="auth_register_title">Dang ky</string>
+    <string name="auth_email_label">Email</string>
+    <string name="auth_password_label">Mat khau</string>
+    <string name="auth_confirm_password_label">Nhap lai mat khau</string>
+    <string name="auth_role_label">Vai tro</string>
+    <string name="auth_hide_password">An mat khau</string>
+    <string name="auth_show_password">Hien mat khau</string>
+    <string name="auth_hide_confirm_password">An xac nhan mat khau</string>
+    <string name="auth_show_confirm_password">Hien xac nhan mat khau</string>
+    <string name="auth_login_button">Dang nhap</string>
+    <string name="auth_create_account_button">Tao tai khoan</string>
+    <string name="auth_forgot_password_action">Quen mat khau?</string>
+    <string name="auth_register_action">Chua co tai khoan? Dang ky</string>
+    <string name="auth_back_to_login_action">Da co tai khoan? Quay lai dang nhap</string>
+    <string name="auth_back_to_login">Quay lai dang nhap</string>
+    <string name="auth_try_again_in_seconds">Thu lai sau %1$ds</string>
+    <string name="auth_error_empty_email_password">Email va mat khau khong duoc de trong.</string>
+    <string name="auth_error_invalid_email">Email khong dung dinh dang.</string>
+    <string name="auth_error_password_min_length">Mat khau toi thieu 6 ky tu.</string>
+    <string name="auth_error_password_mismatch">Mat khau nhap lai khong khop.</string>
+
+    <string name="auth_verify_title">Xac thuc tai khoan</string>
+    <string name="auth_verify_sent_to">He thong da gui email xac thuc den:</string>
+    <string name="auth_verify_instruction">Sau khi bam link trong email, hay quay lai dang nhap.</string>
+    <string name="auth_verify_resend">Gui lai email xac thuc</string>
+    <string name="auth_verify_back_to_login">Toi da xac thuc, quay lai dang nhap</string>
+
+    <string name="auth_forgot_password_title">Khoi phuc mat khau</string>
+    <string name="auth_forgot_password_send">Gui email khoi phuc</string>
+
+    <string name="profile_title">Ho so</string>
+    <string name="profile_account_information">Thong tin tai khoan</string>
+    <string name="profile_name_value">Ten: %1$s</string>
+    <string name="profile_email_value">Email: %1$s</string>
+    <string name="profile_role_value">Vai tro: %1$s</string>
+    <string name="profile_logout">Dang xuat</string>
+
+    <string name="settings_language_title">Ngon ngu</string>
+    <string name="settings_language_english">Tieng Anh</string>
+    <string name="settings_language_vietnamese">Tieng Viet</string>
+    <string name="settings_theme_title">Giao dien</string>
+    <string name="settings_theme_system">Theo he thong</string>
+    <string name="settings_theme_light">Sang</string>
+    <string name="settings_theme_dark">Toi</string>
+
+    <string name="role_customer">Khach hang</string>
+    <string name="role_merchant">Nguoi ban</string>
+    <string name="role_shipper">Shipper</string>
+
+    <string name="nav_cart">Gio hang</string>
+    <string name="nav_merchant_home">Trang Merchant</string>
+    <string name="nav_shipper_home">Trang Shipper</string>
+</resources>
+

@@ -27,16 +27,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.User
 import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(
     onNavigateRegister: () -> Unit,
+    onNavigateForgotPassword: () -> Unit,
     onLoginSuccess: (User) -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -70,7 +73,7 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Dang nhap", style = MaterialTheme.typography.headlineMedium)
+        Text(text = stringResource(R.string.auth_login_title), style = MaterialTheme.typography.headlineMedium)
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -80,7 +83,7 @@ fun LoginScreen(
                 email = it
                 viewModel.clearMessage()
             },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.auth_email_label)) },
             modifier = Modifier.fillMaxWidth(),
             isError = email.isNotBlank() && !isEmailValid,
             singleLine = true
@@ -94,7 +97,7 @@ fun LoginScreen(
                 password = it
                 viewModel.clearMessage()
             },
-            label = { Text("Mat khau") },
+            label = { Text(stringResource(R.string.auth_password_label)) },
             modifier = Modifier.fillMaxWidth(),
             isError = password.isNotBlank() && !isPasswordValid,
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -102,7 +105,11 @@ fun LoginScreen(
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                     Icon(
                         imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (isPasswordVisible) "An mat khau" else "Hien mat khau"
+                        contentDescription = if (isPasswordVisible) {
+                            stringResource(R.string.auth_hide_password)
+                        } else {
+                            stringResource(R.string.auth_show_password)
+                        }
                     )
                 }
             },
@@ -130,27 +137,27 @@ fun LoginScreen(
                 CircularProgressIndicator()
             } else {
                 val title = if (uiState.remainingCooldownSeconds > 0) {
-                    "Thu lai sau ${uiState.remainingCooldownSeconds}s"
+                    stringResource(R.string.auth_try_again_in_seconds, uiState.remainingCooldownSeconds)
                 } else {
-                    "Dang nhap"
+                    stringResource(R.string.auth_login_button)
                 }
                 Text(title)
             }
         }
 
         TextButton(
-            onClick = { viewModel.forgotPassword(email) },
+            onClick = onNavigateForgotPassword,
             modifier = Modifier.fillMaxWidth(),
             enabled = !uiState.isLoading
         ) {
-            Text("Quen mat khau?")
+            Text(stringResource(R.string.auth_forgot_password_action))
         }
 
         TextButton(
             onClick = onNavigateRegister,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Chua co tai khoan? Dang ky")
+            Text(stringResource(R.string.auth_register_action))
         }
     }
 }

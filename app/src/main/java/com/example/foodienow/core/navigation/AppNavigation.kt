@@ -15,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -22,13 +23,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.User
 import com.example.foodienow.domain.model.UserRole
 import com.example.foodienow.feature.auth.AuthViewModel
+import com.example.foodienow.feature.auth.ForgotPasswordScreen
 import com.example.foodienow.feature.auth.LoginScreen
 import com.example.foodienow.feature.auth.RegisterScreen
 import com.example.foodienow.feature.auth.VerifyAccountScreen
 import com.example.foodienow.feature.customer_home.CustomerHomeScreen
+import com.example.foodienow.feature.notification.NotificationScreen
+import com.example.foodienow.feature.payment.PaymentScreen
+import com.example.foodienow.feature.profile.ProfileScreen
 
 @Composable
 fun AppNavigation() {
@@ -48,12 +54,17 @@ fun AppNavigation() {
         composable(route = Screen.Login.route) {
             LoginScreen(
                 onNavigateRegister = { navController.navigate(Screen.Register.route) },
+                onNavigateForgotPassword = { navController.navigate(Screen.ForgotPassword.route) },
                 onLoginSuccess = { user ->
                     navController.navigate(user.homeRoute()) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
             )
+        }
+
+        composable(route = Screen.ForgotPassword.route) {
+            ForgotPasswordScreen(onBackToLogin = { navController.popBackStack() })
         }
 
         composable(route = Screen.Register.route) {
@@ -83,20 +94,42 @@ fun AppNavigation() {
         composable(route = Screen.CustomerHome.route) {
             CustomerHomeScreen(
                 onNavigateToCart = { navController.navigate(Screen.Cart.route) },
+                onNavigateToPayment = { navController.navigate(Screen.Payment.route) },
+                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
+                onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
                 onNavigateToFoodDetail = { }
             )
         }
 
         composable(route = Screen.Cart.route) {
-            PlaceholderScreen(title = "Gio hang", onBack = { navController.popBackStack() })
+            PlaceholderScreen(title = stringResource(R.string.nav_cart), onBack = { navController.popBackStack() })
+        }
+
+        composable(route = Screen.Payment.route) {
+            PaymentScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(route = Screen.Profile.route) {
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onLoggedOut = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.CustomerHome.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(route = Screen.Notifications.route) {
+            NotificationScreen(onBack = { navController.popBackStack() })
         }
 
         composable(route = Screen.MerchantHome.route) {
-            PlaceholderScreen(title = "Trang Merchant")
+            PlaceholderScreen(title = stringResource(R.string.nav_merchant_home))
         }
 
         composable(route = Screen.ShipperHome.route) {
-            PlaceholderScreen(title = "Trang Shipper")
+            PlaceholderScreen(title = stringResource(R.string.nav_shipper_home))
         }
     }
 }
@@ -121,7 +154,7 @@ private fun AuthGateScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CircularProgressIndicator()
-            Text(text = "Dang kiem tra phien dang nhap...")
+            Text(text = stringResource(R.string.auth_checking_session))
         }
     }
 }
@@ -144,7 +177,7 @@ private fun PlaceholderScreen(title: String, onBack: (() -> Unit)? = null) {
         Text(text = title, style = MaterialTheme.typography.headlineMedium)
         if (onBack != null) {
             Button(onClick = onBack) {
-                Text("Quay lai")
+                Text(stringResource(R.string.common_back))
             }
         }
     }
