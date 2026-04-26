@@ -1,11 +1,15 @@
 package com.example.foodienow.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class UserRole {
     CUSTOMER,
     MERCHANT,
     SHIPPER
 }
 
+@Serializable
 data class User(
     val id: String,
     val name: String,

@@ -49,6 +49,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt:$supabaseVersion")
     implementation("io.github.jan-tennert.supabase:gotrue-kt:$supabaseVersion")
     implementation("io.github.jan-tennert.supabase:storage-kt:${supabaseVersion}")
+    implementation("io.github.jan-tennert.supabase:realtime-kt:${supabaseVersion}")
 
     // Ktor & Serialization
     implementation("io.ktor:ktor-client-android:2.3.11")

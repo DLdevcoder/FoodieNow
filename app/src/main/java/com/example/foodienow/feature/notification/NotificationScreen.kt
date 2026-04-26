@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,28 +24,47 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
+import com.example.foodienow.domain.model.AppNotification
 
 @Composable
 fun NotificationScreen(
     onBack: () -> Unit,
-    viewModel: NotificationViewModel = viewModel()
+    viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Thong bao") }
+                title = { Text(stringResource(R.string.notifications_title)) }
             )
         }
     ) { padding ->
+        if (uiState.isLoading) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(modifier = Modifier.padding(start = 16.dp))
+            }
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp)
         ) {
+            uiState.errorMessage?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.error)
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -52,17 +72,20 @@ fun NotificationScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Chua doc: ${uiState.unreadCount}")
+                Text(stringResource(R.string.notifications_unread_count, uiState.unreadCount))
                 TextButton(onClick = viewModel::markAllAsRead) {
-                    Text("Danh dau da doc")
+                    Text(stringResource(R.string.notifications_mark_all_read))
                 }
             }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(uiState.notifications, key = { it.id }) { item ->
+                items(
+                    uiState.notifications,
+                    key = { it.id ?: "${it.createdAt}-${it.title}" }
+                ) { item ->
                     NotificationCard(
                         item = item,
-                        onClick = { viewModel.markAsRead(item.id) }
+                        onClick = { item.id?.let(viewModel::markAsRead) }
                     )
                 }
                 item {
@@ -71,7 +94,7 @@ fun NotificationScreen(
                         onClick = onBack,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Quay lai")
+                        Text(stringResource(R.string.common_back))
                     }
                 }
             }
@@ -112,7 +135,11 @@ private fun NotificationCard(
             Spacer(modifier = Modifier.height(2.dp))
             Text(item.message)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(item.timestampLabel, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(
+                item.createdAt ?: "-",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray
+            )
         }
     }
 }
