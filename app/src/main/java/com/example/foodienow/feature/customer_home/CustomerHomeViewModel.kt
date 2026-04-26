@@ -16,12 +16,12 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = false,
     val recommendedFoods: List<Food> = emptyList(),
-    val searchQuery: String = ""
+    val searchQuery: String = "",
+    val searchResults: List<Food> = emptyList(),
 )
 
 @HiltViewModel
 class CustomerHomeViewModel @Inject constructor(
-    // TIÊM (INJECT) REPOSITORY VÀO ĐÂY
     private val foodRepository: CustomerFoodRepository
 ) : ViewModel() {
 
@@ -29,17 +29,15 @@ class CustomerHomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        loadRealData() // Vừa vào màn hình là gọi data thật luôn
+        loadRealData()
     }
 
     private fun loadRealData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) } // Bật loading xoay xoay
+            _uiState.update { it.copy(isLoading = true) }
 
             try {
-                // Gọi hàm lấy dữ liệu từ Supabase và lắng nghe kết quả (collect)
                 foodRepository.getRecommendedFoods().collect { realFoods ->
-                    // Thành công: Đưa list món ăn lấy được vào State để UI tự vẽ lại
                     _uiState.update {
                         it.copy(isLoading = false, recommendedFoods = realFoods)
                     }
@@ -54,6 +52,19 @@ class CustomerHomeViewModel @Inject constructor(
     }
 
     fun onSearchQueryChange(newQuery: String) {
-        _uiState.update { it.copy(searchQuery = newQuery) }
+        _uiState.update { state ->
+            val filteredList = if (newQuery.isBlank()) {
+                emptyList()
+            } else {
+                state.recommendedFoods.filter { food ->
+                    food.name.contains(newQuery, ignoreCase = true)
+                }
+            }
+
+            state.copy(
+                searchQuery = newQuery,
+                searchResults = filteredList
+            )
+        }
     }
 }

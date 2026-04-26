@@ -51,7 +51,7 @@ fun FoodItemCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = food.name, fontWeight = FontWeight.Bold, color = Color.Black)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "${food.price} VNĐ", color = ColorPrimaryDark, fontWeight = FontWeight.Bold)
+                Text(text = food.price.formatPrice(), color = ColorPrimaryDark, fontWeight = FontWeight.Bold)
             }
 
             IconButton(

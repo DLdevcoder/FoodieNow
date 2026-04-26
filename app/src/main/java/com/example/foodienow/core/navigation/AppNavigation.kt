@@ -31,6 +31,7 @@ import com.example.foodienow.feature.auth.ForgotPasswordScreen
 import com.example.foodienow.feature.auth.LoginScreen
 import com.example.foodienow.feature.auth.RegisterScreen
 import com.example.foodienow.feature.auth.VerifyAccountScreen
+import com.example.foodienow.feature.cart.CartScreen
 import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.payment.PaymentScreen
@@ -94,7 +95,6 @@ fun AppNavigation() {
         composable(route = Screen.CustomerHome.route) {
             CustomerHomeScreen(
                 onNavigateToCart = { navController.navigate(Screen.Cart.route) },
-                onNavigateToPayment = { navController.navigate(Screen.Payment.route) },
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
                 onNavigateToFoodDetail = { }
@@ -102,7 +102,16 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.Cart.route) {
-            PlaceholderScreen(title = stringResource(R.string.nav_cart), onBack = { navController.popBackStack() })
+            // Thay PlaceholderScreen bằng CartScreen thực tế
+            CartScreen(
+                onBackClick = { navController.popBackStack() },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route)
+                },
+                onNavigateToCheckout = { userId ->
+                    navController.navigate(Screen.Payment.route)
+                }
+            )
         }
 
         composable(route = Screen.Payment.route) {

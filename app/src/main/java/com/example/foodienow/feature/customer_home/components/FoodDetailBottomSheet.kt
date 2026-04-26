@@ -71,7 +71,7 @@ fun FoodDetailBottomSheet(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = "${food.price} đ",
+                    text = food.price.formatPrice(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = ColorPrimaryDark
