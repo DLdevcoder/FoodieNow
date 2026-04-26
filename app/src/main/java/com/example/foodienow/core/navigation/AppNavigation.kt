@@ -9,12 +9,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,6 +36,8 @@ import com.example.foodienow.feature.auth.RegisterScreen
 import com.example.foodienow.feature.auth.VerifyAccountScreen
 import com.example.foodienow.feature.cart.CartScreen
 import com.example.foodienow.feature.customer_home.CustomerHomeScreen
+import com.example.foodienow.feature.customer_home.FoodDetailScreen
+import com.example.foodienow.feature.customer_home.FoodDetailViewModel
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.payment.PaymentScreen
 import com.example.foodienow.feature.profile.ProfileScreen
@@ -98,7 +102,8 @@ fun AppNavigation() {
                 onNavigateToCart = { navController.navigate(Screen.Cart.route) },
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
-                onNavigateToFoodDetail = { }
+                onNavigateToFoodDetail = {food ->
+                    navController.navigate("food_detail/${food.id}") }
             )
         }
 
@@ -129,6 +134,35 @@ fun AppNavigation() {
                     }
                 }
             )
+        }
+
+        composable(
+            route = "food_detail/{foodId}",
+            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+        ) {
+            val viewModel: FoodDetailViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
+
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (uiState.error != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "Lỗi: ${uiState.error}", color = MaterialTheme.colorScheme.error)
+                }
+            } else if (uiState.food != null && uiState.store != null) {
+                FoodDetailScreen(
+                    food = uiState.food!!,
+                    store = uiState.store!!,
+                    reviews = uiState.reviews,
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToCart = { navController.navigate(Screen.Cart.route) },
+                    onNavigateToStore = { storeId ->
+                        // navController.navigate("store_detail/$storeId")
+                    }
+                )
+            }
         }
 
         composable(route = Screen.ActivityHistory.route) {

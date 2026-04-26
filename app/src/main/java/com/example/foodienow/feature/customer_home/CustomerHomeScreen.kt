@@ -191,7 +191,6 @@ fun CustomerHomeScreen(
             food = food,
             onDismiss = { selectedFoodForSheet = null },
             onAddToCart = { addedFood, quantity ->
-                // SỬA TẠI ĐÂY: Gọi repo hoặc VM để lưu vào giỏ thật
                 cartViewModel.addToCart(addedFood, quantity)
                 selectedFoodForSheet = null
             }

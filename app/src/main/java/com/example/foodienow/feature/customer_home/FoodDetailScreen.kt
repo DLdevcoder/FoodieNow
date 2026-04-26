@@ -1,12 +1,15 @@
 package com.example.foodienow.feature.customer_home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -25,13 +28,19 @@ import com.example.foodienow.core.designsystem.theme.ColorPrimary
 import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
 import com.example.foodienow.core.designsystem.theme.ColorSurfaceLight
 import com.example.foodienow.domain.model.Food
+import com.example.foodienow.domain.model.ReviewUiModel
+import com.example.foodienow.domain.model.Store
+import com.example.foodienow.feature.customer_home.components.formatPrice
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodDetailScreen(
     food: Food,
+    store: Store,
+    reviews: List<ReviewUiModel>,
     onBackClick: () -> Unit,
-    onNavigateToCart: () -> Unit
+    onNavigateToCart: () -> Unit,
+    onNavigateToStore: (String) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -55,7 +64,6 @@ fun FoodDetailScreen(
                     .navigationBarsPadding(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Nút Giỏ hàng
                 IconButton(
                     onClick = onNavigateToCart,
                     modifier = Modifier.weight(0.2f)
@@ -63,7 +71,7 @@ fun FoodDetailScreen(
                     Icon(Icons.Default.ShoppingCart, contentDescription = "Giỏ hàng", tint = ColorPrimaryDark)
                 }
 
-                // Nút Thêm vào giỏ (Màu cam nhạt)
+                // Nút Thêm vào giỏ
                 Button(
                     onClick = { /* TODO */ },
                     colors = ButtonDefaults.buttonColors(containerColor = ColorSurfaceLight),
@@ -73,7 +81,6 @@ fun FoodDetailScreen(
                     Text("Thêm vào giỏ", color = ColorPrimaryDark, fontWeight = FontWeight.Bold)
                 }
 
-                // Nút Mua ngay (Màu cam đậm)
                 Button(
                     onClick = { /* TODO: Mở màn hình thanh toán luôn */ },
                     colors = ButtonDefaults.buttonColors(containerColor = ColorPrimaryDark),
@@ -106,7 +113,7 @@ fun FoodDetailScreen(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "${food.price} VNĐ",
+                    text = food.price.formatPrice(),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = ColorPrimaryDark
@@ -119,7 +126,7 @@ fun FoodDetailScreen(
                     color = Color.Black
                 )
 
-                // Rating & Đã bán
+                // Rating & Đã bán (Dữ liệu tĩnh tạm thời theo mẫu)
                 Row(
                     modifier = Modifier.padding(top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -132,6 +139,56 @@ fun FoodDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Khối Thông tin Cửa hàng
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .clickable { onNavigateToStore(store.id) }
+                    .padding(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AsyncImage(
+                        model = store.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(ColorSurfaceLight),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = store.name,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            if (store.reviewCount > 0) {
+                                Text(
+                                    text = "${String.format("%.1f", store.rating)} (${if (store.reviewCount > 999) "999+" else store.reviewCount} đánh giá)",
+                                    fontSize = 12.sp,
+                                    color = Color.DarkGray
+                                )
+                            } else {
+                                Text(text = "Chưa có đánh giá", fontSize = 12.sp, color = Color.Gray)
+                            }
+                        }
+                    }
+                    Icon(Icons.Default.ChevronRight, contentDescription = "Xem quán", tint = Color.Gray)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Khối Chi tiết món ăn
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -149,6 +206,7 @@ fun FoodDetailScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Khối Đánh giá
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -166,26 +224,68 @@ fun FoodDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                if (reviews.isEmpty()) {
+                    Text("Chưa có đánh giá nào cho món ăn này.", color = Color.Gray, fontSize = 14.sp)
+                } else {
+                    reviews.take(3).forEach { review ->
+                        ReviewItem(review = review)
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-fun ReviewItem(name: String, rating: Int, comment: String) {
+fun ReviewItem(review: ReviewUiModel) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Avatar giả
-            Box(
-                modifier = Modifier.size(32.dp).clip(RoundedCornerShape(50)).background(ColorSurfaceLight),
-                contentAlignment = Alignment.Center
-            ) { Text(text = name.first().toString(), color = ColorPrimaryDark, fontWeight = FontWeight.Bold) }
+            if (!review.userAvatarUrl.isNullOrEmpty()) {
+                AsyncImage(
+                    model = review.userAvatarUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(ColorSurfaceLight),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = review.userName.firstOrNull()?.toString()?.uppercase() ?: "U",
+                        color = ColorPrimaryDark,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.width(8.dp))
+
             Column {
-                Text(text = name, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Row { repeat(rating) { Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFD700), modifier = Modifier.size(12.dp)) } }
+                Text(text = review.userName, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    repeat(5) { index ->
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = null,
+                            tint = if (index < review.rating) Color(0xFFFFD700) else Color.LightGray,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = review.date, fontSize = 12.sp, color = Color.Gray)
+                }
             }
         }
-        Text(text = comment, modifier = Modifier.padding(top = 8.dp), fontSize = 14.sp, color = Color.DarkGray)
+        Text(text = review.comment, modifier = Modifier.padding(top = 8.dp), fontSize = 14.sp, color = Color.DarkGray)
     }
 }

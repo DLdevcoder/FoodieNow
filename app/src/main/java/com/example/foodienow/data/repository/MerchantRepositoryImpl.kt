@@ -1,6 +1,7 @@
 package com.example.foodienow.data.repository
 
 import com.example.foodienow.domain.model.Food
+import com.example.foodienow.domain.model.Store
 import com.example.foodienow.domain.repository.MerchantRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
@@ -34,14 +35,24 @@ class MerchantRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getMerchantMenu(merchantId: String): Flow<List<Food>> = flow {
+    override fun getMerchantMenu(storeId: String): Flow<List<Food>> = flow {
         val response = supabaseClient.postgrest["foods"]
             .select {
                 filter {
-                    eq("merchantId", merchantId)
+                    eq("store_id", storeId) // Đã cập nhật thành store_id
                 }
             }
             .decodeList<Food>()
         emit(response)
+    }
+
+    override suspend fun getStoreById(storeId: String): Store {
+        return supabaseClient.postgrest["stores"]
+            .select {
+                filter {
+                    eq("id", storeId)
+                }
+            }
+            .decodeSingle<Store>()
     }
 }

@@ -17,6 +17,9 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile_screen")
     object Notifications : Screen("notifications_screen")
     object ActivityHistory : Screen("activity_history_screen")
+    object FoodDetail : Screen("food_detail/{foodId}") {
+        fun createRoute(foodId: String) = "food_detail/$foodId"
+    }
 
     // Merchant
     object MerchantHome : Screen("merchant_home_screen")
