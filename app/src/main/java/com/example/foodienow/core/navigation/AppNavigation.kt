@@ -26,11 +26,13 @@ import androidx.navigation.navArgument
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.User
 import com.example.foodienow.domain.model.UserRole
+import com.example.foodienow.feature.activity.ActivityHistoryScreen
 import com.example.foodienow.feature.auth.AuthViewModel
 import com.example.foodienow.feature.auth.ForgotPasswordScreen
 import com.example.foodienow.feature.auth.LoginScreen
 import com.example.foodienow.feature.auth.RegisterScreen
 import com.example.foodienow.feature.auth.VerifyAccountScreen
+import com.example.foodienow.feature.cart.CartScreen
 import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.payment.PaymentScreen
