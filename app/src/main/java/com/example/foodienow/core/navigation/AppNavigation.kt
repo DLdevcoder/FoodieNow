@@ -40,6 +40,7 @@ import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import com.example.foodienow.feature.food_detail.FoodDetailScreen
 import com.example.foodienow.feature.food_detail.FoodDetailViewModel
 import com.example.foodienow.feature.food_detail.FoodReviewsScreen
+import com.example.foodienow.feature.merchant.MerchantHomeScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.payment.PaymentScreen
 import com.example.foodienow.feature.profile.ProfileScreen
@@ -198,9 +199,8 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.MerchantHome.route) {
-            PlaceholderScreen(title = stringResource(R.string.nav_merchant_home))
+            MerchantHomeScreen()
         }
-
         composable(route = Screen.ShipperHome.route) {
             PlaceholderScreen(title = stringResource(R.string.nav_shipper_home))
         }

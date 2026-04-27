@@ -39,7 +39,7 @@ class MerchantRepositoryImpl @Inject constructor(
         val response = supabaseClient.postgrest["foods"]
             .select {
                 filter {
-                    eq("store_id", storeId) // Đã cập nhật thành store_id
+                    eq("store_id", storeId)
                 }
             }
             .decodeList<Food>()
@@ -54,5 +54,14 @@ class MerchantRepositoryImpl @Inject constructor(
                 }
             }
             .decodeSingle<Store>()
+    }
+
+    override suspend fun getStoreByOwnerId(ownerId: String): Store? {
+        return try {
+            supabaseClient.postgrest["stores"]
+                .select {
+                    filter { eq("owner_id", ownerId) }
+                }.decodeSingleOrNull<Store>()
+        } catch (e: Exception) { null }
     }
 }

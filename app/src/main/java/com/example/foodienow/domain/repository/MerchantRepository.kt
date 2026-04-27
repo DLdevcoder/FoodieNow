@@ -11,4 +11,6 @@ interface MerchantRepository {
 
     fun getMerchantMenu(merchantId: String): Flow<List<Food>>
     suspend fun getStoreById(storeId: String): Store
+
+    suspend fun getStoreByOwnerId(ownerId: String): Store?
 }
