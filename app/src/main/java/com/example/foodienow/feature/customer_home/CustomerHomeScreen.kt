@@ -144,7 +144,6 @@ fun CustomerHomeScreen(
                     fontWeight = FontWeight.Bold
                 )
 
-                // THAY ĐỔI Ở ĐÂY: Sử dụng searchResults
                 val displayList = uiState.searchResults
 
                 if (displayList.isEmpty()) {
@@ -171,7 +170,7 @@ fun CustomerHomeScreen(
                     color = ColorPrimaryDark
                 )
                 LazyColumn(
-                    modifier = Modifier.weight(1f), // Nhớ giữ weight(1f)
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(uiState.recommendedFoods) { food ->

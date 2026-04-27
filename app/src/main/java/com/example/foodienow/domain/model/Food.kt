@@ -11,5 +11,7 @@ data class Food(
     val description: String? = null,
     val price: Double,
     @SerialName("image_url") val imageUrl: String? = null,
-    @SerialName("is_available") val isAvailable: Boolean = true
+    @SerialName("is_available") val isAvailable: Boolean = true,
+    val rating: Double = 0.0,
+    @SerialName("sold_count") val soldCount: Int = 0
 )

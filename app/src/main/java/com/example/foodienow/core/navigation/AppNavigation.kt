@@ -35,9 +35,11 @@ import com.example.foodienow.feature.auth.LoginScreen
 import com.example.foodienow.feature.auth.RegisterScreen
 import com.example.foodienow.feature.auth.VerifyAccountScreen
 import com.example.foodienow.feature.cart.CartScreen
+import com.example.foodienow.feature.cart.CartViewModel
 import com.example.foodienow.feature.customer_home.CustomerHomeScreen
-import com.example.foodienow.feature.customer_home.FoodDetailScreen
-import com.example.foodienow.feature.customer_home.FoodDetailViewModel
+import com.example.foodienow.feature.food_detail.FoodDetailScreen
+import com.example.foodienow.feature.food_detail.FoodDetailViewModel
+import com.example.foodienow.feature.food_detail.FoodReviewsScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.payment.PaymentScreen
 import com.example.foodienow.feature.profile.ProfileScreen
@@ -143,6 +145,8 @@ fun AppNavigation() {
             val viewModel: FoodDetailViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
 
+            val cartViewModel: CartViewModel = hiltViewModel()
+
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -157,12 +161,32 @@ fun AppNavigation() {
                     store = uiState.store!!,
                     reviews = uiState.reviews,
                     onBackClick = { navController.popBackStack() },
-                    onNavigateToCart = { navController.navigate(Screen.Cart.route) },
-                    onNavigateToStore = { storeId ->
-                        // navController.navigate("store_detail/$storeId")
+                    // XỬ LÝ THÊM VÀO GIỎ THẬT
+                    onAddToCart = { food, quantity ->
+                        cartViewModel.addToCart(food, quantity)
+                        navController.navigate(Screen.Cart.route)
+                    },
+                    onNavigateToStore = { /* TODO */ },
+                    onNavigateToAllReviews = {
+                        navController.navigate("food_reviews/${uiState.food!!.id}")
+                    },
+                    onSubmitProductReview = { rating, comment ->
                     }
                 )
             }
+        }
+
+        composable(
+            route = "food_reviews/{foodId}",
+            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+        ) {
+            val viewModel: FoodDetailViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
+
+            FoodReviewsScreen(
+                reviews = uiState.reviews,
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         composable(route = Screen.ActivityHistory.route) {

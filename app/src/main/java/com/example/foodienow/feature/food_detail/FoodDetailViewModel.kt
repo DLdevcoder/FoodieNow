@@ -1,4 +1,4 @@
-package com.example.foodienow.feature.customer_home
+package com.example.foodienow.feature.food_detail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
