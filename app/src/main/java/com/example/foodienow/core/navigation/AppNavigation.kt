@@ -40,6 +40,7 @@ import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import com.example.foodienow.feature.food_detail.FoodDetailScreen
 import com.example.foodienow.feature.food_detail.FoodDetailViewModel
 import com.example.foodienow.feature.food_detail.FoodReviewsScreen
+import com.example.foodienow.feature.merchant.AddEditFoodScreen
 import com.example.foodienow.feature.merchant.MerchantHomeScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.payment.PaymentScreen
@@ -198,11 +199,32 @@ fun AppNavigation() {
             NotificationScreen(onBack = { navController.popBackStack() })
         }
 
-        composable(route = Screen.MerchantHome.route) {
-            MerchantHomeScreen()
-        }
         composable(route = Screen.ShipperHome.route) {
             PlaceholderScreen(title = stringResource(R.string.nav_shipper_home))
+        }
+        composable(route = Screen.MerchantHome.route) {
+            MerchantHomeScreen(
+                onNavigateToAddFood = { storeId ->
+                    navController.navigate("add_edit_food/new?storeId=$storeId")
+                },
+                onNavigateToEditFood = { foodId ->
+                    navController.navigate("add_edit_food/$foodId")
+                }
+            )
+        }
+
+        composable(
+            route = "add_edit_food/{foodId}?storeId={storeId}",
+            arguments = listOf(
+                navArgument("foodId") { type = NavType.StringType },
+                navArgument("storeId") { type = NavType.StringType; defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val storeId = backStackEntry.arguments?.getString("storeId").orEmpty()
+            AddEditFoodScreen(
+                storeId = storeId,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

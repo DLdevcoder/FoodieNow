@@ -23,6 +23,9 @@ sealed class Screen(val route: String) {
 
     // Merchant
     object MerchantHome : Screen("merchant_home_screen")
+    object AddEditFood : Screen("add_edit_food/{foodId}") {
+        fun createRoute(foodId: String = "new") = "add_edit_food/$foodId"
+    }
 
     // Shipper
     object ShipperHome : Screen("shipper_home_screen")

@@ -12,6 +12,7 @@ interface CustomerFoodRepository {
 
     suspend fun getFoodById(foodId: String): Food
 
-    // Thêm hàm này để hết lỗi ở getFoodsByStoreId
     suspend fun getFoodsByStoreId(storeId: String): List<Food>
+
+    suspend fun addFood(food: Food, imageBytes: ByteArray?)
 }

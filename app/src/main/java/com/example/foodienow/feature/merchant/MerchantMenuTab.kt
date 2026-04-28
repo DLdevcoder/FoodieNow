@@ -33,7 +33,22 @@ fun MerchantMenuTab(
     Box(modifier = Modifier.fillMaxSize()) {
         if (uiState.isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        } else {
+        } else if (uiState.error != null) {
+            // Hiển thị lỗi nếu có (ví dụ: "Không tìm thấy thông tin cửa hàng")
+            Text(
+                text = "Lỗi: ${uiState.error}",
+                color = Color.Red,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else if (uiState.menu.isEmpty()) {
+            // Hiển thị khi chưa có món ăn nào
+            Text(
+                text = "Chưa có món ăn nào.\nHãy bấm nút + để thêm món.",
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.Center),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),

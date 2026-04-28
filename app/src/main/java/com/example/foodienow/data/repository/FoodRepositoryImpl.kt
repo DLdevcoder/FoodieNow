@@ -55,18 +55,20 @@ class FoodRepositoryImpl @Inject constructor(
             .decodeList<Food>()
     }
 
-    // 5. Thêm món ăn mới (Dành cho Merchant)
-    suspend fun addFood(food: Food, imageBytes: ByteArray?) {
-        val finalImageUrl: String = if (imageBytes != null && imageBytes.isNotEmpty()) {
-            val fileName = "${System.currentTimeMillis()}.jpg"
-            val bucket = supabaseClient.storage.from("food_images")
+    // 5. Thêm món ăn mới (Merchant)
+    override suspend fun addFood(food: Food, imageBytes: ByteArray?) {
+        var finalImageUrl: String? = food.imageUrl
+        if (imageBytes != null) {
+            val fileName = "food_${System.currentTimeMillis()}.jpg"
+            val bucket = supabaseClient.storage["food_images"]
 
-            bucket.upload(path = fileName, data = imageBytes)
-            bucket.publicUrl(fileName)
-        } else {
-            "https://placeholder.com/food_default.png"
+            // Upload byte array lên bucket
+            bucket.upload(fileName, imageBytes)
+
+            // Lấy URL public của ảnh vừa tải lên
+            finalImageUrl = bucket.publicUrl(fileName)
         }
-        val foodToSave = food.copy(imageUrl = finalImageUrl)
-        supabaseClient.postgrest["foods"].insert(foodToSave)
+        val finalFood = food.copy(imageUrl = finalImageUrl)
+        supabaseClient.postgrest["foods"].insert(finalFood)
     }
 }

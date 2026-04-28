@@ -32,10 +32,13 @@ import com.example.foodienow.domain.model.Food
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MerchantHomeScreen(
-    viewModel: MerchantViewModel = hiltViewModel()
-) {
+    viewModel: MerchantViewModel = hiltViewModel(),
+    onNavigateToAddFood: (String) -> Unit,
+    onNavigateToEditFood: (String) -> Unit
+) { // Mở ngoặc nhọn của thân hàm
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
+
 
     Scaffold(
         topBar = {
@@ -100,8 +103,8 @@ fun MerchantHomeScreen(
                 1 -> MerchantMenuTab(
                     uiState = uiState,
                     onToggleAvailability = { viewModel.toggleFoodAvailability(it) },
-                    onAddFoodClick = { /* TODO: Điều hướng sang màn hình thêm món */ },
-                    onEditFoodClick = { food -> /* TODO: Điều hướng sang màn hình sửa món với food.id */ }
+                    onAddFoodClick = { uiState.store?.let { onNavigateToAddFood(it.id) } },
+                    onEditFoodClick = { food -> onNavigateToEditFood(food.id) }
                 )
                 2 -> MerchantStoreTab()
             }
