@@ -70,8 +70,23 @@ class MerchantViewModel @Inject constructor(
 
     fun toggleFoodAvailability(food: Food) {
         viewModelScope.launch {
-            val updatedFood = food.copy(isAvailable = !food.isAvailable)
-            merchantRepository.updateFood(updatedFood)
+            _uiState.update { currentState ->
+                val updatedMenu = currentState.menu.map { currentItem ->
+                    if (currentItem.id == food.id) {
+                        currentItem.copy(isAvailable = !currentItem.isAvailable)
+                    } else {
+                        currentItem
+                    }
+                }
+                currentState.copy(menu = updatedMenu)
+            }
+
+            try {
+                val updatedFood = food.copy(isAvailable = !food.isAvailable)
+                merchantRepository.updateFood(updatedFood)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

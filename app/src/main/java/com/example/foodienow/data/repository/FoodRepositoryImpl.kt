@@ -49,7 +49,7 @@ class FoodRepositoryImpl @Inject constructor(
         return supabaseClient.postgrest["foods"]
             .select {
                 filter {
-                    eq("store_id", storeId) // Đảm bảo khớp với tên cột mới trong DB
+                    eq("store_id", storeId)
                 }
             }
             .decodeList<Food>()
@@ -62,11 +62,10 @@ class FoodRepositoryImpl @Inject constructor(
             val fileName = "food_${System.currentTimeMillis()}.jpg"
             val bucket = supabaseClient.storage["food_images"]
 
-            // Upload byte array lên bucket
             bucket.upload(fileName, imageBytes)
 
-            // Lấy URL public của ảnh vừa tải lên
-            finalImageUrl = bucket.publicUrl(fileName)
+            val projectId = "ruyrncmsawymsrvsluae"
+            finalImageUrl = "https://$projectId.supabase.co/storage/v1/object/public/food_images/$fileName"
         }
         val finalFood = food.copy(imageUrl = finalImageUrl)
         supabaseClient.postgrest["foods"].insert(finalFood)

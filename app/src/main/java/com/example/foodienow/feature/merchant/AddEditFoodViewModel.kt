@@ -31,7 +31,6 @@ class AddEditFoodViewModel @Inject constructor(
     var storeId: String = ""
 
     init {
-        // Nếu là sửa món, load dữ liệu cũ lên
         foodId?.let { id ->
             viewModelScope.launch {
                 val food = foodRepository.getFoodById(id)

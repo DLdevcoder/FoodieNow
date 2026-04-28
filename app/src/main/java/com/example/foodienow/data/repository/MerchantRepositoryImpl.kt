@@ -24,13 +24,20 @@ class MerchantRepositoryImpl @Inject constructor(
 
     override suspend fun updateFood(food: Food): Result<Unit> {
         return try {
-            supabaseClient.postgrest["foods"].update(food) {
+            supabaseClient.postgrest["foods"].update({
+                set("name", food.name)
+                set("price", food.price)
+                set("description", food.description)
+                set("image_url", food.imageUrl)
+                set("is_available", food.isAvailable)
+            }) {
                 filter {
                     eq("id", food.id)
                 }
             }
             Result.success(Unit)
         } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }
