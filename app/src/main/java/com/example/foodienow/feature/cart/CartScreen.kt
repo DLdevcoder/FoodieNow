@@ -80,7 +80,7 @@ fun CartScreen(
                     Column {
                         Text(text = "Tổng thanh toán", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            text = "$totalPrice VNĐ",
+                            text = totalPrice.formatPrice(),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = ColorPrimaryDark
@@ -91,17 +91,16 @@ fun CartScreen(
                         onClick = { viewModel.onCheckoutClicked() },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = ColorPrimaryDark,
-                            disabledContainerColor = Color.LightGray // Màu xám khi bị disable
+                            disabledContainerColor = Color.LightGray
                         ),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.height(48.dp),
-                        // ĐÂY LÀ LOGIC DISABLE NÚT KHI GIỎ HÀNG TRỐNG
                         enabled = cartItems.isNotEmpty() && !uiState.isLoading
                     ) {
                         if (uiState.isLoading) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                         } else {
-                            Text("Đặt hàng ngay", fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("Thanh toán", fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }

@@ -7,6 +7,7 @@ import com.example.foodienow.data.repository.NotificationRepositoryImpl
 import com.example.foodienow.data.repository.OrderRepositoryImpl
 import com.example.foodienow.data.repository.PaymentRepositoryImpl
 import com.example.foodienow.data.repository.ProfileRepositoryImpl
+import com.example.foodienow.data.repository.ReviewRepositoryImpl
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.CustomerFoodRepository
 import com.example.foodienow.domain.repository.MerchantRepository
@@ -14,6 +15,7 @@ import com.example.foodienow.domain.repository.NotificationRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import com.example.foodienow.domain.repository.PaymentRepository
 import com.example.foodienow.domain.repository.ProfileRepository
+import com.example.foodienow.domain.repository.ReviewRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -65,4 +67,11 @@ abstract class RepositoryModule {
     abstract fun bindNotificationRepository(
         impl: NotificationRepositoryImpl
     ): NotificationRepository
+
+    // Xóa đoạn @Provides cũ và thay bằng đoạn này
+    @Binds
+    @Singleton
+    abstract fun bindReviewRepository(
+        impl: ReviewRepositoryImpl
+    ): ReviewRepository
 }

@@ -9,4 +9,10 @@ interface CustomerFoodRepository {
 
     // Tìm kiếm món ăn
     fun searchFoods(query: String): Flow<List<Food>>
+
+    suspend fun getFoodById(foodId: String): Food
+
+    suspend fun getFoodsByStoreId(storeId: String): List<Food>
+
+    suspend fun addFood(food: Food, imageBytes: ByteArray?)
 }

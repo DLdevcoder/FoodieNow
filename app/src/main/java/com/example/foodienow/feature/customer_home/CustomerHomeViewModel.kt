@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// State giữ nguyên
 data class HomeUiState(
     val isLoading: Boolean = false,
     val recommendedFoods: List<Food> = emptyList(),
@@ -43,8 +42,7 @@ class CustomerHomeViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                // Thất bại (Mất mạng, sai Key Supabase...)
-                e.printStackTrace() // In lỗi ra logcat để gỡ rối
+                e.printStackTrace()
                 _uiState.update { it.copy(isLoading = false) }
                 println("LỖI KẾT NỐI DB: ${e.message}")
             }

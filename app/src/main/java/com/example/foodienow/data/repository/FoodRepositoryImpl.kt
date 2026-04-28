@@ -13,6 +13,7 @@ class FoodRepositoryImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
 ) : CustomerFoodRepository {
 
+    // 1. Lấy danh sách món ăn gợi ý (Trang chủ)
     override fun getRecommendedFoods(): Flow<List<Food>> = flow {
         val response = supabaseClient.postgrest["foods"]
             .select()
@@ -20,6 +21,7 @@ class FoodRepositoryImpl @Inject constructor(
         emit(response)
     }
 
+    // 2. Tìm kiếm món ăn theo tên
     override fun searchFoods(query: String): Flow<List<Food>> = flow {
         val response = supabaseClient.postgrest["foods"]
             .select {
@@ -31,17 +33,42 @@ class FoodRepositoryImpl @Inject constructor(
         emit(response)
     }
 
-    suspend fun addFood(food: Food, imageBytes: ByteArray?) {
-        val finalImageUrl: String = if (imageBytes != null && imageBytes.isNotEmpty()) {
-            val fileName = "${System.currentTimeMillis()}.jpg"
-            val bucket = supabaseClient.storage.from("food_images")
+    // 3. Lấy chi tiết một món ăn (Dùng cho FoodDetailScreen)
+    override suspend fun getFoodById(foodId: String): Food {
+        return supabaseClient.postgrest["foods"]
+            .select {
+                filter {
+                    eq("id", foodId)
+                }
+            }
+            .decodeSingle<Food>()
+    }
 
-            bucket.upload(path = fileName, data = imageBytes)
-            bucket.publicUrl(fileName)
-        } else {
-            "https://www.citypng.com/public/uploads/preview/loading-load-icon-transparent-png-701751695033022vy5stltzj3.png"
+    // 4. Lấy danh sách món ăn của một cửa hàng cụ thể (Dành cho Store Detail)
+    override suspend fun getFoodsByStoreId(storeId: String): List<Food> {
+        return supabaseClient.postgrest["foods"]
+            .select {
+                filter {
+                    eq("store_id", storeId) // Đảm bảo khớp với tên cột mới trong DB
+                }
+            }
+            .decodeList<Food>()
+    }
+
+    // 5. Thêm món ăn mới (Merchant)
+    override suspend fun addFood(food: Food, imageBytes: ByteArray?) {
+        var finalImageUrl: String? = food.imageUrl
+        if (imageBytes != null) {
+            val fileName = "food_${System.currentTimeMillis()}.jpg"
+            val bucket = supabaseClient.storage["food_images"]
+
+            // Upload byte array lên bucket
+            bucket.upload(fileName, imageBytes)
+
+            // Lấy URL public của ảnh vừa tải lên
+            finalImageUrl = bucket.publicUrl(fileName)
         }
-        val foodToSave = food.copy(imageUrl = finalImageUrl)
-        supabaseClient.postgrest["foods"].insert(foodToSave)
+        val finalFood = food.copy(imageUrl = finalImageUrl)
+        supabaseClient.postgrest["foods"].insert(finalFood)
     }
 }
