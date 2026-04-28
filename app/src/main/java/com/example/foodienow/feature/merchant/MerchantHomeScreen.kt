@@ -35,7 +35,7 @@ fun MerchantHomeScreen(
     viewModel: MerchantViewModel = hiltViewModel(),
     onNavigateToAddFood: (String) -> Unit,
     onNavigateToEditFood: (String) -> Unit
-) { // Mở ngoặc nhọn của thân hàm
+) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
 

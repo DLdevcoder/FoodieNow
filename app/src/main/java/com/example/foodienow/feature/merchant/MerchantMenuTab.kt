@@ -34,14 +34,12 @@ fun MerchantMenuTab(
         if (uiState.isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else if (uiState.error != null) {
-            // Hiển thị lỗi nếu có (ví dụ: "Không tìm thấy thông tin cửa hàng")
             Text(
                 text = "Lỗi: ${uiState.error}",
                 color = Color.Red,
                 modifier = Modifier.align(Alignment.Center)
             )
         } else if (uiState.menu.isEmpty()) {
-            // Hiển thị khi chưa có món ăn nào
             Text(
                 text = "Chưa có món ăn nào.\nHãy bấm nút + để thêm món.",
                 color = Color.Gray,
@@ -99,7 +97,8 @@ fun MerchantFoodItem(
                 contentDescription = null,
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.LightGray),
                 contentScale = ContentScale.Crop
             )
 
