@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
 import com.example.foodienow.domain.model.Food
+import com.example.foodienow.feature.customer_home.components.formatPrice
 
 @Composable
 fun MerchantMenuTab(
@@ -106,7 +107,7 @@ fun MerchantFoodItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = food.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = "${food.price} VNĐ", color = ColorPrimaryDark, fontWeight = FontWeight.SemiBold)
+                Text(food.price.formatPrice(), color = ColorPrimaryDark, fontWeight = FontWeight.SemiBold)
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(

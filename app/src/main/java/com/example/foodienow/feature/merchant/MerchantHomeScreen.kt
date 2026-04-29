@@ -1,13 +1,7 @@
 package com.example.foodienow.feature.merchant
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Store
@@ -15,19 +9,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.AsyncImage
 import com.example.foodienow.core.designsystem.theme.ColorBackground
 import com.example.foodienow.core.designsystem.theme.ColorPrimary
 import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
-import com.example.foodienow.domain.model.Food
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,7 +93,12 @@ fun MerchantHomeScreen(
                     onAddFoodClick = { uiState.store?.let { onNavigateToAddFood(it.id) } },
                     onEditFoodClick = { food -> onNavigateToEditFood(food.id) }
                 )
-                2 -> MerchantStoreTab()
+                2 -> MerchantStoreTab(
+                    uiState = uiState,
+                    onUpdateStore = { newName, newAddress, newOpeningTime, newClosingTime, newIsActive, imageBytes ->
+                        viewModel.updateStoreInfo(newName, newAddress, newOpeningTime, newClosingTime, newIsActive, imageBytes)
+                    }
+                )
             }
         }
     }
@@ -116,12 +108,5 @@ fun MerchantHomeScreen(
 fun MerchantOrdersTab() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("Giao diện danh sách đơn hàng")
-    }
-}
-
-@Composable
-fun MerchantStoreTab() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Giao diện cập nhật thông tin quán")
     }
 }

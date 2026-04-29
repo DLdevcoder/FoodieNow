@@ -27,8 +27,9 @@ class AddEditFoodViewModel @Inject constructor(
     var isSaving by mutableStateOf(false)
     var uploadSuccess by mutableStateOf(false)
 
-    private val foodId: String? = savedStateHandle.get<String>("foodId")?.takeIf { it != "new" }
+    val foodId: String? = savedStateHandle.get<String>("foodId")?.takeIf { it != "new" }
     var storeId: String = ""
+    var imageUrl by mutableStateOf<String?>(null)
 
     init {
         foodId?.let { id ->
@@ -38,6 +39,7 @@ class AddEditFoodViewModel @Inject constructor(
                 price = food.price.toString()
                 description = food.description ?: ""
                 storeId = food.storeId
+                imageUrl = food.imageUrl
             }
         }
     }

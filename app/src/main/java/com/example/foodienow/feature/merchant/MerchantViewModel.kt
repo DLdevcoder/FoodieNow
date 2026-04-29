@@ -89,4 +89,44 @@ class MerchantViewModel @Inject constructor(
             }
         }
     }
+    fun updateStoreInfo(
+        newName: String,
+        newAddress: String,
+        newOpeningTime: String,
+        newClosingTime: String,
+        newIsActive: Boolean,
+        imageBytes: ByteArray?
+    ) {
+        val currentStore = _uiState.value.store ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            val tempStore = currentStore.copy(
+                name = newName,
+                address = newAddress.takeIf { it.isNotBlank() },
+                openingTime = newOpeningTime.takeIf { it.isNotBlank() },
+                closingTime = newClosingTime.takeIf { it.isNotBlank() },
+                isActive = newIsActive
+            )
+
+            val result = merchantRepository.updateStore(tempStore, imageBytes)
+
+            if (result.isSuccess) {
+                try {
+                    val updatedStore = merchantRepository.getStoreById(currentStore.id)
+                    _uiState.update { it.copy(store = updatedStore, isLoading = false) }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(isLoading = false, error = "Lỗi khi tải lại dữ liệu") }
+                }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = result.exceptionOrNull()?.message ?: "Lỗi cập nhật cửa hàng"
+                    )
+                }
+            }
+        }
+    }
 }
