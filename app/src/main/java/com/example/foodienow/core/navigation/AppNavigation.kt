@@ -163,7 +163,6 @@ fun AppNavigation() {
                     store = uiState.store!!,
                     reviews = uiState.reviews,
                     onBackClick = { navController.popBackStack() },
-                    // XỬ LÝ THÊM VÀO GIỎ THẬT
                     onAddToCart = { food, quantity ->
                         cartViewModel.addToCart(food, quantity)
                         navController.navigate(Screen.Cart.route)
@@ -202,6 +201,7 @@ fun AppNavigation() {
         composable(route = Screen.ShipperHome.route) {
             PlaceholderScreen(title = stringResource(R.string.nav_shipper_home))
         }
+
         composable(route = Screen.MerchantHome.route) {
             MerchantHomeScreen(
                 onNavigateToAddFood = { storeId ->
@@ -209,6 +209,14 @@ fun AppNavigation() {
                 },
                 onNavigateToEditFood = { foodId ->
                     navController.navigate("add_edit_food/$foodId")
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToHistory = {
+                    navController.navigate(Screen.ActivityHistory.route)
                 }
             )
         }

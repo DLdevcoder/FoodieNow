@@ -47,8 +47,6 @@ class MerchantViewModel @Inject constructor(
 
                     if (store != null) {
                         _uiState.update { it.copy(store = store) }
-
-                        // Lấy thực đơn của quán và lắng nghe thay đổi
                         merchantRepository.getMerchantMenu(store.id).collect { foodList ->
                             _uiState.update { it.copy(menu = foodList, isLoading = false) }
                         }
