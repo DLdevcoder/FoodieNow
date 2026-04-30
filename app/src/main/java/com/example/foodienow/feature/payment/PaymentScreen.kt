@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -64,64 +66,90 @@ fun PaymentScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = stringResource(R.string.payment_order_information),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(stringResource(R.string.payment_subtotal))
-            Text(stringResource(R.string.payment_delivery_fee))
-            Text(
-                text = stringResource(R.string.payment_total),
-                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = stringResource(R.string.payment_method_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PaymentMethod.entries.forEach { method ->
-                    FilterChip(
-                        selected = selectedMethod == method,
-                        onClick = { selectedMethod = method },
-                        label = {
-                            Text(
-                                text = when (method) {
-                                    PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
-                                    PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
-                                    PaymentMethod.WALLET -> stringResource(R.string.payment_method_wallet)
-                                }
-                            )
-                        }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(stringResource(R.string.payment_subtotal))
+                    Text(stringResource(R.string.payment_delivery_fee))
+                    Text(
+                        text = stringResource(R.string.payment_total),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            OutlinedTextField(
-                value = deliveryAddress,
-                onValueChange = {
-                    deliveryAddress = it
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.payment_delivery_address_label)) },
-                singleLine = true
+            Text(
+                text = stringResource(R.string.payment_method_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
             )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PaymentMethod.entries.forEach { method ->
+                        FilterChip(
+                            selected = selectedMethod == method,
+                            onClick = { selectedMethod = method },
+                            label = {
+                                Text(
+                                    text = when (method) {
+                                        PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
+                                        PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
+                                        PaymentMethod.WALLET -> stringResource(R.string.payment_method_wallet)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+            }
 
-            OutlinedTextField(
-                value = note,
-                onValueChange = {
-                    note = it
-                },
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.payment_note_label)) }
-            )
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = deliveryAddress,
+                        onValueChange = {
+                            deliveryAddress = it
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.payment_delivery_address_label)) },
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = note,
+                        onValueChange = {
+                            note = it
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.payment_note_label)) }
+                    )
+                }
+            }
 
             uiState.errorMessage?.let { msg ->
                 Text(
@@ -169,4 +197,3 @@ fun PaymentScreen(
 }
 
 private const val PAYMENT_TOTAL = 135000.0
-

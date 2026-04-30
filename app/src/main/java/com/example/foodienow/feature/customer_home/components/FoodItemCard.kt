@@ -10,13 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
-import com.example.foodienow.core.designsystem.theme.ColorSurfaceLight
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
 
 @Composable
@@ -30,7 +29,7 @@ fun FoodItemCard(
             .fillMaxWidth()
             .clickable { onCardClick(food) },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -49,19 +48,22 @@ fun FoodItemCard(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = food.name, fontWeight = FontWeight.Bold, color = Color.Black)
+                Text(text = food.name, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = food.price.formatPrice(), color = ColorPrimaryDark, fontWeight = FontWeight.Bold)
+                Text(text = food.price.formatPrice(), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             }
 
             IconButton(
                 onClick = { onAddToCartClick(food) },
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = ColorSurfaceLight,
-                    contentColor = ColorPrimaryDark
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Icon(Icons.Default.AddShoppingCart, contentDescription = "Thêm vào giỏ")
+                Icon(
+                    Icons.Default.AddShoppingCart,
+                    contentDescription = stringResource(R.string.food_add_to_cart)
+                )
             }
         }
     }

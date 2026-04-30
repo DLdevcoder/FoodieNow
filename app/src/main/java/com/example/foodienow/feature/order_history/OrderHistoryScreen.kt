@@ -1,6 +1,6 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
-package com.example.foodienow.feature.activity
+package com.example.foodienow.feature.order_history
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,15 +31,15 @@ import com.example.foodienow.R
 import com.example.foodienow.feature.customer_home.components.formatPrice
 
 @Composable
-fun ActivityHistoryScreen(
+fun OrderHistoryScreen(
     onBack: () -> Unit,
-    viewModel: ActivityHistoryViewModel = hiltViewModel()
+    viewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.activity_history_title)) })
+            TopAppBar(title = { Text(stringResource(R.string.order_history_title)) })
         }
     ) { padding ->
         if (uiState.isLoading) {
@@ -66,34 +66,12 @@ fun ActivityHistoryScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            if (uiState.items.isEmpty()) {
-                Text(text = stringResource(R.string.activity_history_empty))
+            if (uiState.orders.isEmpty()) {
+                Text(text = stringResource(R.string.order_history_empty))
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(uiState.items, key = { it.id }) { item ->
-                        val title = when (item.type) {
-                            ActivityType.ORDER -> stringResource(
-                                R.string.activity_history_order_title,
-                                item.orderId ?: "-"
-                            )
-                            ActivityType.PAYMENT -> stringResource(
-                                R.string.activity_history_payment_title,
-                                item.paymentId ?: "-"
-                            )
-                        }
-                        val subtitle = when (item.type) {
-                            ActivityType.ORDER -> stringResource(
-                                R.string.activity_history_item_subtitle,
-                                item.status ?: "-",
-                                item.totalPrice?.formatPrice() ?: "-"
-                            )
-                            ActivityType.PAYMENT -> stringResource(
-                                R.string.activity_history_payment_subtitle,
-                                item.orderId ?: "-",
-                                item.method ?: "-",
-                                item.status ?: "-"
-                            )
-                        }
+                    items(uiState.orders, key = { it.id ?: "" }) { order ->
+                        val orderId = order.id ?: "-"
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -101,15 +79,22 @@ fun ActivityHistoryScreen(
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(
-                                    text = title,
+                                    text = stringResource(R.string.order_history_order_title, orderId),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(text = subtitle)
+                                Text(
+                                    text = stringResource(
+                                        R.string.order_history_item_subtitle,
+                                        order.status.name,
+                                        order.totalPrice.formatPrice()
+                                    )
+                                )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = item.createdAt ?: stringResource(R.string.activity_history_time_unknown),
+                                    text = order.createdAt
+                                        ?: stringResource(R.string.order_history_time_unknown),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

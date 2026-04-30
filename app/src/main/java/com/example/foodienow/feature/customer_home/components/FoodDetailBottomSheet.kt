@@ -10,17 +10,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.example.foodienow.core.designsystem.theme.ColorBackground
-import com.example.foodienow.core.designsystem.theme.ColorPrimary
-import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
-import com.example.foodienow.core.designsystem.theme.ColorSurfaceLight
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
+import com.example.foodienow.feature.customer_home.components.formatPrice
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,8 +35,8 @@ fun FoodDetailBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = ColorBackground,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = ColorPrimary) }
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.primary) }
     ) {
         Column(
             modifier = Modifier
@@ -48,7 +46,7 @@ fun FoodDetailBottomSheet(
         ) {
             AsyncImage(
                 model = food.imageUrl,
-                contentDescription = "Ảnh món ${food.name}",
+                contentDescription = stringResource(R.string.bottomsheet_image_desc, food.name),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(220.dp)
@@ -67,23 +65,23 @@ fun FoodDetailBottomSheet(
                     text = food.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = food.price.formatPrice(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = ColorPrimaryDark
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = food.description ?: "Chưa có mô tả cho món ăn này.",
+                text = food.description ?: stringResource(R.string.bottomsheet_no_description),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -95,9 +93,9 @@ fun FoodDetailBottomSheet(
             ) {
                 IconButton(
                     onClick = { if (quantity > 1) quantity-- },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = ColorSurfaceLight)
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Icon(Icons.Default.Remove, contentDescription = "Giảm", tint = ColorPrimaryDark)
+                    Icon(Icons.Default.Remove, contentDescription = stringResource(R.string.bottomsheet_decrease), tint = MaterialTheme.colorScheme.primary)
                 }
 
                 Text(
@@ -109,9 +107,9 @@ fun FoodDetailBottomSheet(
 
                 IconButton(
                     onClick = { quantity++ },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = ColorSurfaceLight)
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Tăng", tint = ColorPrimaryDark)
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.bottomsheet_increase), tint = MaterialTheme.colorScheme.primary)
                 }
             }
 
@@ -125,16 +123,19 @@ fun FoodDetailBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ColorPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                // Tính tổng tiền tự động
                 val totalPrice = food.price * quantity
                 Text(
-                    text = "Thêm $quantity vào giỏ - $totalPrice đ",
+                    text = stringResource(
+                        R.string.bottomsheet_add_to_cart_total,
+                        quantity,
+                        totalPrice.formatPrice()
+                    ),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }

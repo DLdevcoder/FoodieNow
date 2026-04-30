@@ -3,6 +3,7 @@
 package com.example.foodienow.feature.profile
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,13 +11,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,9 +34,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
@@ -39,7 +52,8 @@ import com.example.foodienow.feature.settings.UiPreferencesViewModel
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
-    onNavigateToHistory: () -> Unit,
+    onNavigateToOrderHistory: () -> Unit,
+    onNavigateToActivityHistory: () -> Unit,
     onLoggedOut: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
@@ -71,56 +85,79 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = stringResource(R.string.profile_account_information),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-
             profileUiState.profile?.let { profile ->
-                OutlinedTextField(
-                    value = profile.fullName,
-                    onValueChange = profileViewModel::onFullNameChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.profile_name_label)) },
-                    singleLine = true
+                ProfileHeaderCard(
+                    fullName = profile.fullName,
+                    email = profile.email,
+                    roleLabel = stringResource(R.string.profile_role_value, profile.role.toDisplayName())
                 )
-                OutlinedTextField(
-                    value = profile.email,
-                    onValueChange = { },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.auth_email_label)) },
-                    enabled = false,
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = profile.phone.orEmpty(),
-                    onValueChange = profileViewModel::onPhoneChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.profile_phone_label)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = profile.address.orEmpty(),
-                    onValueChange = profileViewModel::onAddressChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.profile_address_label)) }
-                )
-                Text(stringResource(R.string.profile_role_value, profile.role.toDisplayName()))
 
-                Button(
-                    onClick = profileViewModel::saveProfile,
+                Text(
+                    text = stringResource(R.string.profile_account_information),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !profileUiState.isSaving
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
-                    if (profileUiState.isSaving) {
-                        CircularProgressIndicator()
-                    } else {
-                        Text(stringResource(R.string.profile_save_button))
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = profile.fullName,
+                            onValueChange = profileViewModel::onFullNameChange,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.profile_name_label)) },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = profile.email,
+                            onValueChange = { },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.auth_email_label)) },
+                            enabled = false,
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = profile.phone.orEmpty(),
+                            onValueChange = profileViewModel::onPhoneChange,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.profile_phone_label)) },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = profile.address.orEmpty(),
+                            onValueChange = profileViewModel::onAddressChange,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.profile_address_label)) }
+                        )
+                        Text(
+                            text = stringResource(R.string.profile_role_value, profile.role.toDisplayName()),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Button(
+                            onClick = profileViewModel::saveProfile,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !profileUiState.isSaving
+                        ) {
+                            if (profileUiState.isSaving) {
+                                CircularProgressIndicator()
+                            } else {
+                                Text(stringResource(R.string.profile_save_button))
+                            }
+                        }
                     }
                 }
             }
@@ -133,31 +170,39 @@ fun ProfileScreen(
                 Text(text = it, color = MaterialTheme.colorScheme.primary)
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
             Text(
                 text = stringResource(R.string.settings_language_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-            Row(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                AppLanguage.entries.forEach { language ->
-                    FilterChip(
-                        selected = uiPreferences.appLanguage == language,
-                        onClick = { uiPreferencesViewModel.setAppLanguage(language) },
-                        label = {
-                            Text(
-                                text = if (language == AppLanguage.ENGLISH) {
-                                    stringResource(R.string.settings_language_english)
-                                } else {
-                                    stringResource(R.string.settings_language_vietnamese)
-                                }
-                            )
-                        }
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AppLanguage.entries.forEach { language ->
+                        FilterChip(
+                            selected = uiPreferences.appLanguage == language,
+                            onClick = { uiPreferencesViewModel.setAppLanguage(language) },
+                            label = {
+                                Text(
+                                    text = if (language == AppLanguage.ENGLISH) {
+                                        stringResource(R.string.settings_language_english)
+                                    } else {
+                                        stringResource(R.string.settings_language_vietnamese)
+                                    }
+                                )
+                            }
+                        )
+                    }
                 }
             }
 
@@ -166,32 +211,68 @@ fun ProfileScreen(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-            Row(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                ThemeMode.entries.forEach { themeMode ->
-                    FilterChip(
-                        selected = uiPreferences.themeMode == themeMode,
-                        onClick = { uiPreferencesViewModel.setThemeMode(themeMode) },
-                        label = { Text(themeMode.toDisplayName()) }
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    ThemeMode.entries.forEach { themeMode ->
+                        FilterChip(
+                            selected = uiPreferences.themeMode == themeMode,
+                            onClick = { uiPreferencesViewModel.setThemeMode(themeMode) },
+                            label = { Text(themeMode.toDisplayName()) }
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = onNavigateToHistory,
+            Text(
+                text = stringResource(R.string.activity_history_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !profileUiState.isSaving
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Text(stringResource(R.string.activity_history_title))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilledTonalButton(
+                        onClick = onNavigateToOrderHistory,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !profileUiState.isSaving
+                    ) {
+                        Text(stringResource(R.string.order_history_title))
+                    }
+
+                    FilledTonalButton(
+                        onClick = onNavigateToActivityHistory,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !profileUiState.isSaving
+                    ) {
+                        Text(stringResource(R.string.activity_history_title))
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            Button(
+            OutlinedButton(
                 onClick = {
                     authViewModel.logout()
                     onLoggedOut()
@@ -213,6 +294,70 @@ fun ProfileScreen(
 }
 
 @Composable
+private fun ProfileHeaderCard(
+    fullName: String,
+    email: String,
+    roleLabel: String
+) {
+    val initial = fullName.trim().firstOrNull()?.uppercase() ?: "U"
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(MaterialTheme.shapes.medium),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = fullName,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = email,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = roleLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Text(
+                text = initial,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Transparent
+            )
+        }
+    }
+}
+
+@Composable
 private fun ThemeMode.toDisplayName(): String {
     return when (this) {
         ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_system)
@@ -229,4 +374,3 @@ private fun com.example.foodienow.domain.model.UserRole.toDisplayName(): String 
         com.example.foodienow.domain.model.UserRole.SHIPPER -> stringResource(R.string.role_shipper)
     }
 }
-

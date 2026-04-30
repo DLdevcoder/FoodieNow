@@ -66,6 +66,14 @@
     <string name="activity_history_title">Lich su hoat dong</string>
     <string name="activity_history_empty">Chua co hoat dong nao.</string>
     <string name="activity_history_time_unknown">Khong ro thoi gian</string>
+    <string name="activity_history_order_title">Don hang #%1$s</string>
+    <string name="activity_history_payment_title">Thanh toan #%1$s</string>
+    <string name="activity_history_payment_subtitle">Don hang #%1$s | %2$s | %3$s</string>
+
+    <string name="order_history_title">Lich su dat hang</string>
+    <string name="order_history_empty">Chua co don hang nao.</string>
+    <string name="order_history_time_unknown">Khong ro thoi gian</string>
+    <string name="order_history_order_title">Don hang #%1$s</string>
 
     <string name="settings_language_title">Ngon ngu</string>
     <string name="settings_language_english">Tieng Anh</string>
@@ -82,5 +90,56 @@
     <string name="nav_cart">Gio hang</string>
     <string name="nav_merchant_home">Trang Merchant</string>
     <string name="nav_shipper_home">Trang Shipper</string>
-</resources>
 
+    <string name="home_search_placeholder">Ban muon an gi?</string>
+    <string name="home_search_cancel">Huy</string>
+    <string name="home_search_action">Tim</string>
+    <string name="home_nav_home">Trang chu</string>
+    <string name="home_nav_cart">Gio hang</string>
+    <string name="home_nav_notifications">Thong bao</string>
+    <string name="home_nav_profile">Ho so</string>
+    <string name="home_search_results">Ket qua tim kiem</string>
+    <string name="home_search_empty">Khong tim thay mon an nao phu hop.</string>
+    <string name="home_recommendations">Goi y</string>
+
+    <string name="cart_title">Gio hang cua ban</string>
+    <string name="cart_total_label">Tong thanh toan</string>
+    <string name="cart_checkout">Thanh toan</string>
+    <string name="cart_empty">Gio hang cua ban dang trong.</string>
+    <string name="cart_decrease">Giam</string>
+    <string name="cart_increase">Tang</string>
+
+    <string name="food_add_to_cart">Them vao gio</string>
+    <string name="food_detail_title">Chi tiet mon an</string>
+    <string name="food_detail_add_to_cart">Them vao gio</string>
+    <string name="food_detail_sold_count">Da ban %1$s</string>
+    <string name="food_detail_store_hint">Xem cua hang</string>
+    <string name="food_detail_section_title">Chi tiet mon an</string>
+    <string name="food_detail_no_description">Chu quan chua cap nhat mo ta cho mon an nay.</string>
+    <string name="food_detail_reviews_title">Danh gia san pham</string>
+    <string name="food_detail_reviews_view_all">Xem tat ca &gt;</string>
+    <string name="food_detail_write_review">Viet danh gia cho mon nay</string>
+    <string name="food_detail_no_reviews">Chua co danh gia nao.</string>
+    <string name="food_detail_image_desc">Anh mon an</string>
+
+    <string name="rating_dialog_title">Danh gia mon an</string>
+    <string name="rating_dialog_placeholder">Ban thay mon nay the nao?</string>
+    <string name="rating_dialog_submit">Gui</string>
+    <string name="rating_dialog_cancel">Huy</string>
+    <string name="rating_star_content_desc">Sao %1$d</string>
+
+    <string name="bottomsheet_image_desc">Anh mon %1$s</string>
+    <string name="bottomsheet_no_description">Chua co mo ta cho mon an nay.</string>
+    <string name="bottomsheet_decrease">Giam</string>
+    <string name="bottomsheet_increase">Tang</string>
+    <string name="bottomsheet_add_to_cart_total">Them %1$d vao gio - %2$s</string>
+
+    <string name="food_reviews_title">Tat ca danh gia</string>
+    <string name="food_reviews_empty">Chua co danh gia nao.</string>
+
+    <string name="activity_history_item_subtitle">Trang thai: %1$s | Tong: %2$s</string>
+    <string name="order_history_item_subtitle">Trang thai: %1$s | Tong: %2$s</string>
+
+    <string name="error_no_session">Khong tim thay phien dang nhap.</string>
+    <string name="error_load_order_history">Khong the tai lich su dat hang.</string>
+</resources>

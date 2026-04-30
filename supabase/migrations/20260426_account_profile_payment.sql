@@ -1,12 +1,12 @@
--- FoodieNow persistence schema for account/profile/payment/order data.
+-- Supabase migration: profiles, orders, payments
 
 create extension if not exists pgcrypto;
 
 create table if not exists public.profiles (
-    id uuid primary key references auth.users(id) on delete cascade,
+    id uuid primary key,
     email text not null,
     full_name text not null,
-    role text not null check (role in ('CUSTOMER', 'MERCHANT', 'SHIPPER')),
+    role text not null,
     phone text,
     address text,
     created_at timestamptz not null default now(),
@@ -15,11 +15,11 @@ create table if not exists public.profiles (
 
 create table if not exists public.orders (
     id uuid primary key default gen_random_uuid(),
-    customer_id uuid not null references auth.users(id) on delete cascade,
-    merchant_id uuid references auth.users(id) on delete set null,
-    shipper_id uuid references auth.users(id) on delete set null,
-    total_price double precision not null check (total_price >= 0),
-    status text not null default 'PENDING' check (status in ('PENDING', 'PREPARING', 'DELIVERING', 'COMPLETED', 'CANCELLED')),
+    customer_id uuid not null,
+    merchant_id uuid,
+    shipper_id uuid,
+    total_price numeric not null,
+    status text not null,
     delivery_address text not null,
     note text,
     created_at timestamptz not null default now(),
@@ -28,113 +28,92 @@ create table if not exists public.orders (
 
 create table if not exists public.payments (
     id uuid primary key default gen_random_uuid(),
-    customer_id uuid not null references auth.users(id) on delete cascade,
-    order_id uuid references public.orders(id) on delete set null,
-    amount double precision not null check (amount >= 0),
-    method text not null check (method in ('COD', 'CARD', 'WALLET')),
-    status text not null default 'PENDING' check (status in ('PENDING', 'SUCCESS', 'FAILED')),
-    delivery_address text not null,
+    customer_id uuid not null,
+    order_id uuid references public.orders(id) on delete cascade,
+    amount numeric not null,
+    method text not null,
+    status text not null,
+    delivery_address text,
     note text,
     created_at timestamptz not null default now()
 );
 
-create index if not exists idx_profiles_email on public.profiles(email);
-create index if not exists idx_orders_customer on public.orders(customer_id);
-create index if not exists idx_orders_merchant on public.orders(merchant_id);
-create index if not exists idx_payments_customer on public.payments(customer_id);
-create index if not exists idx_payments_order on public.payments(order_id);
+create index if not exists profiles_email_idx on public.profiles(email);
+create index if not exists orders_customer_id_idx on public.orders(customer_id);
+create index if not exists orders_merchant_id_idx on public.orders(merchant_id);
+create index if not exists payments_customer_id_idx on public.payments(customer_id);
+create index if not exists payments_order_id_idx on public.payments(order_id);
+
+create or replace function public.set_updated_at()
+returns trigger as $$
+begin
+    new.updated_at = now();
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger profiles_set_updated_at
+before update on public.profiles
+for each row
+execute function public.set_updated_at();
+
+create trigger orders_set_updated_at
+before update on public.orders
+for each row
+execute function public.set_updated_at();
 
 alter table public.profiles enable row level security;
 alter table public.orders enable row level security;
 alter table public.payments enable row level security;
 
--- Temporary broad policies because current app uses PostgREST with anon key.
--- Tighten these after wiring authenticated Supabase sessions on the client.
-drop policy if exists "profiles_select_own" on public.profiles;
-create policy "profiles_select_own"
-    on public.profiles
-    for select
-    to anon, authenticated
+-- Temporary permissive RLS for anon/authenticated (tighten later)
+create policy "profiles_select_all"
+    on public.profiles for select
     using (true);
 
-drop policy if exists "profiles_insert_own" on public.profiles;
-create policy "profiles_insert_own"
-    on public.profiles
-    for insert
-    to anon, authenticated
+create policy "profiles_insert_all"
+    on public.profiles for insert
     with check (true);
 
-drop policy if exists "profiles_update_own" on public.profiles;
-create policy "profiles_update_own"
-    on public.profiles
-    for update
-    to anon, authenticated
+create policy "profiles_update_all"
+    on public.profiles for update
     using (true)
     with check (true);
 
-drop policy if exists "orders_select_related" on public.orders;
-create policy "orders_select_related"
-    on public.orders
-    for select
-    to anon, authenticated
+create policy "profiles_delete_all"
+    on public.profiles for delete
     using (true);
 
-drop policy if exists "orders_insert_customer" on public.orders;
-create policy "orders_insert_customer"
-    on public.orders
-    for insert
-    to anon, authenticated
+create policy "orders_select_all"
+    on public.orders for select
+    using (true);
+
+create policy "orders_insert_all"
+    on public.orders for insert
     with check (true);
 
-drop policy if exists "orders_update_related" on public.orders;
-create policy "orders_update_related"
-    on public.orders
-    for update
-    to anon, authenticated
-    using (true);
-
-drop policy if exists "payments_select_own" on public.payments;
-create policy "payments_select_own"
-    on public.payments
-    for select
-    to anon, authenticated
-    using (true);
-
-drop policy if exists "payments_insert_own" on public.payments;
-create policy "payments_insert_own"
-    on public.payments
-    for insert
-    to anon, authenticated
-    with check (true);
-
-drop policy if exists "payments_update_own" on public.payments;
-create policy "payments_update_own"
-    on public.payments
-    for update
-    to anon, authenticated
+create policy "orders_update_all"
+    on public.orders for update
     using (true)
     with check (true);
 
--- Keep updated_at fresh.
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-    new.updated_at = now();
-    return new;
-end;
-$$;
+create policy "orders_delete_all"
+    on public.orders for delete
+    using (true);
 
-drop trigger if exists trg_profiles_updated_at on public.profiles;
-create trigger trg_profiles_updated_at
-before update on public.profiles
-for each row
-execute function public.set_updated_at();
+create policy "payments_select_all"
+    on public.payments for select
+    using (true);
 
-drop trigger if exists trg_orders_updated_at on public.orders;
-create trigger trg_orders_updated_at
-before update on public.orders
-for each row
-execute function public.set_updated_at();
+create policy "payments_insert_all"
+    on public.payments for insert
+    with check (true);
 
+create policy "payments_update_all"
+    on public.payments for update
+    using (true)
+    with check (true);
+
+create policy "payments_delete_all"
+    on public.payments for delete
+    using (true);

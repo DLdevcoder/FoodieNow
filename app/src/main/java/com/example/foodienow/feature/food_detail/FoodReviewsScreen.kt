@@ -9,11 +9,10 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.foodienow.core.designsystem.theme.ColorBackground
-import com.example.foodienow.core.designsystem.theme.ColorPrimary
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.ReviewUiModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,32 +24,32 @@ fun FoodReviewsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tất cả đánh giá", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.food_reviews_title), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
             )
         },
-        containerColor = ColorBackground
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         if (reviews.isEmpty()) {
             Text(
-                text = "Chưa có đánh giá nào.",
+                text = stringResource(R.string.food_reviews_empty),
                 modifier = Modifier.padding(paddingValues).padding(16.dp),
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color.White),
+                modifier = Modifier.fillMaxSize().padding(paddingValues).background(MaterialTheme.colorScheme.surface),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(reviews) { review ->
                     ReviewItem(review = review)
-                    Divider(color = Color.LightGray, modifier = Modifier.padding(top = 16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(top = 16.dp))
                 }
             }
         }
