@@ -2,11 +2,13 @@ package com.example.foodienow.feature.merchant
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -44,8 +47,8 @@ fun AddEditFoodScreen(
         LaunchedEffect(Unit) { onBack() }
     }
 
-    // Bộ chọn ảnh
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    // Bộ chọn ảnh (Đã sửa lại để dùng PickVisualMedia và chuyển đổi byte ngay tại đây)
+    val photoPickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         selectedImageUri = uri
         uri?.let {
             val inputStream = context.contentResolver.openInputStream(it)
@@ -56,7 +59,7 @@ fun AddEditFoodScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (viewModel.storeId.isEmpty()) "Thêm món ăn" else "Chỉnh sửa món", color = Color.White) },
+                title = { Text(if (viewModel.foodId == null) "Thêm món ăn" else "Chỉnh sửa món", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White) }
                 },
@@ -72,26 +75,48 @@ fun AddEditFoodScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Khu vực chọn ảnh
+
+            // Hiển thị lỗi nếu có
+            if (viewModel.errorMessage != null) {
+                Text(
+                    text = viewModel.errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .background(Color.LightGray, shape = MaterialTheme.shapes.medium)
-                    .clickable { launcher.launch("image/*") },
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.LightGray)
+                    .clickable {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedImageUri != null) {
+                // Đã sửa lại cú pháp if để tránh lỗi Unresolved reference 'not'
+                if (selectedImageUri != null || viewModel.imageUrl?.isNotEmpty() == true) {
                     AsyncImage(
-                        model = selectedImageUri,
-                        contentDescription = null,
+                        model = selectedImageUri ?: viewModel.imageUrl,
+                        contentDescription = "Ảnh món ăn",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(48.dp))
-                        Text("Bấm để chọn ảnh món ăn")
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = Color.DarkGray
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Bấm để chọn ảnh món ăn", color = Color.DarkGray)
                     }
                 }
             }
@@ -135,7 +160,7 @@ fun AddEditFoodScreen(
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = ColorPrimary)
                 ) {
-                    Text("LƯU MÓN ĂN", fontWeight = FontWeight.Bold)
+                    Text("LƯU MÓN ĂN", fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }

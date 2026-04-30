@@ -47,8 +47,6 @@ class MerchantViewModel @Inject constructor(
 
                     if (store != null) {
                         _uiState.update { it.copy(store = store) }
-
-                        // Lấy thực đơn của quán và lắng nghe thay đổi
                         merchantRepository.getMerchantMenu(store.id).collect { foodList ->
                             _uiState.update { it.copy(menu = foodList, isLoading = false) }
                         }
@@ -86,6 +84,46 @@ class MerchantViewModel @Inject constructor(
                 merchantRepository.updateFood(updatedFood)
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+    fun updateStoreInfo(
+        newName: String,
+        newAddress: String,
+        newOpeningTime: String,
+        newClosingTime: String,
+        newIsActive: Boolean,
+        imageBytes: ByteArray?
+    ) {
+        val currentStore = _uiState.value.store ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            val tempStore = currentStore.copy(
+                name = newName,
+                address = newAddress.takeIf { it.isNotBlank() },
+                openingTime = newOpeningTime.takeIf { it.isNotBlank() },
+                closingTime = newClosingTime.takeIf { it.isNotBlank() },
+                isActive = newIsActive
+            )
+
+            val result = merchantRepository.updateStore(tempStore, imageBytes)
+
+            if (result.isSuccess) {
+                try {
+                    val updatedStore = merchantRepository.getStoreById(currentStore.id)
+                    _uiState.update { it.copy(store = updatedStore, isLoading = false) }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(isLoading = false, error = "Lỗi khi tải lại dữ liệu") }
+                }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = result.exceptionOrNull()?.message ?: "Lỗi cập nhật cửa hàng"
+                    )
+                }
             }
         }
     }
