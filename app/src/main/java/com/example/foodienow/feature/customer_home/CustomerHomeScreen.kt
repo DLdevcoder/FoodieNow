@@ -22,16 +22,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.feature.customer_home.components.FoodItemCard
 
-import com.example.foodienow.core.designsystem.theme.ColorBackground
-import com.example.foodienow.core.designsystem.theme.ColorPrimary
-import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
-import com.example.foodienow.core.designsystem.theme.ColorSurfaceLight
 import com.example.foodienow.feature.cart.CartViewModel
 import com.example.foodienow.feature.customer_home.components.FoodDetailBottomSheet
 
@@ -58,80 +56,103 @@ fun CustomerHomeScreen(
                             value = uiState.searchQuery,
                             onValueChange = viewModel::onSearchQueryChange,
                             modifier = Modifier.fillMaxWidth().height(52.dp),
-                            placeholder = { Text("Bạn muốn ăn gì?") },
+                            placeholder = { Text(stringResource(R.string.home_search_placeholder)) },
                             trailingIcon = {
                                 IconButton(onClick = {
                                     isSearchExpanded = false
                                     viewModel.onSearchQueryChange("") // Xóa query khi đóng
                                 }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Hủy", tint = Color.Gray)
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.home_search_cancel),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             },
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                                 focusedBorderColor = Color.Transparent,
                                 unfocusedBorderColor = Color.Transparent
                             )
                         )
                     } else {
-                        Text("FoodieNow", fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(
+                            stringResource(R.string.app_name),
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
                 actions = {
                     if (!isSearchExpanded) {
                         IconButton(onClick = { isSearchExpanded = true }) {
-                            Icon(Icons.Default.Search, contentDescription = "Tìm", tint = Color.White)
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = stringResource(R.string.home_search_action),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
             )
         },
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
             ) {
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Trang chủ") },
-                    label = { Text("Trang chủ", fontWeight = FontWeight.SemiBold) },
+                    icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.home_nav_home)) },
+                    label = { Text(stringResource(R.string.home_nav_home), fontWeight = FontWeight.SemiBold) },
                     selected = true,
                     onClick = { },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ColorPrimaryDark,
-                        selectedTextColor = ColorPrimaryDark,
-                        indicatorColor = ColorSurfaceLight
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
 
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Giỏ hàng") },
-                    label = { Text("Giỏ hàng", fontWeight = FontWeight.SemiBold) },
+                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = stringResource(R.string.home_nav_cart)) },
+                    label = { Text(stringResource(R.string.home_nav_cart), fontWeight = FontWeight.SemiBold) },
                     selected = false,
                     onClick = onNavigateToCart,
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray)
+                    colors = NavigationBarItemDefaults.colors(
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
 
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Notifications, contentDescription = "Thông báo") },
-                    label = { Text("Thông báo", fontWeight = FontWeight.SemiBold) },
+                    icon = { Icon(Icons.Default.Notifications, contentDescription = stringResource(R.string.home_nav_notifications)) },
+                    label = { Text(stringResource(R.string.home_nav_notifications), fontWeight = FontWeight.SemiBold) },
                     selected = false,
                     onClick = onNavigateToNotifications,
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray)
+                    colors = NavigationBarItemDefaults.colors(
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
 
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Hồ sơ") },
-                    label = { Text("Hồ sơ", fontWeight = FontWeight.SemiBold) },
+                    icon = { Icon(Icons.Default.Person, contentDescription = stringResource(R.string.home_nav_profile)) },
+                    label = { Text(stringResource(R.string.home_nav_profile), fontWeight = FontWeight.SemiBold) },
                     selected = false,
                     onClick = onNavigateToProfile,
-                    colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray, unselectedTextColor = Color.Gray)
+                    colors = NavigationBarItemDefaults.colors(
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
             }
         },
-        containerColor = ColorBackground
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)) {
 
@@ -139,7 +160,7 @@ fun CustomerHomeScreen(
                 Box(modifier = Modifier.fillMaxSize())
             } else if (uiState.searchQuery.isNotEmpty()) {
                 Text(
-                    "Kết quả tìm kiếm",
+                    stringResource(R.string.home_search_results),
                     modifier = Modifier.padding(vertical = 12.dp),
                     fontWeight = FontWeight.Bold
                 )
@@ -147,7 +168,7 @@ fun CustomerHomeScreen(
                 val displayList = uiState.searchResults
 
                 if (displayList.isEmpty()) {
-                    Text("Không tìm thấy món ăn nào phù hợp.", color = Color.Gray)
+                    Text(stringResource(R.string.home_search_empty), color = Color.Gray)
                 } else {
                     LazyColumn(
                         modifier = Modifier.weight(1f), // Nhớ giữ weight(1f) để tránh lỗi tàng hình
@@ -164,10 +185,10 @@ fun CustomerHomeScreen(
                 }
             } else {
                 Text(
-                    "Gợi ý",
+                    stringResource(R.string.home_recommendations),
                     modifier = Modifier.padding(vertical = 12.dp),
-                    fontWeight = FontWeight.Bold,
-                    color = ColorPrimaryDark
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 LazyColumn(
                     modifier = Modifier.weight(1f),

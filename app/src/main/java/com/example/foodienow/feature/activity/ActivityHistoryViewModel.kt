@@ -2,6 +2,7 @@ package com.example.foodienow.feature.activity
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.Payment
 import com.example.foodienow.domain.repository.AuthRepository
@@ -26,15 +27,18 @@ enum class ActivityType {
 data class ActivityHistoryItem(
     val id: String,
     val type: ActivityType,
-    val title: String,
-    val subtitle: String,
+    val orderId: String? = null,
+    val paymentId: String? = null,
+    val status: String? = null,
+    val method: String? = null,
+    val totalPrice: Double? = null,
     val createdAt: String?
 )
 
 data class ActivityHistoryUiState(
     val isLoading: Boolean = true,
     val items: List<ActivityHistoryItem> = emptyList(),
-    val errorMessage: String? = null
+    val errorResId: Int? = null
 )
 
 @HiltViewModel
@@ -53,14 +57,14 @@ class ActivityHistoryViewModel @Inject constructor(
 
     fun loadHistory() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorResId = null) }
             val user = authRepository.getAuthState().first()
             if (user == null) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         items = emptyList(),
-                        errorMessage = "Khong tim thay phien dang nhap."
+                        errorResId = R.string.error_no_session
                     )
                 }
                 return@launch
@@ -77,7 +81,7 @@ class ActivityHistoryViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         items = items,
-                        errorMessage = null
+                        errorResId = null
                     )
                 }
             }
@@ -85,24 +89,27 @@ class ActivityHistoryViewModel @Inject constructor(
     }
 
     private fun Order.toHistoryItem(): ActivityHistoryItem {
-        val orderId = id ?: "-"
+        val orderId = id
         return ActivityHistoryItem(
-            id = "order-$orderId",
+            id = "order-${orderId ?: "-"}",
             type = ActivityType.ORDER,
-            title = "Don hang #$orderId",
-            subtitle = "Trang thai: ${status.name} | Tong: ${"%.0f".format(totalPrice)} VND",
+            orderId = orderId,
+            status = status.name,
+            totalPrice = totalPrice,
             createdAt = createdAt
         )
     }
 
     private fun Payment.toHistoryItem(): ActivityHistoryItem {
-        val paymentId = id ?: "-"
-        val linkedOrder = orderId ?: "-"
+        val paymentId = id
         return ActivityHistoryItem(
-            id = "payment-$paymentId",
+            id = "payment-${paymentId ?: "-"}",
             type = ActivityType.PAYMENT,
-            title = "Thanh toan #$paymentId",
-            subtitle = "Don: #$linkedOrder | ${method.name} | ${status.name}",
+            orderId = orderId,
+            paymentId = paymentId,
+            status = status.name,
+            method = method.name,
+            totalPrice = amount,
             createdAt = createdAt
         )
     }
@@ -113,4 +120,3 @@ class ActivityHistoryViewModel @Inject constructor(
         }.getOrDefault(0L)
     }
 }
-

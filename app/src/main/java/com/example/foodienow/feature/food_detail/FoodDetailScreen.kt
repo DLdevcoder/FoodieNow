@@ -18,14 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.example.foodienow.core.designsystem.theme.ColorBackground
-import com.example.foodienow.core.designsystem.theme.ColorPrimary
-import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
-import com.example.foodienow.core.designsystem.theme.ColorSurfaceLight
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.ReviewUiModel
 import com.example.foodienow.domain.model.Store
@@ -48,33 +46,47 @@ fun FoodDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chi tiết món ăn", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.food_detail_title),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
             )
         },
-        containerColor = ColorBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Surface(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 16.dp,
                 modifier = Modifier.navigationBarsPadding()
             ) {
-                // Chỉ hiển thị nút Thêm vào giỏ
                 Button(
-                    onClick = { onAddToCart(food, 1) }, // Mặc định thêm 1 phần
-                    colors = ButtonDefaults.buttonColors(containerColor = ColorPrimaryDark),
-                    shape = RoundedCornerShape(8.dp),
+                    onClick = { onAddToCart(food, 1) },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                         .height(48.dp)
                 ) {
-                    Text("Thêm vào giỏ", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        stringResource(R.string.food_detail_add_to_cart),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
+                    )
                 }
             }
         }
@@ -87,7 +99,7 @@ fun FoodDetailScreen(
         ) {
             AsyncImage(
                 model = food.imageUrl,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.food_detail_image_desc),
                 modifier = Modifier.fillMaxWidth().height(280.dp),
                 contentScale = ContentScale.Crop
             )
@@ -96,23 +108,24 @@ fun FoodDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
                 Text(
                     text = food.price.formatPrice(),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = ColorPrimaryDark
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = food.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
+                val soldLabel = if (food.soldCount > 999) "999+" else food.soldCount.toString()
                 Row(
                     modifier = Modifier.padding(top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -125,7 +138,7 @@ fun FoodDetailScreen(
                     )
                     Text(text = " | ", color = Color.LightGray, modifier = Modifier.padding(horizontal = 8.dp))
                     Text(
-                        text = "Đã bán ${if (food.soldCount > 999) "999+" else food.soldCount}",
+                        text = stringResource(R.string.food_detail_sold_count, soldLabel),
                         color = Color.Gray,
                         fontSize = 14.sp
                     )
@@ -138,7 +151,7 @@ fun FoodDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -148,7 +161,7 @@ fun FoodDetailScreen(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(ColorSurfaceLight)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { onNavigateToStore(store.id) },
                         contentScale = ContentScale.Crop
                     )
@@ -159,7 +172,11 @@ fun FoodDetailScreen(
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium
                         )
-                        Text(text = "Xem cửa hàng", fontSize = 12.sp, color = Color.Gray)
+                        Text(
+                            text = stringResource(R.string.food_detail_store_hint),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -170,14 +187,18 @@ fun FoodDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
-                Text(text = "Chi tiết món ăn", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = stringResource(R.string.food_detail_section_title),
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = food.description ?: "Chủ quán chưa cập nhật mô tả cho món ăn này.",
-                    color = Color.DarkGray,
+                    text = food.description ?: stringResource(R.string.food_detail_no_description),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 22.sp
                 )
             }
@@ -188,7 +209,7 @@ fun FoodDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
                 Row(
@@ -196,10 +217,14 @@ fun FoodDetailScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Đánh giá sản phẩm", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                     Text(
-                        text = "Xem tất cả >",
-                        color = ColorPrimary,
+                        text = stringResource(R.string.food_detail_reviews_title),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.food_detail_reviews_view_all),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 14.sp,
                         modifier = Modifier.clickable { onNavigateToAllReviews() }
                     )
@@ -213,13 +238,17 @@ fun FoodDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Viết đánh giá cho món này", color = ColorPrimaryDark)
+                    Text(stringResource(R.string.food_detail_write_review), color = MaterialTheme.colorScheme.primary)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (reviews.isEmpty()) {
-                    Text("Chưa có đánh giá nào.", color = Color.Gray, fontSize = 14.sp)
+                    Text(
+                        stringResource(R.string.food_detail_no_reviews),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
                 } else {
                     reviews.take(3).forEach { review ->
                         ReviewItem(review = review)
@@ -235,7 +264,7 @@ fun FoodDetailScreen(
     // Dialog đánh giá Món ăn
     if (showProductReviewDialog) {
         RatingDialog(
-            title = "Đánh giá món ăn",
+            title = stringResource(R.string.rating_dialog_title),
             showCommentField = true,
             onDismiss = { showProductReviewDialog = false },
             onSubmit = { rating, comment ->
@@ -265,7 +294,7 @@ fun RatingDialog(
                     for (i in 1..5) {
                         Icon(
                             imageVector = if (i <= selectedRating) Icons.Filled.Star else Icons.Outlined.Star,
-                            contentDescription = "Star $i",
+                            contentDescription = stringResource(R.string.rating_star_content_desc, i),
                             tint = if (i <= selectedRating) Color(0xFFFFD700) else Color.LightGray,
                             modifier = Modifier
                                 .size(40.dp)
@@ -280,7 +309,7 @@ fun RatingDialog(
                     OutlinedTextField(
                         value = comment,
                         onValueChange = { comment = it },
-                        placeholder = { Text("Bạn thấy món này thế nào?") },
+                        placeholder = { Text(stringResource(R.string.rating_dialog_placeholder)) },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 3
                     )
@@ -291,14 +320,14 @@ fun RatingDialog(
             Button(
                 onClick = { onSubmit(selectedRating, comment) },
                 enabled = selectedRating > 0,
-                colors = ButtonDefaults.buttonColors(containerColor = ColorPrimaryDark)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Gửi", color = Color.White)
+                Text(stringResource(R.string.rating_dialog_submit), color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy", color = Color.Gray)
+                Text(stringResource(R.string.rating_dialog_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -317,12 +346,12 @@ fun ReviewItem(review: ReviewUiModel) {
                 )
             } else {
                 Box(
-                    modifier = Modifier.size(32.dp).clip(CircleShape).background(ColorSurfaceLight),
+                    modifier = Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = review.userName.firstOrNull()?.toString()?.uppercase() ?: "U",
-                        color = ColorPrimaryDark,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -333,12 +362,12 @@ fun ReviewItem(review: ReviewUiModel) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "${review.rating} ☆", color = Color(0xFFFFD700), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = review.date, fontSize = 12.sp, color = Color.Gray)
+                    Text(text = review.date, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
         if (review.comment.isNotEmpty()) {
-            Text(text = review.comment, modifier = Modifier.padding(top = 8.dp), fontSize = 14.sp, color = Color.DarkGray)
+            Text(text = review.comment, modifier = Modifier.padding(top = 8.dp), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

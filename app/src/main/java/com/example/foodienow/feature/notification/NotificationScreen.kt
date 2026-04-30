@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CircularProgressIndicator
@@ -59,22 +61,28 @@ fun NotificationScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             uiState.errorMessage?.let {
                 Text(text = it, color = MaterialTheme.colorScheme.error)
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Text(stringResource(R.string.notifications_unread_count, uiState.unreadCount))
-                TextButton(onClick = viewModel::markAllAsRead) {
-                    Text(stringResource(R.string.notifications_mark_all_read))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(stringResource(R.string.notifications_unread_count, uiState.unreadCount))
+                    TextButton(onClick = viewModel::markAllAsRead) {
+                        Text(stringResource(R.string.notifications_mark_all_read))
+                    }
                 }
             }
 
@@ -108,39 +116,42 @@ private fun NotificationCard(
     onClick: () -> Unit
 ) {
     val cardColor = if (item.isRead) {
-        MaterialTheme.colorScheme.surfaceVariant
+        MaterialTheme.colorScheme.surface
     } else {
         MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(cardColor)
-            .clickable(onClick = onClick)
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        val dotColor = if (item.isRead) Color.Gray else MaterialTheme.colorScheme.primary
-        Spacer(
+        Row(
             modifier = Modifier
-                .size(10.dp)
-                .clip(CircleShape)
-                .background(dotColor)
-                .align(Alignment.CenterVertically)
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(item.title, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(item.message)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                item.createdAt ?: "-",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            val dotColor = if (item.isRead) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
+            Spacer(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(dotColor)
+                    .align(Alignment.CenterVertically)
             )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(item.title, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(item.message)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    item.createdAt ?: "-",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
-

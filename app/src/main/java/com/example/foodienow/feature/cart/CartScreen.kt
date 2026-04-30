@@ -14,16 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
-import com.example.foodienow.core.designsystem.theme.ColorBackground
-import com.example.foodienow.core.designsystem.theme.ColorPrimary
-import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
-import com.example.foodienow.core.designsystem.theme.ColorSurfaceLight
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.feature.customer_home.components.formatPrice
 
@@ -50,22 +47,22 @@ fun CartScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Giỏ hàng của bạn", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.cart_title), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = ColorPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
             )
         },
-        containerColor = ColorBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             // Thanh này luôn hiển thị, tự tính toán dựa trên giỏ hàng
             val totalPrice = if (cartItems.isNotEmpty()) cartItems.entries.sumOf { it.key.price * it.value } else 0.0
 
             Surface(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 16.dp,
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {
@@ -78,29 +75,29 @@ fun CartScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(text = "Tổng thanh toán", color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
+                        Text(text = stringResource(R.string.cart_total_label), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                         Text(
                             text = totalPrice.formatPrice(),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = ColorPrimaryDark
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
 
                     Button(
                         onClick = { viewModel.onCheckoutClicked() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = ColorPrimaryDark,
-                            disabledContainerColor = Color.LightGray
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.height(48.dp),
                         enabled = cartItems.isNotEmpty() && !uiState.isLoading
                     ) {
                         if (uiState.isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                         } else {
-                            Text("Thanh toán", fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(stringResource(R.string.cart_checkout), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 }
@@ -109,7 +106,7 @@ fun CartScreen(
     ) { paddingValues ->
         if (cartItems.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("Giỏ hàng của bạn đang trống", color = Color.Gray, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.cart_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
             }
         } else {
             LazyColumn(
@@ -134,7 +131,6 @@ fun CartScreen(
     }
 }
 
-// Giữ nguyên CartItemCard bên dưới ...
 @Composable
 fun CartItemCard(
     food: Food,
@@ -143,7 +139,7 @@ fun CartItemCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Row(
@@ -158,20 +154,20 @@ fun CartItemCard(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = food.name, fontWeight = FontWeight.Bold)
+                Text(text = food.name, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = food.price.formatPrice(), color = ColorPrimaryDark, fontWeight = FontWeight.Bold)
+                Text(text = food.price.formatPrice(), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.background(ColorSurfaceLight, RoundedCornerShape(50)).padding(2.dp)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50)).padding(2.dp)
             ) {
                 IconButton(onClick = { onQuantityChange(quantity - 1) }, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Remove, contentDescription = "Giảm", tint = ColorPrimaryDark, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Remove, contentDescription = stringResource(R.string.cart_decrease), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                 }
-                Text(text = quantity.toString(), fontWeight = FontWeight.Bold, color = ColorPrimaryDark, modifier = Modifier.padding(horizontal = 4.dp))
+                Text(text = quantity.toString(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 4.dp))
                 IconButton(onClick = { onQuantityChange(quantity + 1) }, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Add, contentDescription = "Tăng", tint = ColorPrimaryDark, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.cart_increase), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                 }
             }
         }

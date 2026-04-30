@@ -66,6 +66,14 @@
     <string name="activity_history_title">Activity history</string>
     <string name="activity_history_empty">No activities yet.</string>
     <string name="activity_history_time_unknown">Unknown time</string>
+    <string name="activity_history_order_title">Order #%1$s</string>
+    <string name="activity_history_payment_title">Payment #%1$s</string>
+    <string name="activity_history_payment_subtitle">Order #%1$s | %2$s | %3$s</string>
+
+    <string name="order_history_title">Order history</string>
+    <string name="order_history_empty">No orders yet.</string>
+    <string name="order_history_time_unknown">Unknown time</string>
+    <string name="order_history_order_title">Order #%1$s</string>
 
     <string name="settings_language_title">Language</string>
     <string name="settings_language_english">English</string>
@@ -82,4 +90,56 @@
     <string name="nav_cart">Cart</string>
     <string name="nav_merchant_home">Merchant Home</string>
     <string name="nav_shipper_home">Shipper Home</string>
+
+    <string name="home_search_placeholder">What are you craving?</string>
+    <string name="home_search_cancel">Cancel</string>
+    <string name="home_search_action">Search</string>
+    <string name="home_nav_home">Home</string>
+    <string name="home_nav_cart">Cart</string>
+    <string name="home_nav_notifications">Notifications</string>
+    <string name="home_nav_profile">Profile</string>
+    <string name="home_search_results">Search results</string>
+    <string name="home_search_empty">No matching dishes found.</string>
+    <string name="home_recommendations">Recommendations</string>
+
+    <string name="cart_title">Your cart</string>
+    <string name="cart_total_label">Total</string>
+    <string name="cart_checkout">Checkout</string>
+    <string name="cart_empty">Your cart is empty.</string>
+    <string name="cart_decrease">Decrease</string>
+    <string name="cart_increase">Increase</string>
+
+    <string name="food_add_to_cart">Add to cart</string>
+    <string name="food_detail_title">Food details</string>
+    <string name="food_detail_add_to_cart">Add to cart</string>
+    <string name="food_detail_sold_count">Sold %1$s</string>
+    <string name="food_detail_store_hint">View store</string>
+    <string name="food_detail_section_title">About this dish</string>
+    <string name="food_detail_no_description">Description not available.</string>
+    <string name="food_detail_reviews_title">Reviews</string>
+    <string name="food_detail_reviews_view_all">View all &gt;</string>
+    <string name="food_detail_write_review">Write a review</string>
+    <string name="food_detail_no_reviews">No reviews yet.</string>
+    <string name="food_detail_image_desc">Food image</string>
+
+    <string name="rating_dialog_title">Rate this dish</string>
+    <string name="rating_dialog_placeholder">How was this dish?</string>
+    <string name="rating_dialog_submit">Submit</string>
+    <string name="rating_dialog_cancel">Cancel</string>
+    <string name="rating_star_content_desc">Star %1$d</string>
+
+    <string name="bottomsheet_image_desc">Image of %1$s</string>
+    <string name="bottomsheet_no_description">No description available.</string>
+    <string name="bottomsheet_decrease">Decrease</string>
+    <string name="bottomsheet_increase">Increase</string>
+    <string name="bottomsheet_add_to_cart_total">Add %1$d to cart - %2$s</string>
+
+    <string name="food_reviews_title">All reviews</string>
+    <string name="food_reviews_empty">No reviews yet.</string>
+
+    <string name="activity_history_item_subtitle">Status: %1$s | Total: %2$s</string>
+    <string name="order_history_item_subtitle">Status: %1$s | Total: %2$s</string>
+
+    <string name="error_no_session">No active session found.</string>
+    <string name="error_load_order_history">Unable to load order history.</string>
 </resources>
