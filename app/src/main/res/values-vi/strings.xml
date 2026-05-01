@@ -142,4 +142,15 @@
 
     <string name="error_no_session">Khong tim thay phien dang nhap.</string>
     <string name="error_load_order_history">Khong the tai lich su dat hang.</string>
+
+    <string name="merchant_orders_status_pending">Chờ xác nhận</string>
+    <string name="merchant_orders_status_preparing">Đang chuẩn bị</string>
+    <string name="merchant_orders_status_delivering">Đang giao</string>
+    <string name="merchant_orders_status_completed">Hoàn thành</string>
+    <string name="merchant_orders_status_cancelled">Đã hủy</string>
+    <string name="merchant_orders_empty">Không có đơn hàng nào ở trạng thái này.</string>
+    <string name="merchant_orders_action_accept">Nhận đơn</string>
+    <string name="merchant_orders_action_ready">Đã chuẩn bị xong</string>
+    <string name="merchant_orders_action_cancel">Từ chối</string>
+    <string name="merchant_orders_customer_name">Khách hàng: %1$s</string>
 </resources>

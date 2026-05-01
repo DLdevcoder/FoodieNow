@@ -223,6 +223,9 @@ fun AppNavigation() {
                 },
                 onNavigateToHistory = {
                     navController.navigate(Screen.ActivityHistory.route)
+                },
+                onNavigateToOrderHistory = {
+                    navController.navigate(Screen.OrderHistory.route)
                 }
             )
         }

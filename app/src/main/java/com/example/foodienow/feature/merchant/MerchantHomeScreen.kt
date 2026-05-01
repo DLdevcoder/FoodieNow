@@ -28,14 +28,14 @@ fun MerchantHomeScreen(
     onNavigateToAddFood: (String) -> Unit,
     onNavigateToEditFood: (String) -> Unit,
     onLogout: () -> Unit,
-    onNavigateToHistory: () -> Unit
+    onNavigateToHistory: () -> Unit,
+    onNavigateToOrderHistory: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
-            // Ẩn TopAppBar mặc định đi nếu tab đó (như Profile, Notification) đã tự có TopAppBar riêng
             if (selectedTab in 0..2) {
                 TopAppBar(
                     title = {
@@ -133,21 +133,15 @@ fun MerchantHomeScreen(
                     }
                 )
                 3 -> NotificationScreen(
-                    onBack = { selectedTab = 0 } // Bấm back sẽ về lại màn hình Đơn hàng
+                    onBack = { selectedTab = 0 }
                 )
                 4 -> ProfileScreen(
-                    onBack = { selectedTab = 0 }, // Bấm back sẽ về lại màn hình Đơn hàng
-                    onNavigateToHistory = onNavigateToHistory,
+                    onBack = { selectedTab = 0 },
+                    onNavigateToOrderHistory = onNavigateToOrderHistory,
+                    onNavigateToActivityHistory = onNavigateToHistory,
                     onLoggedOut = onLogout
                 )
             }
         }
-    }
-}
-
-@Composable
-fun MerchantOrdersTab() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Giao diện danh sách đơn hàng")
     }
 }
