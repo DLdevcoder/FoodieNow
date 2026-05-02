@@ -15,9 +15,13 @@ import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.NotificationRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import com.example.foodienow.domain.repository.PaymentRepository
+import com.example.foodienow.domain.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -30,17 +34,25 @@ data class PaymentUiState(
     val errorMessage: String? = null
 )
 
+sealed class PaymentEvent {
+    object PaymentSuccess : PaymentEvent()
+}
+
 @HiltViewModel
 class PaymentViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val orderRepository: OrderRepository,
     private val paymentRepository: PaymentRepository,
     private val notificationRepository: NotificationRepository,
-    private val walletPaymentGateway: WalletPaymentGateway
+    private val walletPaymentGateway: WalletPaymentGateway,
+    private val cartRepository: CartRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentUiState())
     val uiState: StateFlow<PaymentUiState> = _uiState.asStateFlow()
+
+    private val _paymentEvent = MutableSharedFlow<PaymentEvent>()
+    val paymentEvent: SharedFlow<PaymentEvent> = _paymentEvent.asSharedFlow()
 
     fun submitPayment(
         method: PaymentMethod,
@@ -128,6 +140,8 @@ class PaymentViewModel @Inject constructor(
                                             infoMessage = "Thanh toan thanh cong. Don hang da duoc luu vao he thong."
                                         )
                                     }
+                                    cartRepository.clearCart()
+                                    _paymentEvent.emit(PaymentEvent.PaymentSuccess)
                                 }
                                 .onFailure { error ->
                                     handlePaymentFailure(

@@ -1,114 +1,207 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
-
 package com.example.foodienow.feature.order_history
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
-import com.example.foodienow.feature.customer_home.components.formatPrice
-
+import com.example.foodienow.domain.model.Order
+import com.example.foodienow.domain.model.OrderStatus
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
-    onBack: () -> Unit,
+    onBack: () -> Unit, // Might not be needed in bottom nav, but keeping for compatibility
     viewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf(
+        R.string.my_orders_tab_ongoing,
+        R.string.my_orders_tab_history,
+        R.string.my_orders_tab_cancelled
+    )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.order_history_title)) })
-        }
-    ) { padding ->
-        if (uiState.isLoading) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator(modifier = Modifier.padding(start = 16.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+    ) {
+        TopAppBar(
+            title = {
+                Text(
+                    stringResource(R.string.my_orders_title),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            },
+            actions = {
+                IconButton(onClick = { }) {
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+        )
+
+        ScrollableTabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = Color.White,
+            contentColor = MaterialTheme.colorScheme.primary,
+            edgePadding = 8.dp,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            },
+            divider = { HorizontalDivider(color = Color.LightGray) }
+        ) {
+            tabs.forEachIndexed { index, titleRes ->
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = { selectedTabIndex = index },
+                    text = {
+                        Text(
+                            stringResource(titleRes),
+                            color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else Color.Gray,
+                            fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal
+                        )
+                    }
+                )
             }
-            return@Scaffold
         }
 
+        val ongoingOrders = uiState.orders.filter { it.status in listOf(OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.DELIVERING) }
+        val historyOrders = uiState.orders.filter { it.status == OrderStatus.COMPLETED }
+        val cancelledOrders = uiState.orders.filter { it.status == OrderStatus.CANCELLED }
+
+        if (uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            when (selectedTabIndex) {
+                0 -> OrdersTabContent(orders = ongoingOrders, isEmptyState = ongoingOrders.isEmpty())
+                1 -> OrdersTabContent(orders = historyOrders, isEmptyState = historyOrders.isEmpty())
+                2 -> OrdersTabContent(orders = cancelledOrders, isEmptyState = cancelledOrders.isEmpty())
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrdersTabContent(orders: List<Order>, isEmptyState: Boolean) {
+    if (isEmptyState) {
+        EmptyOngoingState()
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            items(orders.size) { index ->
+                OrderCardItem(order = orders[index])
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyOngoingState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            Icons.Default.Assignment,
+            contentDescription = null,
+            modifier = Modifier.size(100.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.my_orders_empty_title),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.my_orders_empty_desc),
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
+private fun OrderCardItem(order: Order) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxWidth()
+                .padding(12.dp)
         ) {
-            uiState.errorResId?.let { resId ->
-                Text(text = stringResource(resId), color = MaterialTheme.colorScheme.error)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (uiState.orders.isEmpty()) {
-                Text(text = stringResource(R.string.order_history_empty))
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(uiState.orders, key = { it.id ?: "" }) { order ->
-                        val orderId = order.id ?: "-"
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    text = stringResource(R.string.order_history_order_title, orderId),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = stringResource(
-                                        R.string.order_history_item_subtitle,
-                                        order.status.name,
-                                        order.totalPrice.formatPrice()
-                                    )
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = order.createdAt
-                                        ?: stringResource(R.string.order_history_time_unknown),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            TextButton(
-                onClick = onBack,
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(stringResource(R.string.common_back))
+                Text(
+                    stringResource(R.string.order_history_order_title, order.id?.substring(0, 8) ?: "Unknown"),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+                Text(
+                    order.status.name,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Address: ${order.deliveryAddress}",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                maxLines = 2
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    order.createdAt ?: "",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    "${order.totalPrice} VND",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
             }
         }
     }

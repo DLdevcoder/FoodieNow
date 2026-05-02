@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -22,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +44,7 @@ import com.example.foodienow.domain.model.WalletProvider
 @Composable
 fun PaymentScreen(
     onBack: () -> Unit,
+    onNavigateToOrderHistory: () -> Unit,
     viewModel: PaymentViewModel = hiltViewModel()
 ) {
     var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
@@ -50,16 +53,33 @@ fun PaymentScreen(
     var note by remember { mutableStateOf("") }
     val uiState by viewModel.uiState.collectAsState()
 
-    val canPay = deliveryAddress.isNotBlank() && !uiState.isProcessing
+    // Lấy giỏ hàng từ CartViewModel hoặc CartRepository
+    val cartViewModel: com.example.foodienow.feature.cart.CartViewModel = hiltViewModel()
+    val cartUiState by cartViewModel.uiState.collectAsState()
+    
+    val totalAmount = cartUiState.cartItems.entries.sumOf { it.key.price * it.value }
+
+    val canPay = deliveryAddress.isNotBlank() && !uiState.isProcessing && totalAmount > 0
 
     LaunchedEffect(deliveryAddress, note, selectedMethod) {
         viewModel.clearMessage()
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.paymentEvent.collect { event ->
+            when (event) {
+                is PaymentEvent.PaymentSuccess -> {
+                    onNavigateToOrderHistory()
+                }
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.payment_title)) }
+                title = { Text(stringResource(R.string.payment_title), fontWeight = FontWeight.SemiBold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
     ) { padding ->
@@ -206,14 +226,14 @@ fun PaymentScreen(
                         provider = if (selectedMethod == PaymentMethod.WALLET) selectedProvider else null,
                         deliveryAddress = deliveryAddress,
                         note = note,
-                        amount = PAYMENT_TOTAL
+                        amount = totalAmount
                     )
                 },
                 enabled = canPay,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (uiState.isProcessing) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.payment_processing))
                 } else {
@@ -231,4 +251,4 @@ fun PaymentScreen(
     }
 }
 
-private const val PAYMENT_TOTAL = 135000.0
+

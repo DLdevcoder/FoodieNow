@@ -46,6 +46,7 @@ import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.order_history.OrderHistoryScreen
 import com.example.foodienow.feature.payment.PaymentScreen
 import com.example.foodienow.feature.profile.ProfileScreen
+import com.example.foodienow.feature.main.CustomerMainScreen
 
 @Composable
 fun AppNavigation() {
@@ -103,12 +104,17 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.CustomerHome.route) {
-            CustomerHomeScreen(
+            CustomerMainScreen(
+                rootNavController = navController,
                 onNavigateToCart = { navController.navigate(Screen.Cart.route) },
-                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
-                onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
-                onNavigateToFoodDetail = {food ->
-                    navController.navigate("food_detail/${food.id}") }
+                onNavigateToFoodDetail = { food ->
+                    navController.navigate("food_detail/${food.id}")
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.CustomerHome.route) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -126,7 +132,14 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.Payment.route) {
-            PaymentScreen(onBack = { navController.popBackStack() })
+            PaymentScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToOrderHistory = {
+                    navController.navigate(Screen.OrderHistory.route) {
+                        popUpTo(Screen.CustomerHome.route) { inclusive = false }
+                    }
+                }
+            )
         }
 
         composable(route = Screen.Profile.route) {
@@ -139,6 +152,68 @@ fun AppNavigation() {
                         popUpTo(Screen.CustomerHome.route) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(route = Screen.Address.route) {
+            com.example.foodienow.feature.profile.AddressScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.PaymentSettings.route) {
+            com.example.foodienow.feature.profile.PaymentSettingsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.MustTry.route) {
+            com.example.foodienow.feature.profile.MustTryScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToFoodDetail = { food ->
+                    navController.navigate("food_detail/${food.id}")
+                }
+            )
+        }
+
+        composable(route = Screen.Vouchers.route) {
+            com.example.foodienow.feature.profile.VoucherScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.RewardPoints.route) {
+            com.example.foodienow.feature.profile.RewardPointsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.InviteFriends.route) {
+            com.example.foodienow.feature.profile.InviteFriendsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.ShopOwner.route) {
+            com.example.foodienow.feature.profile.ShopOwnerScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToMerchantLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(route = Screen.HelpCentre.route) {
+            com.example.foodienow.feature.profile.HelpCentreScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.Settings.route) {
+            com.example.foodienow.feature.profile.SettingsScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -205,7 +280,13 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.ShipperHome.route) {
-            PlaceholderScreen(title = stringResource(R.string.nav_shipper_home))
+            com.example.foodienow.feature.shipper.ShipperHomeScreen(
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(route = Screen.MerchantHome.route) {

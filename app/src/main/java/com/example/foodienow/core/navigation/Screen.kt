@@ -18,6 +18,15 @@ sealed class Screen(val route: String) {
     object Notifications : Screen("notifications_screen")
     object ActivityHistory : Screen("activity_history_screen")
     object OrderHistory : Screen("order_history_screen")
+    object Address : Screen("address_screen")
+    object PaymentSettings : Screen("payment_settings_screen")
+    object MustTry : Screen("must_try_screen")
+    object Vouchers : Screen("vouchers_screen")
+    object RewardPoints : Screen("reward_points_screen")
+    object InviteFriends : Screen("invite_friends_screen")
+    object ShopOwner : Screen("shop_owner_screen")
+    object HelpCentre : Screen("help_centre_screen")
+    object Settings : Screen("settings_screen")
     object FoodDetail : Screen("food_detail/{foodId}") {
         fun createRoute(foodId: String) = "food_detail/$foodId"
     }

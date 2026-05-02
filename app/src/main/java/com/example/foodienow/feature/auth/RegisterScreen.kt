@@ -7,8 +7,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -21,6 +26,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -96,13 +104,29 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .imePadding()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.Start
         ) {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
             Text(text = stringResource(R.string.auth_register_title), style = MaterialTheme.typography.headlineMedium)
-
-            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = stringResource(R.string.auth_register_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             OutlinedTextField(
                 value = email,
@@ -119,10 +143,9 @@ fun RegisterScreen(
                         Text(stringResource(R.string.auth_error_invalid_email))
                     }
                 },
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = password,
@@ -152,10 +175,9 @@ fun RegisterScreen(
                         Text(stringResource(R.string.auth_error_password_min_length))
                     }
                 },
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = confirmPassword,
@@ -185,10 +207,9 @@ fun RegisterScreen(
                         Text(stringResource(R.string.auth_error_password_mismatch))
                     }
                 },
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             Text(text = stringResource(R.string.auth_role_label), modifier = Modifier.fillMaxWidth())
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -228,7 +249,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
                 } else {
                     Text(stringResource(R.string.auth_create_account_button))
                 }

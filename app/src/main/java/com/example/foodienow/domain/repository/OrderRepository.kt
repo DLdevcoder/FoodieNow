@@ -17,6 +17,12 @@ interface OrderRepository {
     // Shipper tìm đơn cần giao
     fun getAvailableDeliveries(): Flow<List<Order>>
 
+    // Shipper xem đơn đang giao
+    fun getShipperActiveOrder(shipperId: String): Flow<Order?>
+
+    // Shipper nhận đơn
+    suspend fun acceptOrder(orderId: String, shipperId: String): Result<Unit>
+
     // cập nhật trạng thái
     suspend fun updateOrderStatus(orderId: String, newStatus: OrderStatus): Result<Unit>
 }

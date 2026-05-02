@@ -6,8 +6,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -19,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -87,13 +95,32 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .imePadding()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            Text(text = stringResource(R.string.auth_login_title), style = MaterialTheme.typography.headlineMedium)
-
-            Spacer(modifier = Modifier.height(20.dp))
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+            Text(
+                text = stringResource(R.string.auth_login_title),
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Text(
+                text = stringResource(R.string.auth_login_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             OutlinedTextField(
                 value = email,
@@ -109,10 +136,9 @@ fun LoginScreen(
                         Text(stringResource(R.string.auth_error_invalid_email))
                     }
                 },
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = password,
@@ -141,10 +167,9 @@ fun LoginScreen(
                         )
                     }
                 },
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = { viewModel.login(email = email, pass = password) },
@@ -152,7 +177,7 @@ fun LoginScreen(
                 enabled = canSubmit
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
                 } else {
                     val title = if (uiState.remainingCooldownSeconds > 0) {
                         stringResource(R.string.auth_try_again_in_seconds, uiState.remainingCooldownSeconds)

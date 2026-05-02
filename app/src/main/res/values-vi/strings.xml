@@ -4,7 +4,9 @@
 
     <string name="auth_checking_session">Dang kiem tra phien dang nhap...</string>
     <string name="auth_login_title">Dang nhap</string>
+    <string name="auth_login_subtitle">Chao mung ban quay lai, hay dang nhap de tiep tuc.</string>
     <string name="auth_register_title">Dang ky</string>
+    <string name="auth_register_subtitle">Tao tai khoan moi de bat dau.</string>
     <string name="auth_email_label">Email</string>
     <string name="auth_password_label">Mat khau</string>
     <string name="auth_confirm_password_label">Nhap lai mat khau</string>
@@ -26,12 +28,14 @@
     <string name="auth_error_password_mismatch">Mat khau nhap lai khong khop.</string>
 
     <string name="auth_verify_title">Xac thuc tai khoan</string>
+    <string name="auth_verify_subtitle">Xac nhan email de mo khoa day du tinh nang.</string>
     <string name="auth_verify_sent_to">He thong da gui email xac thuc den:</string>
     <string name="auth_verify_instruction">Sau khi bam link trong email, hay quay lai dang nhap.</string>
     <string name="auth_verify_resend">Gui lai email xac thuc</string>
     <string name="auth_verify_back_to_login">Toi da xac thuc, quay lai dang nhap</string>
 
     <string name="auth_forgot_password_title">Khoi phuc mat khau</string>
+    <string name="auth_forgot_password_subtitle">Nhap email de nhan lien ket dat lai mat khau.</string>
     <string name="auth_forgot_password_send">Gui email khoi phuc</string>
 
     <string name="profile_title">Ho so</string>
@@ -157,4 +161,62 @@
     <string name="merchant_orders_action_ready">Đã chuẩn bị xong</string>
     <string name="merchant_orders_action_cancel">Từ chối</string>
     <string name="merchant_orders_customer_name">Khách hàng: %1$s</string>
+
+    <!-- FoodieNow UI Strings -->
+    <!-- Bottom Navigation -->
+    <string name="bottom_nav_home">Trang chủ</string>
+    <string name="bottom_nav_orders">Đơn hàng</string>
+    <string name="bottom_nav_likes">Yêu thích</string>
+    <string name="bottom_nav_notifications">Thông báo</string>
+    <string name="bottom_nav_me">Tôi</string>
+
+    <!-- Home Tab -->
+    <string name="home_search_hint">Tìm kiếm món ăn, nhà hàng...</string>
+    <string name="home_category_1">Cơm</string>
+    <string name="home_category_2">Bún/Phở</string>
+    <string name="home_category_3">Trà Sữa</string>
+    <string name="home_category_4">Ăn Vặt</string>
+    <string name="home_category_5">Đồ Ăn Nhanh</string>
+    <string name="home_category_6">Món Khỏe</string>
+    <string name="home_category_7">Pizza</string>
+    <string name="home_category_8">Khuyến Mãi</string>
+    <string name="home_section_good_meal">Bữa Ngon Giá Tốt</string>
+    <string name="home_section_must_try">Món Ngon Phải Thử</string>
+    <string name="home_section_collections">Bộ Sưu Tập</string>
+    <string name="home_section_flash_sale">GIỜ VÀNG</string>
+    <string name="home_see_all">Xem tất cả ></string>
+    <string name="home_free_shipping">Miễn phí giao hàng</string>
+    <string name="home_save_up_to">Giảm đến 50%</string>
+
+    <!-- My Orders Tab -->
+    <string name="my_orders_title">Đơn hàng của tôi</string>
+    <string name="my_orders_tab_ongoing">Đang giao</string>
+    <string name="my_orders_tab_deals">Khuyến mãi</string>
+    <string name="my_orders_tab_history">Lịch sử</string>
+    <string name="my_orders_tab_rate">Đánh giá</string>
+    <string name="my_orders_tab_cancelled">Đã hủy</string>
+    <string name="my_orders_empty_title">Bạn chưa đặt món?</string>
+    <string name="my_orders_empty_desc">Các món đã đặt và đang được chuẩn bị sẽ hiển thị ở đây để bạn theo dõi nhé!</string>
+    <string name="my_orders_you_may_also_like">Có Thể Bạn Sẽ Thích</string>
+
+    <!-- Notifications Tab -->
+    <string name="notifications_tab_title">Thông báo</string>
+    <string name="notifications_news">Tin tức</string>
+    <string name="notifications_news_desc">Chưa có tin mới</string>
+    <string name="notifications_order_updates">Cập nhật đơn hàng</string>
+    <string name="notifications_order_updates_desc">Chưa có cập nhật nào</string>
+    <string name="notifications_promotions">Khuyến mãi</string>
+
+    <!-- Me Tab -->
+    <string name="me_must_try">Đề Xuất Cho Bạn</string>
+    <string name="me_vouchers">Mã Khuyến Mãi</string>
+    <string name="me_vouchers_count">1 Mã</string>
+    <string name="me_coins">Điểm Thưởng</string>
+    <string name="me_coins_count">200 Điểm</string>
+    <string name="me_payment">Thanh toán</string>
+    <string name="me_address">Địa chỉ</string>
+    <string name="me_invite">Mời bạn bè</string>
+    <string name="me_shop_owners">Dành cho quán ăn</string>
+    <string name="me_help">Trung tâm trợ giúp</string>
+    <string name="me_settings">Cài đặt</string>
 </resources>
