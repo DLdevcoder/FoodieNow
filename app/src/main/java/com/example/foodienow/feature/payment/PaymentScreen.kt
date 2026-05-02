@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.PaymentMethod
+import com.example.foodienow.domain.model.WalletProvider
 
 @Composable
 fun PaymentScreen(
@@ -44,6 +45,7 @@ fun PaymentScreen(
     viewModel: PaymentViewModel = hiltViewModel()
 ) {
     var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
+    var selectedProvider by remember { mutableStateOf(WalletProvider.ZALOPAY) }
     var deliveryAddress by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     val uiState by viewModel.uiState.collectAsState()
@@ -88,6 +90,38 @@ fun PaymentScreen(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
+                }
+            }
+
+            if (selectedMethod == PaymentMethod.WALLET) {
+                Text(
+                    text = stringResource(R.string.payment_wallet_provider_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        WalletProvider.entries.forEach { provider ->
+                            FilterChip(
+                                selected = selectedProvider == provider,
+                                onClick = { selectedProvider = provider },
+                                label = {
+                                    Text(
+                                        text = when (provider) {
+                                            WalletProvider.ZALOPAY -> stringResource(R.string.payment_wallet_provider_zalopay)
+                                            WalletProvider.MOMO -> stringResource(R.string.payment_wallet_provider_momo)
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -169,6 +203,7 @@ fun PaymentScreen(
                 onClick = {
                     viewModel.submitPayment(
                         method = selectedMethod,
+                        provider = if (selectedMethod == PaymentMethod.WALLET) selectedProvider else null,
                         deliveryAddress = deliveryAddress,
                         note = note,
                         amount = PAYMENT_TOTAL

@@ -11,6 +11,12 @@ enum class PaymentMethod {
 }
 
 @Serializable
+enum class WalletProvider {
+    ZALOPAY,
+    MOMO
+}
+
+@Serializable
 enum class PaymentStatus {
     PENDING,
     SUCCESS,
@@ -24,6 +30,8 @@ data class Payment(
     @SerialName("order_id") val orderId: String? = null,
     val amount: Double,
     val method: PaymentMethod,
+    val provider: WalletProvider? = null,
+    @SerialName("transaction_id") val transactionId: String? = null,
     val status: PaymentStatus = PaymentStatus.SUCCESS,
     @SerialName("delivery_address") val deliveryAddress: String,
     val note: String? = null,

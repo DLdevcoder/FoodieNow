@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.Payment
+import com.example.foodienow.domain.model.PaymentMethod
+import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import com.example.foodienow.domain.repository.PaymentRepository
@@ -30,7 +32,8 @@ data class ActivityHistoryItem(
     val orderId: String? = null,
     val paymentId: String? = null,
     val status: String? = null,
-    val method: String? = null,
+    val method: PaymentMethod? = null,
+    val provider: WalletProvider? = null,
     val totalPrice: Double? = null,
     val createdAt: String?
 )
@@ -108,7 +111,8 @@ class ActivityHistoryViewModel @Inject constructor(
             orderId = orderId,
             paymentId = paymentId,
             status = status.name,
-            method = method.name,
+            method = method,
+            provider = provider,
             totalPrice = amount,
             createdAt = createdAt
         )

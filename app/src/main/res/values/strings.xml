@@ -54,6 +54,10 @@
     <string name="payment_method_cod">Cash on delivery</string>
     <string name="payment_method_card">Bank card</string>
     <string name="payment_method_wallet">E-wallet</string>
+    <string name="payment_wallet_method_with_provider">E-wallet (%1$s)</string>
+    <string name="payment_wallet_provider_title">Select wallet</string>
+    <string name="payment_wallet_provider_zalopay">ZaloPay</string>
+    <string name="payment_wallet_provider_momo">MoMo</string>
     <string name="payment_delivery_address_label">Delivery address</string>
     <string name="payment_note_label">Note (optional)</string>
     <string name="payment_processing">Processing</string>

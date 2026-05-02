@@ -6,8 +6,11 @@ import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.Payment
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.PaymentStatus
+import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.domain.model.AppNotification
 import com.example.foodienow.domain.model.OrderStatus
+import com.example.foodienow.domain.payment.WalletChargeResult
+import com.example.foodienow.domain.payment.WalletPaymentGateway
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.NotificationRepository
 import com.example.foodienow.domain.repository.OrderRepository
@@ -32,7 +35,8 @@ class PaymentViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val orderRepository: OrderRepository,
     private val paymentRepository: PaymentRepository,
-    private val notificationRepository: NotificationRepository
+    private val notificationRepository: NotificationRepository,
+    private val walletPaymentGateway: WalletPaymentGateway
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentUiState())
@@ -40,6 +44,7 @@ class PaymentViewModel @Inject constructor(
 
     fun submitPayment(
         method: PaymentMethod,
+        provider: WalletProvider?,
         deliveryAddress: String,
         note: String,
         amount: Double
@@ -64,6 +69,16 @@ class PaymentViewModel @Inject constructor(
                 return@launch
             }
 
+            if (method == PaymentMethod.WALLET && provider == null) {
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorMessage = "Vui long chon vi dien tu de thanh toan."
+                    )
+                }
+                return@launch
+            }
+
             val orderResult = orderRepository.createOrder(
                 Order(
                     customerId = user.id,
@@ -75,35 +90,72 @@ class PaymentViewModel @Inject constructor(
 
             orderResult
                 .onSuccess { createdOrder ->
-                    paymentRepository.createPayment(
-                        Payment(
-                            customerId = user.id,
-                            orderId = createdOrder.id,
+                    val walletResult: Result<WalletChargeResult?> = if (method == PaymentMethod.WALLET && provider != null) {
+                        walletPaymentGateway.charge(
+                            provider = provider,
                             amount = amount,
-                            method = method,
-                            status = PaymentStatus.SUCCESS,
-                            deliveryAddress = deliveryAddress,
-                            note = note.ifBlank { null }
-                        )
-                    )
-                        .onSuccess {
-                            createNotification(
-                                userId = user.id,
-                                title = "Thanh toan thanh cong",
-                                message = "Don hang ${createdOrder.id ?: ""} da thanh toan thanh cong."
-                            )
-                            _uiState.update {
-                                it.copy(
-                                    isProcessing = false,
-                                    infoMessage = "Thanh toan thanh cong. Don hang da duoc luu vao he thong."
+                            orderId = createdOrder.id ?: "",
+                            customerId = user.id
+                        ).map { it }
+                    } else {
+                        Result.success(null)
+                    }
+
+                    walletResult
+                        .onSuccess { charge ->
+                            paymentRepository.createPayment(
+                                Payment(
+                                    customerId = user.id,
+                                    orderId = createdOrder.id,
+                                    amount = amount,
+                                    method = method,
+                                    provider = provider,
+                                    transactionId = charge?.transactionId,
+                                    status = PaymentStatus.SUCCESS,
+                                    deliveryAddress = deliveryAddress,
+                                    note = note.ifBlank { null }
                                 )
-                            }
+                            )
+                                .onSuccess {
+                                    createNotification(
+                                        userId = user.id,
+                                        title = "Thanh toan thanh cong",
+                                        message = "Don hang ${createdOrder.id ?: ""} da thanh toan thanh cong."
+                                    )
+                                    _uiState.update {
+                                        it.copy(
+                                            isProcessing = false,
+                                            infoMessage = "Thanh toan thanh cong. Don hang da duoc luu vao he thong."
+                                        )
+                                    }
+                                }
+                                .onFailure { error ->
+                                    handlePaymentFailure(
+                                        customerId = user.id,
+                                        createdOrder = createdOrder,
+                                        method = method,
+                                        provider = provider,
+                                        transactionId = charge?.transactionId,
+                                        deliveryAddress = deliveryAddress,
+                                        note = note,
+                                        amount = amount,
+                                        cause = error
+                                    )
+                                    _uiState.update {
+                                        it.copy(
+                                            isProcessing = false,
+                                            errorMessage = "Thanh toan that bai. Don hang da duoc huy de tranh sai lech du lieu."
+                                        )
+                                    }
+                                }
                         }
                         .onFailure { error ->
                             handlePaymentFailure(
                                 customerId = user.id,
                                 createdOrder = createdOrder,
                                 method = method,
+                                provider = provider,
+                                transactionId = null,
                                 deliveryAddress = deliveryAddress,
                                 note = note,
                                 amount = amount,
@@ -112,7 +164,7 @@ class PaymentViewModel @Inject constructor(
                             _uiState.update {
                                 it.copy(
                                     isProcessing = false,
-                                    errorMessage = "Thanh toan that bai. Don hang da duoc huy de tranh sai lech du lieu."
+                                    errorMessage = "Giao dich vi dien tu that bai. Don hang da duoc huy."
                                 )
                             }
                         }
@@ -136,6 +188,8 @@ class PaymentViewModel @Inject constructor(
         customerId: String,
         createdOrder: Order,
         method: PaymentMethod,
+        provider: WalletProvider?,
+        transactionId: String?,
         deliveryAddress: String,
         note: String,
         amount: Double,
@@ -153,6 +207,8 @@ class PaymentViewModel @Inject constructor(
                 orderId = createdOrder.id,
                 amount = amount,
                 method = method,
+                provider = provider,
+                transactionId = transactionId,
                 status = PaymentStatus.FAILED,
                 deliveryAddress = deliveryAddress,
                 note = failedNote

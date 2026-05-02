@@ -54,6 +54,10 @@
     <string name="payment_method_cod">Thanh toan khi nhan hang</string>
     <string name="payment_method_card">The ngan hang</string>
     <string name="payment_method_wallet">Vi dien tu</string>
+    <string name="payment_wallet_method_with_provider">Vi dien tu (%1$s)</string>
+    <string name="payment_wallet_provider_title">Chon vi dien tu</string>
+    <string name="payment_wallet_provider_zalopay">ZaloPay</string>
+    <string name="payment_wallet_provider_momo">MoMo</string>
     <string name="payment_delivery_address_label">Dia chi nhan hang</string>
     <string name="payment_note_label">Ghi chu (tuy chon)</string>
     <string name="payment_processing">Dang xu ly</string>

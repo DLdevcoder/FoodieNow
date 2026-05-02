@@ -28,6 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
+import com.example.foodienow.domain.model.PaymentMethod
+import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.feature.customer_home.components.formatPrice
 
 @Composable
@@ -90,7 +92,7 @@ fun ActivityHistoryScreen(
                             ActivityType.PAYMENT -> stringResource(
                                 R.string.activity_history_payment_subtitle,
                                 item.orderId ?: "-",
-                                item.method ?: "-",
+                                resolvePaymentMethodLabel(item.method, item.provider),
                                 item.status ?: "-"
                             )
                         }
@@ -128,3 +130,28 @@ fun ActivityHistoryScreen(
         }
     }
 }
+
+@Composable
+private fun resolvePaymentMethodLabel(
+    method: PaymentMethod?,
+    provider: WalletProvider?
+): String {
+    return when (method) {
+        PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
+        PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
+        PaymentMethod.WALLET -> {
+            val providerLabel = when (provider) {
+                WalletProvider.ZALOPAY -> stringResource(R.string.payment_wallet_provider_zalopay)
+                WalletProvider.MOMO -> stringResource(R.string.payment_wallet_provider_momo)
+                null -> stringResource(R.string.payment_method_wallet)
+            }
+            if (provider == null) {
+                stringResource(R.string.payment_method_wallet)
+            } else {
+                stringResource(R.string.payment_wallet_method_with_provider, providerLabel)
+            }
+        }
+        null -> "-"
+    }
+}
+
