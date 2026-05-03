@@ -152,12 +152,27 @@ fun AppNavigation() {
                         popUpTo(Screen.CustomerHome.route) { inclusive = true }
                     }
                 },
-                onNavigateToWallet = { navController.navigate(Screen.Wallet.route) }
+                onNavigateToWallet = { navController.navigate(Screen.Wallet.route) },
+                onNavigateToAddress = { navController.navigate(Screen.Address.route) },
+                onNavigateToEditProfile = { navController.navigate("edit_profile_screen") },
+                onNavigateToChangePassword = { navController.navigate("change_password_screen") }
+            )
+        }
+
+        composable(route = "edit_profile_screen") {
+            com.example.foodienow.feature.profile.EditProfileScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = "change_password_screen") {
+            com.example.foodienow.feature.profile.ChangePasswordScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 
         composable(route = Screen.Address.route) {
-            com.example.foodienow.feature.profile.AddressScreen(
+            com.example.foodienow.feature.profile.AddressBookScreen(
                 onBack = { navController.popBackStack() }
             )
         }

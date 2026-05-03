@@ -44,114 +44,101 @@ fun NotificationScreen(
         )
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                Column(modifier = Modifier.background(Color.White)) {
-                    NotificationHeaderItem(
-                        icon = Icons.Default.Campaign,
-                        title = stringResource(R.string.notifications_news),
-                        subtitle = stringResource(R.string.notifications_news_desc)
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(start = 64.dp), color = Color.LightGray)
-                    NotificationHeaderItem(
-                        icon = Icons.Default.ReceiptLong,
-                        title = stringResource(R.string.notifications_order_updates),
-                        subtitle = stringResource(R.string.notifications_order_updates_desc)
-                    )
-                }
-            }
-
             item {
                 Text(
                     stringResource(R.string.notifications_promotions),
-                    modifier = Modifier.padding(16.dp),
                     color = Color.Gray,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
 
             items(5) { index ->
-                PromotionItem(index)
+                NotificationCard(index)
             }
         }
     }
 }
 
 @Composable
-private fun NotificationHeaderItem(icon: ImageVector, title: String, subtitle: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color.White, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            Text(subtitle, fontSize = 14.sp, color = Color.Gray)
-        }
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray)
-    }
-}
-
-@Composable
-private fun PromotionItem(index: Int) {
+private fun NotificationCard(index: Int) {
     val titles = listOf(
-        "Bao bạn FREESHIP, ăn sáng nha!",
+        "Đơn hàng giao thành công",
         "GIẢM 99.000Đ, lễ to deal giảm to!",
         "Khao MÓN GIẢM 30.000Đ",
-        "Ăn trưa ngày lễ GIẢM 50.000Đ",
+        "Đơn hàng đang được chuẩn bị",
         "Giảm 50% tất cả món ăn"
     )
     val descs = listOf(
-        "⚡Khi nhập mã 55SPFFSOD 🍜Bánh canh cua, nui thịt bằm🍜Hủ tiếu nam vang... Đặt ngay!",
+        "Đơn hàng #384729 của bạn đã được giao thành công. Chúc bạn ngon miệng!",
         "👉Khi nhập mã HOLIDAY99 🍗Gà Nướng & Gà Bó Xôi Thành Công 🍕Pizza & Spaghetti Pizza Huu🍲Tiệm Lẩu Nhà An... Mở tiệc thôi!",
         "👉Khi nhập mã SPFMOI30K 🍮Rau câu bánh flan 🍹Trà trái cây nhiệt đới 🥥Nước dừa tươi... Ăn xế thôi!",
-        "👉Khi nhập mã T6GIAM18 🍜Nui xào bò, hamburger, bún Thái... 🎺Lễ giảm thả ga, đặt ngay nha!",
+        "Nhà hàng đang chuẩn bị món ăn cho đơn hàng #384730 của bạn.",
         "Nhập mã DEALSOCK để được giảm giá ngay hôm nay."
     )
+    val isUnread = index < 2
+    val iconBg = if (index % 3 == 0) Color(0xFF10B981) else Color(0xFFF97316)
+    val icon = if (index % 3 == 0) Icons.Default.ReceiptLong else Icons.Default.Campaign
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFFFF5F5)) // Slight pinkish background
-            .padding(16.dp)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = if (isUnread) Color(0xFFFFF9F2) else Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Row {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .size(60.dp)
-                    .background(Color.LightGray, RoundedCornerShape(8.dp))
-            )
+                    .size(48.dp)
+                    .background(iconBg.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = iconBg, modifier = Modifier.size(24.dp))
+            }
             Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    titles.getOrElse(index) { "Promotion Title" },
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        titles.getOrElse(index) { "Notification" },
+                        fontSize = 16.sp,
+                        fontWeight = if (isUnread) FontWeight.Bold else FontWeight.Medium,
+                        color = Color.Black,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (isUnread) {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 8.dp, top = 4.dp)
+                                .size(8.dp)
+                                .background(Color.Red, CircleShape)
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    descs.getOrElse(index) { "Promotion Description" },
+                    descs.getOrElse(index) { "Description" },
                     fontSize = 14.sp,
-                    color = Color.DarkGray,
-                    maxLines = 3,
+                    color = Color.Gray,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "02/05/2026 08:56",
+                    if (index == 0) "Vừa xong" else "${index * 2} giờ trước",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.LightGray
                 )
             }
         }

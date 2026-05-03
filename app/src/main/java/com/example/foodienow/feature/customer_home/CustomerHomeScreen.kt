@@ -23,6 +23,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Brush
+import java.util.Calendar
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,7 +47,11 @@ fun CustomerHomeScreen(
             .background(Color(0xFFF5F5F5))
     ) {
         item {
-            HomeTopSection(searchQuery = uiState.searchQuery, onSearchQueryChange = viewModel::onSearchQueryChange)
+            HomeTopSection(
+                searchQuery = uiState.searchQuery, 
+                onSearchQueryChange = viewModel::onSearchQueryChange,
+                address = uiState.address
+            )
         }
         item {
             CategoriesSection()
@@ -80,33 +86,59 @@ fun CustomerHomeScreen(
 @Composable
 private fun HomeTopSection(
     searchQuery: String,
-    onSearchQueryChange: (String) -> Unit
+    onSearchQueryChange: (String) -> Unit,
+    address: String
 ) {
+    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val greeting = when (currentHour) {
+        in 0..11 -> "Chào buổi sáng ☀️"
+        in 12..17 -> "Chào buổi chiều ⛅"
+        else -> "Chào buổi tối 🌙"
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(top = 16.dp, bottom = 12.dp, start = 16.dp, end = 16.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary,
+                        Color(0xFFF97316) // Orange
+                    )
+                )
+            )
+            .padding(top = 24.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                "Deliver To:",
-                color = Color.White,
-                fontSize = 12.sp
-            )
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                "50 Ngõ 196 Đường Hồ Tùng Mậu...",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    greeting,
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Deliver To: ",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Text(
+                        address,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
         }
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(

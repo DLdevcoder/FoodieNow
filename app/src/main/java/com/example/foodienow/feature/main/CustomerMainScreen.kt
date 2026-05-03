@@ -58,9 +58,9 @@ fun CustomerMainScreen(
                 tabs.forEach { (icon, labelRes, index) ->
                     NavigationBarItem(
                         icon = { Icon(icon, contentDescription = stringResource(labelRes)) },
-                        label = { Text(stringResource(labelRes), fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal) },
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
+                        alwaysShowLabel = false,
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
@@ -101,7 +101,9 @@ fun CustomerMainScreen(
                     onNavigateToInviteFriends = { rootNavController.navigate("invite_friends_screen") },
                     onNavigateToShopOwner = { rootNavController.navigate("shop_owner_screen") },
                     onNavigateToHelpCentre = { rootNavController.navigate("help_centre_screen") },
-                    onNavigateToSettings = { rootNavController.navigate("settings_screen") }
+                    onNavigateToSettings = { rootNavController.navigate("settings_screen") },
+                    onNavigateToEditProfile = { rootNavController.navigate("edit_profile_screen") },
+                    onNavigateToChangePassword = { rootNavController.navigate("change_password_screen") }
                 )
             }
         }

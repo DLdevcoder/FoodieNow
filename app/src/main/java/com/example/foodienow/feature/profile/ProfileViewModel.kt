@@ -136,5 +136,9 @@ class ProfileViewModel @Inject constructor(
                 }
         }
     }
+
+    fun clearMessages() {
+        _uiState.update { it.copy(errorMessage = null, infoMessage = null) }
+    }
 }
 

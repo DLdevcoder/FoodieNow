@@ -28,4 +28,7 @@ interface AuthRepository {
 
     // Cộng hoặc trừ điểm thưởng
     suspend fun updateRewardPoints(points: Int): Result<User>
+
+    // Đổi mật khẩu
+    suspend fun changePassword(newPass: String): Result<Unit>
 }

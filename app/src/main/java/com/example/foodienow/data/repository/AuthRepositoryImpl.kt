@@ -189,12 +189,55 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun changePassword(newPass: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val currentUser = authSessionDataStore.sessionFlow.firstOrNull()
+                ?: return@withContext Result.failure(Exception("No user logged in"))
+
+            val response = putRequest(
+                endpoint = "/auth/v1/user",
+                body = JSONObject().put("password", newPass),
+                accessToken = currentUser.token
+            )
+
+            if (!response.isSuccess) {
+                return@withContext Result.failure(Exception(parseErrorMessage(response.body)))
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun postRequest(endpoint: String, body: JSONObject): HttpResponseData {
         val connection = URL("$SUPABASE_URL$endpoint").openConnection() as HttpURLConnection
         connection.requestMethod = "POST"
         connection.doOutput = true
         connection.setRequestProperty("apikey", SUPABASE_KEY)
         connection.setRequestProperty("Authorization", "Bearer $SUPABASE_KEY")
+        connection.setRequestProperty("Content-Type", "application/json")
+
+        OutputStreamWriter(connection.outputStream).use { writer ->
+            writer.write(body.toString())
+            writer.flush()
+        }
+
+        val statusCode = connection.responseCode
+        val responseStream = if (statusCode in 200..299) connection.inputStream else connection.errorStream
+        val payload = readStream(responseStream)
+        return HttpResponseData(
+            statusCode = statusCode,
+            body = if (payload.isBlank()) JSONObject() else JSONObject(payload)
+        )
+    }
+
+    private fun putRequest(endpoint: String, body: JSONObject, accessToken: String): HttpResponseData {
+        val connection = URL("$SUPABASE_URL$endpoint").openConnection() as HttpURLConnection
+        connection.requestMethod = "PUT"
+        connection.doOutput = true
+        connection.setRequestProperty("apikey", SUPABASE_KEY)
+        connection.setRequestProperty("Authorization", "Bearer $accessToken")
         connection.setRequestProperty("Content-Type", "application/json")
 
         OutputStreamWriter(connection.outputStream).use { writer ->

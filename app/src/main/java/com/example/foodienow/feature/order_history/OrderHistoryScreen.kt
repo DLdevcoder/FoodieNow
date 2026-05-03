@@ -20,8 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
+import coil3.compose.AsyncImage
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderStatus
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
@@ -151,17 +154,24 @@ private fun EmptyOngoingState() {
 
 @Composable
 private fun OrderCardItem(order: Order) {
+    val statusColor = when (order.status) {
+        OrderStatus.COMPLETED -> Color(0xFF10B981) // Green
+        OrderStatus.CANCELLED -> Color(0xFFEF4444) // Red
+        else -> Color(0xFFF59E0B) // Orange
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -170,38 +180,98 @@ private fun OrderCardItem(order: Order) {
             ) {
                 Text(
                     stringResource(R.string.order_history_order_title, order.id?.substring(0, 8) ?: "Unknown"),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color.Black
                 )
-                Text(
-                    order.status.name,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
+                Box(
+                    modifier = Modifier
+                        .background(statusColor.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        order.status.name,
+                        fontSize = 12.sp,
+                        color = statusColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Address: ${order.deliveryAddress}",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                maxLines = 2
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = Color(0xFFF3F4F6))
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                AsyncImage(
+                    model = order.previewImageUrl ?: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.LightGray),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        order.previewFoodName ?: "Đơn hàng từ FoodieNow",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        order.deliveryAddress,
+                        fontSize = 13.sp,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = Color(0xFFF3F4F6))
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            val formattedDate = order.createdAt?.let {
+                if (it.length >= 16) it.substring(0, 16).replace("T", " ") else it
+            } ?: ""
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
             ) {
                 Text(
-                    order.createdAt ?: "",
+                    formattedDate,
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    modifier = Modifier.weight(1f)
                 )
-                Text(
-                    "${order.totalPrice} VND",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("Tổng cộng", fontSize = 12.sp, color = Color.Gray)
+                    val formattedPrice = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("vi", "VN")).format(order.totalPrice)
+                    Text(
+                        formattedPrice,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            if (order.status == OrderStatus.COMPLETED) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { /* TODO: Reorder */ },
+                    modifier = Modifier.fillMaxWidth().height(40.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), contentColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Đặt lại đơn này", fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
