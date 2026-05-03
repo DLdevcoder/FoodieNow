@@ -22,4 +22,10 @@ interface AuthRepository {
 
     // Output: Flow theo dõi trạng thái đăng nhập để tự động văng ra màn hình Login nếu token hết hạn
     fun getAuthState(): Flow<User?>
+
+    // Nạp tiền hoặc trừ tiền
+    suspend fun updateBalance(amount: Double): Result<User>
+
+    // Cộng hoặc trừ điểm thưởng
+    suspend fun updateRewardPoints(points: Int): Result<User>
 }

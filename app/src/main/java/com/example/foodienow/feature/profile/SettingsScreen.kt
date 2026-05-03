@@ -36,12 +36,23 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.domain.model.AppLanguage
+import com.example.foodienow.domain.model.ThemeMode
+import com.example.foodienow.feature.settings.UiPreferencesViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(
+    onBack: () -> Unit,
+    viewModel: UiPreferencesViewModel = hiltViewModel()
+) {
     var notificationsEnabled by remember { mutableStateOf(true) }
-    var darkModeEnabled by remember { mutableStateOf(false) }
-    var englishLanguage by remember { mutableStateOf(false) }
+    val uiPreferences by viewModel.uiPreferences.collectAsState()
+    
+    val darkModeEnabled = uiPreferences.themeMode == ThemeMode.DARK
+    val englishLanguage = uiPreferences.appLanguage == AppLanguage.ENGLISH
 
     Scaffold(
         topBar = {
@@ -83,7 +94,9 @@ fun SettingsScreen(onBack: () -> Unit) {
                     iconColor = Color(0xFF374151),
                     title = "Giao diện tối (Dark Mode)",
                     checked = darkModeEnabled,
-                    onCheckedChange = { darkModeEnabled = it }
+                    onCheckedChange = { 
+                        viewModel.setThemeMode(if (it) ThemeMode.DARK else ThemeMode.LIGHT)
+                    }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                 
@@ -92,7 +105,9 @@ fun SettingsScreen(onBack: () -> Unit) {
                     iconColor = Color(0xFF3B82F6),
                     title = "Tiếng Anh (English)",
                     checked = englishLanguage,
-                    onCheckedChange = { englishLanguage = it }
+                    onCheckedChange = { 
+                        viewModel.setAppLanguage(if (it) AppLanguage.ENGLISH else AppLanguage.VIETNAMESE)
+                    }
                 )
             }
         }

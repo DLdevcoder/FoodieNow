@@ -151,7 +151,8 @@ fun AppNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.CustomerHome.route) { inclusive = true }
                     }
-                }
+                },
+                onNavigateToWallet = { navController.navigate(Screen.Wallet.route) }
             )
         }
 
@@ -217,6 +218,12 @@ fun AppNavigation() {
             )
         }
 
+        composable(route = Screen.Wallet.route) {
+            com.example.foodienow.feature.profile.WalletScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(
             route = "food_detail/{foodId}",
             arguments = listOf(navArgument("foodId") { type = NavType.StringType })
@@ -249,6 +256,7 @@ fun AppNavigation() {
                         navController.navigate("food_reviews/${uiState.food!!.id}")
                     },
                     onSubmitProductReview = { rating, comment ->
+                        viewModel.submitReview(rating, comment)
                     }
                 )
             }

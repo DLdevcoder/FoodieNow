@@ -16,6 +16,9 @@ import com.example.foodienow.domain.repository.NotificationRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import com.example.foodienow.domain.repository.PaymentRepository
 import com.example.foodienow.domain.repository.CartRepository
+import com.example.foodienow.data.repository.MockWalletTransactionRepository
+import com.example.foodienow.domain.model.WalletTransaction
+import com.example.foodienow.domain.model.WalletTransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +33,7 @@ import javax.inject.Inject
 
 data class PaymentUiState(
     val isProcessing: Boolean = false,
+    val rewardPointsAvailable: Int = 0,
     val infoMessage: String? = null,
     val errorMessage: String? = null
 )
@@ -45,7 +49,8 @@ class PaymentViewModel @Inject constructor(
     private val paymentRepository: PaymentRepository,
     private val notificationRepository: NotificationRepository,
     private val walletPaymentGateway: WalletPaymentGateway,
-    private val cartRepository: CartRepository
+    private val cartRepository: CartRepository,
+    private val walletTransactionRepository: MockWalletTransactionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentUiState())
@@ -54,12 +59,29 @@ class PaymentViewModel @Inject constructor(
     private val _paymentEvent = MutableSharedFlow<PaymentEvent>()
     val paymentEvent: SharedFlow<PaymentEvent> = _paymentEvent.asSharedFlow()
 
+    init {
+        viewModelScope.launch {
+            authRepository.getAuthState().collect { user ->
+                _uiState.update { it.copy(rewardPointsAvailable = user?.rewardPoints ?: 0) }
+            }
+        }
+    }
+
+    fun applyVoucher(code: String): Double {
+        return when (code.uppercase()) {
+            "GIAM20K" -> 20000.0
+            "FREESHIP" -> 15000.0 // Giả sử freeship là 15k
+            else -> 0.0
+        }
+    }
+
     fun submitPayment(
         method: PaymentMethod,
         provider: WalletProvider?,
         deliveryAddress: String,
         note: String,
-        amount: Double
+        amount: Double,
+        usedRewardPoints: Int = 0
     ) {
         if (deliveryAddress.isBlank()) {
             _uiState.update {
@@ -91,6 +113,18 @@ class PaymentViewModel @Inject constructor(
                 return@launch
             }
 
+            if (method == PaymentMethod.FOODIE_PAY) {
+                if (user.balance < amount) {
+                    _uiState.update {
+                        it.copy(
+                            isProcessing = false,
+                            errorMessage = "So du Ví FoodiePay khong du. Vui long nap them tien."
+                        )
+                    }
+                    return@launch
+                }
+            }
+
             val orderResult = orderRepository.createOrder(
                 Order(
                     customerId = user.id,
@@ -109,6 +143,24 @@ class PaymentViewModel @Inject constructor(
                             orderId = createdOrder.id ?: "",
                             customerId = user.id
                         ).map { it }
+                    } else if (method == PaymentMethod.FOODIE_PAY) {
+                        // Trừ tiền trong ví
+                        val deductResult = authRepository.updateBalance(-amount)
+                        if (deductResult.isSuccess) {
+                            // Ghi log giao dịch ví
+                            walletTransactionRepository.addTransaction(
+                                WalletTransaction(
+                                    id = "FPAY-${System.currentTimeMillis()}",
+                                    type = WalletTransactionType.PAYMENT,
+                                    amount = amount,
+                                    description = "Thanh toán đơn hàng",
+                                    createdAt = java.time.Instant.now().toString()
+                                )
+                            )
+                            Result.success(WalletChargeResult(transactionId = "FPAY-${System.currentTimeMillis()}", message = "FoodiePay success"))
+                        } else {
+                            Result.failure(Exception("Loi tru tien FoodiePay"))
+                        }
                     } else {
                         Result.success(null)
                     }
@@ -129,10 +181,17 @@ class PaymentViewModel @Inject constructor(
                                 )
                             )
                                 .onSuccess {
+                                    // Xử lý Điểm thưởng (Trừ điểm đã dùng, cộng điểm mới)
+                                    val earnedPoints = (amount * 0.01).toInt()
+                                    val pointDiff = earnedPoints - usedRewardPoints
+                                    if (pointDiff != 0) {
+                                        authRepository.updateRewardPoints(pointDiff)
+                                    }
+
                                     createNotification(
                                         userId = user.id,
                                         title = "Thanh toan thanh cong",
-                                        message = "Don hang ${createdOrder.id ?: ""} da thanh toan thanh cong."
+                                        message = "Don hang ${createdOrder.id ?: ""} da thanh toan. Bạn được cộng $earnedPoints FoodieCoins."
                                     )
                                     _uiState.update {
                                         it.copy(

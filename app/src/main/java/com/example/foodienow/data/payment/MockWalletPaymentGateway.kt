@@ -14,11 +14,16 @@ class MockWalletPaymentGateway @Inject constructor() : WalletPaymentGateway {
         orderId: String,
         customerId: String
     ): Result<WalletChargeResult> {
-        delay(600)
-        val transactionId = "${provider.name}-${UUID.randomUUID()}"
+        // Simulate Sandbox delay
+        delay(2000)
+        
+        val transactionId = "${provider.name}-SB-${UUID.randomUUID().toString().substring(0, 8)}"
         val message = when (provider) {
-            WalletProvider.ZALOPAY -> "ZaloPay mock charge success"
-            WalletProvider.MOMO -> "MoMo mock charge success"
+            WalletProvider.ZALOPAY -> "ZaloPay Sandbox mock charge success"
+            WalletProvider.MOMO -> "MoMo Sandbox mock charge success"
+            WalletProvider.VNPAY -> "VNPAY Sandbox mock charge success"
+            WalletProvider.PAYPAL -> "PayPal Sandbox mock charge success"
+            WalletProvider.GOOGLE_PLAY -> "Google Play Billing Sandbox mock charge success"
         }
         return Result.success(WalletChargeResult(transactionId = transactionId, message = message))
     }

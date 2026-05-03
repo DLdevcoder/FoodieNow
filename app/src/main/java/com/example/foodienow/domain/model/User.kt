@@ -15,5 +15,7 @@ data class User(
     val name: String,
     val email: String,
     val role: UserRole,
+    val balance: Double = 0.0,
+    val rewardPoints: Int = 0,
     val token: String = "" // Dùng để xác thực API sau này
 )

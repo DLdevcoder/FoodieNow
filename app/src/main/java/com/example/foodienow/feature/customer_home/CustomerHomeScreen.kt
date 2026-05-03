@@ -56,6 +56,7 @@ fun CustomerHomeScreen(
                 title = stringResource(R.string.home_section_good_meal),
                 foods = uiState.recommendedFoods,
                 headerColor = MaterialTheme.colorScheme.primary,
+                isLoading = uiState.isLoading,
                 onFoodClick = onNavigateToFoodDetail
             )
         }
@@ -65,12 +66,13 @@ fun CustomerHomeScreen(
                 title = stringResource(R.string.home_section_must_try),
                 foods = uiState.recommendedFoods.shuffled(),
                 headerColor = Color(0xFF1E3A8A), // Dark blue
+                isLoading = uiState.isLoading,
                 onFoodClick = onNavigateToFoodDetail
             )
         }
         item {
             Spacer(modifier = Modifier.height(8.dp))
-            CollectionsSection(foods = uiState.recommendedFoods)
+            CollectionsSection(foods = uiState.recommendedFoods, isLoading = uiState.isLoading)
         }
     }
 }
@@ -193,6 +195,7 @@ private fun HorizontalFoodSection(
     title: String,
     foods: List<Food>,
     headerColor: Color,
+    isLoading: Boolean,
     onFoodClick: (Food) -> Unit
 ) {
     Column(
@@ -221,12 +224,25 @@ private fun HorizontalFoodSection(
             )
         }
         
-        LazyRow(
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(foods) { food ->
-                FoodCard(food, onFoodClick)
+        if (isLoading) {
+            LazyRow(
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(3) {
+                    Box(modifier = Modifier.width(140.dp)) {
+                        com.example.foodienow.core.designsystem.components.FoodItemShimmer()
+                    }
+                }
+            }
+        } else {
+            LazyRow(
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(foods) { food ->
+                    FoodCard(food, onFoodClick)
+                }
             }
         }
     }
@@ -278,7 +294,7 @@ private fun FoodCard(food: Food, onClick: (Food) -> Unit) {
 }
 
 @Composable
-private fun CollectionsSection(foods: List<Food>) {
+private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -306,43 +322,56 @@ private fun CollectionsSection(foods: List<Food>) {
         }
         Spacer(modifier = Modifier.height(12.dp))
         
-        val collectionFoods = foods.take(3)
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(collectionFoods) { food ->
-                Card(
-                    modifier = Modifier
-                        .width(120.dp)
-                        .height(160.dp)
-                        .clickable { /* Could navigate to a collection page */ },
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .background(MaterialTheme.colorScheme.primary)
-                        ) {
-                            if (!food.imageUrl.isNullOrBlank()) {
-                                AsyncImage(
-                                    model = food.imageUrl,
-                                    contentDescription = food.name,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+        if (isLoading) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(3) {
+                    Box(modifier = Modifier.width(120.dp)) {
+                        com.example.foodienow.core.designsystem.components.FoodItemShimmer()
+                    }
+                }
+            }
+        } else {
+            val collectionFoods = foods.take(3)
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(collectionFoods) { food ->
+                    Card(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(160.dp)
+                            .clickable { /* Could navigate to a collection page */ },
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                                    .background(MaterialTheme.colorScheme.primary)
+                            ) {
+                                if (!food.imageUrl.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = food.imageUrl,
+                                        contentDescription = food.name,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                             }
+                            Text(
+                                food.name,
+                                modifier = Modifier.padding(8.dp),
+                                fontSize = 12.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
-                        Text(
-                            food.name,
-                            modifier = Modifier.padding(8.dp),
-                            fontSize = 12.sp,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
                     }
                 }
             }

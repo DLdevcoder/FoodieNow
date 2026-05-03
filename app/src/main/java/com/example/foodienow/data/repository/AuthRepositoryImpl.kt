@@ -9,6 +9,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -134,6 +135,60 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun getAuthState(): Flow<User?> = authSessionDataStore.sessionFlow
 
+    override suspend fun updateBalance(amount: Double): Result<User> = withContext(Dispatchers.IO) {
+        try {
+            val currentUser = authSessionDataStore.sessionFlow.firstOrNull()
+                ?: return@withContext Result.failure(Exception("No user logged in"))
+            
+            val newBalance = currentUser.balance + amount
+            if (newBalance < 0) {
+                return@withContext Result.failure(Exception("Insufficient balance"))
+            }
+
+            // Update profile
+            supabaseClient.postgrest["profiles"].update(
+                mapOf("balance" to newBalance)
+            ) {
+                filter {
+                    eq("id", currentUser.id)
+                }
+            }
+
+            val updatedUser = currentUser.copy(balance = newBalance)
+            authSessionDataStore.saveSession(updatedUser)
+            Result.success(updatedUser)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateRewardPoints(points: Int): Result<User> = withContext(Dispatchers.IO) {
+        try {
+            val currentUser = authSessionDataStore.sessionFlow.firstOrNull()
+                ?: return@withContext Result.failure(Exception("No user logged in"))
+            
+            val newPoints = currentUser.rewardPoints + points
+            if (newPoints < 0) {
+                return@withContext Result.failure(Exception("Insufficient reward points"))
+            }
+
+            // Update profile
+            supabaseClient.postgrest["profiles"].update(
+                mapOf("reward_points" to newPoints)
+            ) {
+                filter {
+                    eq("id", currentUser.id)
+                }
+            }
+
+            val updatedUser = currentUser.copy(rewardPoints = newPoints)
+            authSessionDataStore.saveSession(updatedUser)
+            Result.success(updatedUser)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun postRequest(endpoint: String, body: JSONObject): HttpResponseData {
         val connection = URL("$SUPABASE_URL$endpoint").openConnection() as HttpURLConnection
         connection.requestMethod = "POST"
@@ -220,6 +275,8 @@ class AuthRepositoryImpl @Inject constructor(
             name = fullName,
             email = email,
             role = role,
+            balance = balance,
+            rewardPoints = rewardPoints,
             token = token
         )
     }

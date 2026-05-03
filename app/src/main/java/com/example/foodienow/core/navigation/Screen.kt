@@ -20,6 +20,7 @@ sealed class Screen(val route: String) {
     object OrderHistory : Screen("order_history_screen")
     object Address : Screen("address_screen")
     object PaymentSettings : Screen("payment_settings_screen")
+    object Wallet : Screen("wallet_screen")
     object MustTry : Screen("must_try_screen")
     object Vouchers : Screen("vouchers_screen")
     object RewardPoints : Screen("reward_points_screen")

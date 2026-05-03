@@ -41,6 +41,7 @@ fun ProfileScreen(
     onNavigateToShopOwner: () -> Unit = {},
     onNavigateToHelpCentre: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToWallet: () -> Unit = {},
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     val profileUiState by profileViewModel.uiState.collectAsState()
@@ -59,7 +60,21 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(12.dp))
             Column(modifier = Modifier.background(Color.White)) {
                 MenuItem(
-                    icon = Icons.Default.ThumbUp, // Approximate icon
+                    icon = Icons.Default.History,
+                    iconColor = Color(0xFF10B981), // Green
+                    title = stringResource(R.string.activity_history_title),
+                    onClick = onNavigateToActivityHistory
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = Color.LightGray, thickness = 0.5.dp)
+                MenuItem(
+                    icon = Icons.Default.ReceiptLong,
+                    iconColor = Color(0xFFF59E0B), // Yellow/Amber
+                    title = stringResource(R.string.order_history_title),
+                    onClick = onNavigateToOrderHistory
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = Color.LightGray, thickness = 0.5.dp)
+                MenuItem(
+                    icon = Icons.Default.ThumbUp,
                     iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.me_must_try),
                     onClick = onNavigateToMustTry
@@ -86,6 +101,13 @@ fun ProfileScreen(
         item {
             Spacer(modifier = Modifier.height(12.dp))
             Column(modifier = Modifier.background(Color.White)) {
+                MenuItem(
+                    icon = Icons.Default.AccountBalanceWallet,
+                    iconColor = Color(0xFF10B981), // Green
+                    title = "Ví FoodiePay",
+                    onClick = onNavigateToWallet
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = Color.LightGray, thickness = 0.5.dp)
                 MenuItem(
                     icon = Icons.Default.AccountBalanceWallet,
                     iconColor = Color(0xFF3B82F6), // Blue

@@ -151,6 +151,9 @@ private fun resolvePaymentMethodLabel(
             val providerLabel = when (provider) {
                 WalletProvider.ZALOPAY -> stringResource(R.string.payment_wallet_provider_zalopay)
                 WalletProvider.MOMO -> stringResource(R.string.payment_wallet_provider_momo)
+                WalletProvider.VNPAY -> stringResource(R.string.payment_wallet_provider_vnpay)
+                WalletProvider.PAYPAL -> stringResource(R.string.payment_wallet_provider_paypal)
+                WalletProvider.GOOGLE_PLAY -> stringResource(R.string.payment_wallet_provider_google)
                 null -> stringResource(R.string.payment_method_wallet)
             }
             if (provider == null) {
@@ -159,6 +162,7 @@ private fun resolvePaymentMethodLabel(
                 stringResource(R.string.payment_wallet_method_with_provider, providerLabel)
             }
         }
+        PaymentMethod.FOODIE_PAY -> stringResource(R.string.payment_method_foodie_pay)
         null -> "-"
     }
 }

@@ -7,13 +7,17 @@ import kotlinx.serialization.Serializable
 enum class PaymentMethod {
     COD,
     CARD,
-    WALLET
+    WALLET,
+    FOODIE_PAY
 }
 
 @Serializable
 enum class WalletProvider {
     ZALOPAY,
-    MOMO
+    MOMO,
+    VNPAY,
+    PAYPAL,
+    GOOGLE_PLAY
 }
 
 @Serializable
