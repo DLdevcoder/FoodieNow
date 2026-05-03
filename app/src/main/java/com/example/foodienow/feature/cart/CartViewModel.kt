@@ -55,11 +55,15 @@ class CartViewModel @Inject constructor(
 
     // Chuyển việc lưu trữ cho Repository xử lý để đồng bộ toàn app
     fun addToCart(food: Food, quantity: Int) {
-        cartRepository.addToCart(food, quantity)
+        viewModelScope.launch {
+            cartRepository.addToCart(food, quantity)
+        }
     }
 
     fun updateQuantity(food: Food, quantity: Int) {
-        cartRepository.updateQuantity(food, quantity)
+        viewModelScope.launch {
+            cartRepository.updateQuantity(food, quantity)
+        }
     }
 
     // Xử lý khi bấm nút Đặt hàng

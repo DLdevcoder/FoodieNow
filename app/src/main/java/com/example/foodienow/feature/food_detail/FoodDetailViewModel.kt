@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,7 +31,8 @@ class FoodDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val foodRepository: CustomerFoodRepository,
     private val merchantRepository: MerchantRepository,
-    private val reviewRepository: ReviewRepository
+    private val reviewRepository: ReviewRepository,
+    private val authRepository: com.example.foodienow.domain.repository.AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FoodDetailUiState())
@@ -62,6 +64,23 @@ class FoodDetailViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(isLoading = false, error = e.message ?: "Lỗi tải dữ liệu")
+                }
+            }
+        }
+    }
+
+    fun submitReview(rating: Int, comment: String) {
+        viewModelScope.launch {
+            val user = authRepository.getAuthState().firstOrNull()
+            if (user != null) {
+                val success = reviewRepository.submitReview(
+                    foodId = foodId,
+                    userId = user.id,
+                    rating = rating,
+                    comment = comment
+                )
+                if (success) {
+                    loadFoodDetail() // Reload reviews after submitting
                 }
             }
         }

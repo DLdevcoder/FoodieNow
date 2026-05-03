@@ -22,5 +22,7 @@ data class Order(
     val status: OrderStatus = OrderStatus.PENDING,
     @SerialName("delivery_address") val deliveryAddress: String,
     val note: String? = null,
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("preview_image_url") val previewImageUrl: String? = null,
+    @SerialName("preview_food_name") val previewFoodName: String? = null
 )
