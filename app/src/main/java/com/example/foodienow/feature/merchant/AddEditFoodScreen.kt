@@ -47,7 +47,7 @@ fun AddEditFoodScreen(
         LaunchedEffect(Unit) { onBack() }
     }
 
-    // Bộ chọn ảnh (Đã sửa lại để dùng PickVisualMedia và chuyển đổi byte ngay tại đây)
+    // Bộ chọn ảnh
     val photoPickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         selectedImageUri = uri
         uri?.let {
@@ -99,7 +99,6 @@ fun AddEditFoodScreen(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                // Đã sửa lại cú pháp if để tránh lỗi Unresolved reference 'not'
                 if (selectedImageUri != null || viewModel.imageUrl?.isNotEmpty() == true) {
                     AsyncImage(
                         model = selectedImageUri ?: viewModel.imageUrl,

@@ -30,7 +30,6 @@ class ReviewRepositoryImpl @Inject constructor(
 
     override suspend fun getReviewsByFoodId(foodId: String): List<ReviewUiModel> {
         val response = supabase.postgrest["reviews"]
-            // Sửa lại dòng select ở đây
             .select(columns = Columns.raw("*, users(full_name, avatar_url)")) {
                 filter { eq("food_id", foodId) }
             }.decodeList<ReviewWithUserResponse>()

@@ -113,7 +113,6 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.Cart.route) {
-            // Thay PlaceholderScreen bằng CartScreen thực tế
             CartScreen(
                 onBackClick = { navController.popBackStack() },
                 onNavigateToLogin = {

@@ -144,14 +144,16 @@
     <string name="error_load_order_history">Unable to load order history.</string>
 
     <!-- Merchant Orders -->
-    <string name="merchant_orders_status_pending">Pending</string>
-    <string name="merchant_orders_status_preparing">Preparing</string>
+    <string name="merchant_orders_status_pending">Cooking</string>
+    <string name="merchant_orders_status_preparing">Waiting Shipper</string>
     <string name="merchant_orders_status_delivering">Delivering</string>
     <string name="merchant_orders_status_completed">Completed</string>
     <string name="merchant_orders_status_cancelled">Cancelled</string>
     <string name="merchant_orders_empty">No orders in this status.</string>
-    <string name="merchant_orders_action_accept">Accept Order</string>
+    <string name="merchant_orders_action_accept">Done</string>
     <string name="merchant_orders_action_ready">Mark as Ready</string>
     <string name="merchant_orders_action_cancel">Reject</string>
     <string name="merchant_orders_customer_name">Customer: %1$s</string>
+    <string name="merchant_orders_status_ready">Ready</string>
+    <string name="merchant_orders_action_handover">Handover</string>
 </resources>

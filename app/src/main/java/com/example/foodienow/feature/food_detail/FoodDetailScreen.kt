@@ -36,10 +36,10 @@ fun FoodDetailScreen(
     store: Store,
     reviews: List<ReviewUiModel>,
     onBackClick: () -> Unit,
-    onAddToCart: (Food, Int) -> Unit, // Đã thêm callback thêm vào giỏ
+    onAddToCart: (Food, Int) -> Unit,
     onNavigateToStore: (String) -> Unit,
-    onNavigateToAllReviews: () -> Unit, // Callback mở trang Xem tất cả
-    onSubmitProductReview: (Int, String) -> Unit // Callback gửi đánh giá món ăn
+    onNavigateToAllReviews: () -> Unit,
+    onSubmitProductReview: (Int, String) -> Unit
 ) {
     var showProductReviewDialog by remember { mutableStateOf(false) }
 
@@ -205,7 +205,7 @@ fun FoodDetailScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Khối Đánh giá sản phẩm
+            // Khối đánh giá sản phẩm
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -232,7 +232,6 @@ fun FoodDetailScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Nút Viết đánh giá món ăn
                 OutlinedButton(
                     onClick = { showProductReviewDialog = true },
                     modifier = Modifier.fillMaxWidth(),
@@ -261,7 +260,6 @@ fun FoodDetailScreen(
         }
     }
 
-    // Dialog đánh giá Món ăn
     if (showProductReviewDialog) {
         RatingDialog(
             title = stringResource(R.string.rating_dialog_title),

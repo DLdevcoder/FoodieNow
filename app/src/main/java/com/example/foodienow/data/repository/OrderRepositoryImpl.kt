@@ -53,7 +53,6 @@ class OrderRepositoryImpl @Inject constructor(
             .select {
                 filter {
                     eq("status", OrderStatus.PREPARING.name)
-                    // In a real app, you might also check if shipperId is null
                 }
             }
             .decodeList<Order>()

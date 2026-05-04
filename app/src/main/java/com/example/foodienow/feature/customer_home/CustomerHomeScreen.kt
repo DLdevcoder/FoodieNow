@@ -171,7 +171,7 @@ fun CustomerHomeScreen(
                     Text(stringResource(R.string.home_search_empty), color = Color.Gray)
                 } else {
                     LazyColumn(
-                        modifier = Modifier.weight(1f), // Nhớ giữ weight(1f) để tránh lỗi tàng hình
+                        modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(displayList) { food ->
