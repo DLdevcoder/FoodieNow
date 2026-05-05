@@ -14,6 +14,10 @@ sealed class Screen(val route: String) {
     object CustomerHome : Screen("customer_home_screen")
     object Cart : Screen("cart_screen")
     object Payment : Screen("payment_screen")
+    object PaymentResult : Screen("payment_result_screen/{orderId}/{amount}/{methodLabel}") {
+        fun createRoute(orderId: String, amount: Double, methodLabel: String) =
+            "payment_result_screen/$orderId/$amount/${android.net.Uri.encode(methodLabel)}"
+    }
     object Profile : Screen("profile_screen")
     object Notifications : Screen("notifications_screen")
     object ActivityHistory : Screen("activity_history_screen")
