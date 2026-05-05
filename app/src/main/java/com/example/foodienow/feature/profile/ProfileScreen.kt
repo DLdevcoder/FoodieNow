@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -110,13 +111,6 @@ fun ProfileScreen(
                     ) {
                         Column {
                             MenuItem(
-                                icon = Icons.Default.History,
-                                iconColor = Color(0xFF10B981), // Green
-                                title = stringResource(R.string.activity_history_title),
-                                onClick = onNavigateToActivityHistory
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = Color(0xFFF3F4F6), thickness = 1.dp)
-                            MenuItem(
                                 icon = Icons.Default.ReceiptLong,
                                 iconColor = Color(0xFFF59E0B), // Yellow/Amber
                                 title = stringResource(R.string.order_history_title),
@@ -135,44 +129,7 @@ fun ProfileScreen(
                 }
             }
 
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column {
-                            MenuItem(
-                                icon = Icons.Default.ConfirmationNumber,
-                                iconColor = MaterialTheme.colorScheme.primary,
-                                title = stringResource(R.string.me_vouchers),
-                                trailingText = stringResource(R.string.me_vouchers_count),
-                                onClick = onNavigateToVouchers
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = Color(0xFFF3F4F6), thickness = 1.dp)
-                            MenuItem(
-                                icon = Icons.Default.MonetizationOn,
-                                iconColor = Color(0xFFF59E0B), // Yellow/Amber
-                                title = stringResource(R.string.me_coins),
-                                trailingText = stringResource(R.string.me_coins_count),
-                                onClick = onNavigateToRewardPoints
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = Color(0xFFF3F4F6), thickness = 1.dp)
-                            MenuItem(
-                                icon = Icons.Default.AccountBalanceWallet,
-                                iconColor = Color(0xFF3B82F6), // Blue
-                                title = "Ví FoodiePay",
-                                trailingText = "Nạp tiền/Lịch sử",
-                                onClick = onNavigateToWallet
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-            
+
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     Card(
@@ -332,8 +289,14 @@ private fun QuickStatCard(
         ) {
             Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.height(4.dp))
-            Text(value, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text(title, color = Color.Gray, fontSize = 11.sp)
+            Text(
+                text = value, 
+                fontWeight = FontWeight.Bold, 
+                fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(title, color = Color.Gray, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,7 +41,12 @@ fun NotificationScreen(
                     fontWeight = FontWeight.Medium
                 )
             },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
         )
 
         LazyColumn(
@@ -81,7 +87,7 @@ private fun NotificationCard(index: Int) {
         "Nhập mã DEALSOCK để được giảm giá ngay hôm nay."
     )
     val isUnread = index < 2
-    val iconBg = if (index % 3 == 0) Color(0xFF10B981) else Color(0xFFF97316)
+    val iconBg = if (index % 3 == 0) Color(0xFF10B981) else MaterialTheme.colorScheme.primary
     val icon = if (index % 3 == 0) Icons.Default.ReceiptLong else Icons.Default.Campaign
 
     Card(

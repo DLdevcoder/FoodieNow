@@ -17,6 +17,8 @@ import com.example.foodienow.domain.repository.OrderRepository
 import com.example.foodienow.domain.repository.PaymentRepository
 import com.example.foodienow.domain.repository.CartRepository
 import com.example.foodienow.data.repository.MockWalletTransactionRepository
+import com.example.foodienow.data.repository.MockAddressRepository
+import com.example.foodienow.data.repository.MockPaymentSettingsRepository
 import com.example.foodienow.domain.model.WalletTransaction
 import com.example.foodienow.domain.model.WalletTransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,12 +36,19 @@ import javax.inject.Inject
 data class PaymentUiState(
     val isProcessing: Boolean = false,
     val rewardPointsAvailable: Int = 0,
+    val defaultAddress: String = "",
+    val defaultPaymentMethod: PaymentMethod = PaymentMethod.COD,
+    val defaultWalletProvider: WalletProvider = WalletProvider.ZALOPAY,
     val infoMessage: String? = null,
     val errorMessage: String? = null
 )
 
 sealed class PaymentEvent {
-    object PaymentSuccess : PaymentEvent()
+    data class PaymentSuccess(
+        val orderId: String,
+        val amount: Double,
+        val methodLabel: String
+    ) : PaymentEvent()
 }
 
 @HiltViewModel
@@ -50,7 +59,9 @@ class PaymentViewModel @Inject constructor(
     private val notificationRepository: NotificationRepository,
     private val walletPaymentGateway: WalletPaymentGateway,
     private val cartRepository: CartRepository,
-    private val walletTransactionRepository: MockWalletTransactionRepository
+    private val walletTransactionRepository: MockWalletTransactionRepository,
+    private val addressRepository: MockAddressRepository,
+    private val paymentSettingsRepository: MockPaymentSettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentUiState())
@@ -63,6 +74,22 @@ class PaymentViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.getAuthState().collect { user ->
                 _uiState.update { it.copy(rewardPointsAvailable = user?.rewardPoints ?: 0) }
+            }
+        }
+        viewModelScope.launch {
+            addressRepository.addresses.collect { addresses ->
+                val defaultAddr = addresses.firstOrNull { it.isDefault }?.detail ?: ""
+                _uiState.update { it.copy(defaultAddress = defaultAddr) }
+            }
+        }
+        viewModelScope.launch {
+            paymentSettingsRepository.settings.collect { settings ->
+                _uiState.update { 
+                    it.copy(
+                        defaultPaymentMethod = settings.defaultMethod,
+                        defaultWalletProvider = settings.defaultProvider
+                    ) 
+                }
             }
         }
     }
@@ -85,7 +112,14 @@ class PaymentViewModel @Inject constructor(
     ) {
         if (deliveryAddress.isBlank()) {
             _uiState.update {
-                it.copy(errorMessage = "Dia chi nhan hang khong duoc de trong.", infoMessage = null)
+                it.copy(errorMessage = "Địa chỉ nhận hàng không được để trống.", infoMessage = null)
+            }
+            return
+        }
+
+        if (method == PaymentMethod.CARD) {
+            _uiState.update {
+                it.copy(errorMessage = "Thanh toán bằng thẻ đang được phát triển. Vui lòng chọn phương thức khác.", infoMessage = null)
             }
             return
         }
@@ -97,7 +131,7 @@ class PaymentViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = "Phien dang nhap khong hop le. Vui long dang nhap lai."
+                        errorMessage = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại."
                     )
                 }
                 return@launch
@@ -107,7 +141,7 @@ class PaymentViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = "Vui long chon vi dien tu de thanh toan."
+                        errorMessage = "Vui lòng chọn ví điện tử để thanh toán."
                     )
                 }
                 return@launch
@@ -181,7 +215,6 @@ class PaymentViewModel @Inject constructor(
                                 )
                             )
                                 .onSuccess {
-                                    // Xử lý Điểm thưởng (Trừ điểm đã dùng, cộng điểm mới)
                                     val earnedPoints = (amount * 0.01).toInt()
                                     val pointDiff = earnedPoints - usedRewardPoints
                                     if (pointDiff != 0) {
@@ -190,17 +223,27 @@ class PaymentViewModel @Inject constructor(
 
                                     createNotification(
                                         userId = user.id,
-                                        title = "Thanh toan thanh cong",
-                                        message = "Don hang ${createdOrder.id ?: ""} da thanh toan. Bạn được cộng $earnedPoints FoodieCoins."
+                                        title = "Thanh toán thành công",
+                                        message = "Đơn hàng ${createdOrder.id ?: ""} đã thanh toán. Bạn được cộng $earnedPoints FoodieCoins."
                                     )
+                                    val methodLabel = when (method) {
+                                        PaymentMethod.COD -> "Tiền mặt (COD)"
+                                        PaymentMethod.CARD -> "Thẻ tín dụng"
+                                        PaymentMethod.WALLET -> provider?.name ?: "Ví điện tử"
+                                        PaymentMethod.FOODIE_PAY -> "FoodiePay"
+                                    }
                                     _uiState.update {
                                         it.copy(
                                             isProcessing = false,
-                                            infoMessage = "Thanh toan thanh cong. Don hang da duoc luu vao he thong."
+                                            infoMessage = "Thanh toán thành công."
                                         )
                                     }
                                     cartRepository.clearCart()
-                                    _paymentEvent.emit(PaymentEvent.PaymentSuccess)
+                                    _paymentEvent.emit(PaymentEvent.PaymentSuccess(
+                                        orderId = createdOrder.id ?: "",
+                                        amount = amount,
+                                        methodLabel = methodLabel
+                                    ))
                                 }
                                 .onFailure { error ->
                                     handlePaymentFailure(
@@ -269,7 +312,7 @@ class PaymentViewModel @Inject constructor(
         cause: Throwable
     ) {
         val failedNote = buildString {
-            append(note.ifBlank { "Thanh toan that bai" })
+            append(note.ifBlank { "Thanh toán thất bại" })
             append(" | error=")
             append(cause.message ?: "unknown")
         }
@@ -288,14 +331,27 @@ class PaymentViewModel @Inject constructor(
             )
         )
 
+        if (method == PaymentMethod.FOODIE_PAY) {
+            authRepository.updateBalance(amount)
+            walletTransactionRepository.addTransaction(
+                WalletTransaction(
+                    id = "REFUND-${System.currentTimeMillis()}",
+                    type = WalletTransactionType.TOP_UP,
+                    amount = amount,
+                    description = "Hoàn tiền đơn hàng ${createdOrder.id ?: ""}",
+                    createdAt = java.time.Instant.now().toString()
+                )
+            )
+        }
+
         createdOrder.id?.let { orderId ->
             orderRepository.updateOrderStatus(orderId, OrderStatus.CANCELLED)
         }
 
         createNotification(
             userId = customerId,
-            title = "Thanh toan that bai",
-            message = "Don hang ${createdOrder.id ?: ""} da bi huy do giao dich loi."
+            title = "Thanh toán thất bại",
+            message = "Đơn hàng ${createdOrder.id ?: ""} đã bị hủy do giao dịch lỗi.${if (method == PaymentMethod.FOODIE_PAY) " Số tiền đã được hoàn lại vào ví FoodiePay." else ""}"
         )
     }
 

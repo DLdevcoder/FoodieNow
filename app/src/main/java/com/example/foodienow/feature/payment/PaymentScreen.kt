@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,22 +54,37 @@ import java.util.Locale
 fun PaymentScreen(
     onBack: () -> Unit,
     onNavigateToOrderHistory: () -> Unit,
+    onNavigateToPaymentResult: (orderId: String, amount: Double, methodLabel: String) -> Unit = { _, _, _ -> onNavigateToOrderHistory() },
     viewModel: PaymentViewModel = hiltViewModel()
 ) {
-    var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
-    var selectedProvider by remember { mutableStateOf(WalletProvider.ZALOPAY) }
     var deliveryAddress by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     
     var voucherCodeText by remember { mutableStateOf("") }
     var discountAmount by remember { mutableStateOf(0.0) }
     var useRewardPoints by remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var addressInitialized by remember { mutableStateOf(false) }
+    var paymentMethodInitialized by remember { mutableStateOf(false) }
+    var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
+    var selectedProvider by remember { mutableStateOf(WalletProvider.ZALOPAY) }
 
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
     val cartViewModel: com.example.foodienow.feature.cart.CartViewModel = hiltViewModel()
     val cartUiState by cartViewModel.uiState.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
+
+    if (!addressInitialized && uiState.defaultAddress.isNotBlank()) {
+        deliveryAddress = uiState.defaultAddress
+        addressInitialized = true
+    }
+    
+    if (!paymentMethodInitialized && uiState.defaultPaymentMethod != null) {
+        selectedMethod = uiState.defaultPaymentMethod
+        selectedProvider = uiState.defaultWalletProvider
+        paymentMethodInitialized = true
+    }
     
     val subtotal = cartUiState.cartItems.entries.sumOf { it.key.price * it.value }
     val deliveryFee = if (subtotal > 100000) 0.0 else 15000.0
@@ -87,7 +103,7 @@ fun PaymentScreen(
         viewModel.paymentEvent.collect { event ->
             when (event) {
                 is PaymentEvent.PaymentSuccess -> {
-                    onNavigateToOrderHistory()
+                    onNavigateToPaymentResult(event.orderId, event.amount, event.methodLabel)
                 }
             }
         }
@@ -97,7 +113,12 @@ fun PaymentScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.payment_title), fontWeight = FontWeight.SemiBold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         }
     ) { padding ->
@@ -325,16 +346,7 @@ fun PaymentScreen(
             }
 
             Button(
-                onClick = {
-                    viewModel.submitPayment(
-                        method = selectedMethod,
-                        provider = if (selectedMethod == PaymentMethod.WALLET) selectedProvider else null,
-                        deliveryAddress = deliveryAddress,
-                        note = note,
-                        amount = totalAmount,
-                        usedRewardPoints = if (useRewardPoints) uiState.rewardPointsAvailable else 0
-                    )
-                },
+                onClick = { showConfirmDialog = true },
                 enabled = canPay,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -354,6 +366,49 @@ fun PaymentScreen(
                 Text(stringResource(R.string.common_back))
             }
         }
+    }
+
+    if (showConfirmDialog) {
+        val methodLabel = when (selectedMethod) {
+            PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
+            PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
+            PaymentMethod.WALLET -> "Ví điện tử (${selectedProvider.name})"
+            PaymentMethod.FOODIE_PAY -> stringResource(R.string.payment_method_foodie_pay)
+        }
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = { Text("Xác nhận thanh toán") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Bạn có chắc chắn muốn thanh toán đơn hàng này không?")
+                    Text("Phương thức: $methodLabel", fontWeight = FontWeight.SemiBold)
+                    Text("Tổng tiền: ${formatter.format(totalAmount)}", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                    Text("Địa chỉ: $deliveryAddress")
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showConfirmDialog = false
+                        viewModel.submitPayment(
+                            method = selectedMethod,
+                            provider = if (selectedMethod == PaymentMethod.WALLET) selectedProvider else null,
+                            deliveryAddress = deliveryAddress,
+                            note = note,
+                            amount = totalAmount,
+                            usedRewardPoints = if (useRewardPoints) uiState.rewardPointsAvailable else 0
+                        )
+                    }
+                ) {
+                    Text("Xác nhận")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text("Hủy")
+                }
+            }
+        )
     }
 }
 

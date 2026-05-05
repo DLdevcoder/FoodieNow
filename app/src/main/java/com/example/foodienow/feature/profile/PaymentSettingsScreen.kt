@@ -27,10 +27,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.domain.model.PaymentMethod
+import com.example.foodienow.domain.model.WalletProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,7 +44,12 @@ data class PaymentSettingItem(val id: String, val title: String, val subtitle: S
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PaymentSettingsScreen(onBack: () -> Unit) {
+fun PaymentSettingsScreen(
+    onBack: () -> Unit,
+    viewModel: PaymentSettingsViewModel = hiltViewModel()
+) {
+    val settings by viewModel.settings.collectAsState()
+    
     val paymentMethods = listOf(
         PaymentSettingItem("momo", "Ví MoMo", "Liên kết: 0912***456", Icons.Default.AccountBalanceWallet),
         PaymentSettingItem("zalopay", "ZaloPay", "Chưa liên kết", Icons.Default.AccountBalanceWallet),
@@ -50,7 +57,12 @@ fun PaymentSettingsScreen(onBack: () -> Unit) {
         PaymentSettingItem("cod", "Thanh toán tiền mặt", "Thanh toán khi nhận hàng", Icons.Default.Money)
     )
 
-    var defaultMethodId by remember { mutableStateOf("momo") }
+    val defaultMethodId = when {
+        settings.defaultMethod == PaymentMethod.WALLET && settings.defaultProvider == WalletProvider.MOMO -> "momo"
+        settings.defaultMethod == PaymentMethod.WALLET && settings.defaultProvider == WalletProvider.ZALOPAY -> "zalopay"
+        settings.defaultMethod == PaymentMethod.CARD -> "card"
+        else -> "cod"
+    }
 
     Scaffold(
         topBar = {
@@ -82,7 +94,7 @@ fun PaymentSettingsScreen(onBack: () -> Unit) {
                 items(paymentMethods) { method ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = { defaultMethodId = method.id },
+                        onClick = { viewModel.updateDefaultMethod(method.id) },
                         colors = CardDefaults.cardColors(
                             containerColor = if (defaultMethodId == method.id) 
                                 MaterialTheme.colorScheme.primaryContainer 

@@ -19,12 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.User
 import com.example.foodienow.domain.model.UserRole
@@ -134,6 +135,40 @@ fun AppNavigation() {
         composable(route = Screen.Payment.route) {
             PaymentScreen(
                 onBack = { navController.popBackStack() },
+                onNavigateToOrderHistory = {
+                    navController.navigate(Screen.OrderHistory.route) {
+                        popUpTo(Screen.CustomerHome.route) { inclusive = false }
+                    }
+                },
+                onNavigateToPaymentResult = { orderId, amount, methodLabel ->
+                    navController.navigate(Screen.PaymentResult.createRoute(orderId, amount, methodLabel)) {
+                        popUpTo(Screen.CustomerHome.route) { inclusive = false }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = Screen.PaymentResult.route,
+            arguments = listOf(
+                navArgument("orderId") { type = NavType.StringType },
+                navArgument("amount") { type = NavType.FloatType },
+                navArgument("methodLabel") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            val amount = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
+            val methodLabel = backStackEntry.arguments?.getString("methodLabel") ?: ""
+            
+            com.example.foodienow.feature.payment.PaymentResultScreen(
+                orderId = orderId,
+                amount = amount,
+                methodLabel = methodLabel,
+                onNavigateToHome = {
+                    navController.navigate(Screen.CustomerHome.route) {
+                        popUpTo(Screen.CustomerHome.route) { inclusive = true }
+                    }
+                },
                 onNavigateToOrderHistory = {
                     navController.navigate(Screen.OrderHistory.route) {
                         popUpTo(Screen.CustomerHome.route) { inclusive = false }

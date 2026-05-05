@@ -25,6 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +52,7 @@ fun SettingsScreen(
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     val uiPreferences by viewModel.uiPreferences.collectAsState()
+    val context = LocalContext.current
     
     val darkModeEnabled = uiPreferences.themeMode == ThemeMode.DARK
     val englishLanguage = uiPreferences.appLanguage == AppLanguage.ENGLISH
@@ -75,11 +78,11 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF5F5F5))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             
-            Column(modifier = Modifier.background(Color.White)) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 SettingSwitchItem(
                     icon = Icons.Default.NotificationsActive,
                     iconColor = Color(0xFFF59E0B),
