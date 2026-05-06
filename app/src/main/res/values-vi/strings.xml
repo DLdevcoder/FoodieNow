@@ -225,4 +225,12 @@
     <string name="me_shop_owners">Dành cho quán ăn</string>
     <string name="me_help">Trung tâm trợ giúp</string>
     <string name="me_settings">Cài đặt</string>
+
+    <!-- Shipper -->
+    <string name="shipper_tab_available">Chờ giao</string>
+    <string name="shipper_tab_active">Đang giao</string>
+    <string name="shipper_empty_available">Không có đơn hàng nào chờ nhận.</string>
+    <string name="shipper_empty_active">Bạn chưa nhận đơn hàng nào.</string>
+    <string name="shipper_action_accept">Nhận đơn</string>
+    <string name="shipper_action_complete">Hoàn tất</string>
 </resources>

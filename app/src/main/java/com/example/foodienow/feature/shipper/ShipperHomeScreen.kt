@@ -1,157 +1,266 @@
 package com.example.foodienow.feature.shipper
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeliveryDining
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.Order
 import java.text.NumberFormat
+import java.util.Calendar
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShipperHomeScreen(
     viewModel: ShipperViewModel = hiltViewModel(),
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Tài xế FoodieNow") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                actions = {
-                    Button(onClick = onLogout) {
-                        Text("Đăng xuất", color = MaterialTheme.colorScheme.onPrimary)
-                    }
+    val tabs = listOf(
+        R.string.shipper_tab_available,
+        R.string.shipper_tab_active
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+    ) {
+        ShipperTopSection(
+            activeOrderCount = uiState.activeOrders.size,
+            onLogout = onLogout
+        )
+
+        TabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = Color.White,
+            indicator = { tabPositions ->
+                if (selectedTabIndex < tabPositions.size) {
+                    TabRowDefaults.SecondaryIndicator(
+                        Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex])
+                    )
                 }
-            )
+            }
+        ) {
+            tabs.forEachIndexed { index, titleRes ->
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = { selectedTabIndex = index },
+                    text = {
+                        Text(
+                            text = stringResource(titleRes),
+                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                )
+            }
         }
-    ) { padding ->
-        if (uiState.isLoading && uiState.availableOrders.isEmpty() && uiState.activeOrder == null) {
+
+        if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            ) {
-                if (uiState.activeOrder != null) {
-                    ActiveDeliverySection(
-                        order = uiState.activeOrder!!,
-                        onComplete = { viewModel.completeOrder(it) }
-                    )
-                } else {
-                    AvailableDeliveriesSection(
-                        orders = uiState.availableOrders,
-                        onAccept = { viewModel.acceptOrder(it) }
-                    )
-                }
-            }
+            return
         }
-    }
-}
 
-@Composable
-fun ActiveDeliverySection(order: Order, onComplete: (String) -> Unit) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Đơn đang giao",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Mã đơn: ${order.id?.take(8)?.uppercase() ?: ""}", fontWeight = FontWeight.Bold)
-                Text("Trạng thái: ${order.status}", color = MaterialTheme.colorScheme.primary)
-                Text("Tổng tiền: ${NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.totalPrice)}")
-                Text("Địa chỉ giao: ${order.deliveryAddress}")
-                
-                Button(
-                    onClick = { order.id?.let { onComplete(it) } },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ) {
-                    Text("Đã giao thành công")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun AvailableDeliveriesSection(orders: List<Order>, onAccept: (String) -> Unit) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = "Đơn mới có thể nhận",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
-        )
-        
-        if (orders.isEmpty()) {
+        uiState.error?.let { errorMsg ->
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Chưa có đơn hàng mới nào.")
+                Text(text = errorMsg, color = MaterialTheme.colorScheme.error)
             }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(orders) { order ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Mã đơn: ${order.id?.take(8)?.uppercase() ?: ""}", fontWeight = FontWeight.Bold)
-                            Text("Tổng tiền: ${NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(order.totalPrice)}")
-                            Text("Địa chỉ: ${order.deliveryAddress}")
-                            
-                            Button(
-                                onClick = { order.id?.let { onAccept(it) } },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp)
-                            ) {
-                                Text("Nhận đơn này")
-                            }
-                        }
-                    }
+            return
+        }
+
+        when (selectedTabIndex) {
+            0 -> OrderList(
+                orders = uiState.availableOrders,
+                emptyMessageRes = R.string.shipper_empty_available,
+                actionTextRes = R.string.shipper_action_accept,
+                onActionClick = viewModel::acceptOrder
+            )
+            1 -> OrderList(
+                orders = uiState.activeOrders,
+                emptyMessageRes = R.string.shipper_empty_active,
+                actionTextRes = R.string.shipper_action_complete,
+                onActionClick = viewModel::completeOrder
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShipperTopSection(activeOrderCount: Int, onLogout: () -> Unit) {
+    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val greeting = when (currentHour) {
+        in 0..11 -> "Chào buổi sáng ☀️"
+        in 12..17 -> "Chào buổi chiều ⛅"
+        else -> "Chào buổi tối 🌙"
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary,
+                        Color(0xFFF97316)
+                    )
+                )
+            )
+            .padding(top = 40.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = greeting,
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Khu vực hoạt động",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (activeOrderCount > 0) {
+                    Icon(
+                        imageVector = Icons.Default.DeliveryDining,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "$activeOrderCount đơn",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
                 }
+                TextButton(onClick = onLogout) {
+                    Text("Đăng xuất", color = Color.White)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrderList(
+    orders: List<Order>,
+    emptyMessageRes: Int,
+    actionTextRes: Int,
+    onActionClick: (String) -> Unit
+) {
+    if (orders.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(emptyMessageRes),
+                color = Color.Gray
+            )
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(orders, key = { it.id ?: it.hashCode() }) { order ->
+                ShipperOrderCard(
+                    order = order,
+                    actionText = stringResource(actionTextRes),
+                    onAction = { order.id?.let { onActionClick(it) } }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShipperOrderCard(
+    order: Order,
+    actionText: String,
+    onAction: () -> Unit
+) {
+    val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
+    val formattedPrice = "${formatter.format(order.totalPrice)} VND"
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Đơn #${order.id?.take(8)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = formattedPrice,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Text(
+                text = "Giao đến: ${order.deliveryAddress}",
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (!order.note.isNullOrBlank()) {
+                Text(
+                    text = "Ghi chú: ${order.note}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFD32F2F)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Button(
+                onClick = onAction,
+                modifier = Modifier.align(Alignment.End),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Text(actionText)
             }
         }
     }

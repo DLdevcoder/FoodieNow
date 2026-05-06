@@ -37,7 +37,6 @@ import com.example.foodienow.feature.auth.RegisterScreen
 import com.example.foodienow.feature.auth.VerifyAccountScreen
 import com.example.foodienow.feature.cart.CartScreen
 import com.example.foodienow.feature.cart.CartViewModel
-import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import com.example.foodienow.feature.food_detail.FoodDetailScreen
 import com.example.foodienow.feature.food_detail.FoodDetailViewModel
 import com.example.foodienow.feature.food_detail.FoodReviewsScreen
@@ -48,6 +47,7 @@ import com.example.foodienow.feature.order_history.OrderHistoryScreen
 import com.example.foodienow.feature.payment.PaymentScreen
 import com.example.foodienow.feature.profile.ProfileScreen
 import com.example.foodienow.feature.main.CustomerMainScreen
+import com.example.foodienow.feature.customer_home.components.SearchScreen // Import SearchScreen
 
 @Composable
 fun AppNavigation() {
@@ -119,6 +119,15 @@ fun AppNavigation() {
             )
         }
 
+        composable(route = "search_screen") {
+            SearchScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToFoodDetail = { food ->
+                    navController.navigate("food_detail/${food.id}")
+                }
+            )
+        }
+
         composable(route = Screen.Cart.route) {
             CartScreen(
                 onBackClick = { navController.popBackStack() },
@@ -158,7 +167,7 @@ fun AppNavigation() {
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
             val amount = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
             val methodLabel = backStackEntry.arguments?.getString("methodLabel") ?: ""
-            
+
             com.example.foodienow.feature.payment.PaymentResultScreen(
                 orderId = orderId,
                 amount = amount,

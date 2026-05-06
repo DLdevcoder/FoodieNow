@@ -37,7 +37,8 @@ import com.example.foodienow.feature.customer_home.components.formatPrice
 @Composable
 fun CustomerHomeScreen(
     viewModel: CustomerHomeViewModel = hiltViewModel(),
-    onNavigateToFoodDetail: (Food) -> Unit
+    onNavigateToFoodDetail: (Food) -> Unit,
+    onNavigateToSearch: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -48,8 +49,7 @@ fun CustomerHomeScreen(
     ) {
         item {
             HomeTopSection(
-                searchQuery = uiState.searchQuery, 
-                onSearchQueryChange = viewModel::onSearchQueryChange,
+                onNavigateToSearch = onNavigateToSearch,
                 address = uiState.address
             )
         }
@@ -85,8 +85,7 @@ fun CustomerHomeScreen(
 
 @Composable
 private fun HomeTopSection(
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
+    onNavigateToSearch: () -> Unit, // Đổi tham số này
     address: String
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -141,22 +140,31 @@ private fun HomeTopSection(
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchQueryChange,
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
-            placeholder = { Text(stringResource(R.string.home_search_hint), fontSize = 14.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
-            ),
-            shape = RoundedCornerShape(8.dp)
-        )
+                .height(48.dp)
+                .clickable { onNavigateToSearch() }, // Khi bấm sẽ nhảy sang trang tìm kiếm
+            shape = RoundedCornerShape(8.dp),
+            color = Color.White
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.home_search_placeholder), // "Bạn muốn ăn gì?"
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+            }
+        }
     }
 }
 
@@ -281,7 +289,7 @@ private fun HorizontalFoodSection(
 }
 
 @Composable
-private fun FoodCard(food: Food, onClick: (Food) -> Unit) {
+fun FoodCard(food: Food, onClick: (Food) -> Unit) {
     Card(
         modifier = Modifier
             .width(140.dp)

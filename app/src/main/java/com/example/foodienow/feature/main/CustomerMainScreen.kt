@@ -80,7 +80,8 @@ fun CustomerMainScreen(
         ) {
             when (selectedTab) {
                 0 -> CustomerHomeScreen(
-                    onNavigateToFoodDetail = onNavigateToFoodDetail
+                    onNavigateToFoodDetail = onNavigateToFoodDetail,
+                    onNavigateToSearch = { rootNavController.navigate("search_screen") }
                 )
                 1 -> OrderHistoryScreen(
                     onBack = { selectedTab = 0 } // Or handle back differently
