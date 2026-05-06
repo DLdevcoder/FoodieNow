@@ -161,12 +161,19 @@ private fun MerchantOrderCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (order.status == OrderStatus.PENDING) {
-                        OutlinedButton(onClick = onCancel) {
-                            Text(stringResource(R.string.merchant_orders_action_cancel))
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = onAccept) {
-                            Text(stringResource(R.string.merchant_orders_action_accept))
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedButton(onClick = onCancel) {
+                                Text(stringResource(R.string.merchant_orders_action_cancel))
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(onClick = onAccept) {
+                                Text(stringResource(R.string.merchant_orders_action_accept))
+                            }
                         }
                     } else {
                         Button(onClick = onReady) {

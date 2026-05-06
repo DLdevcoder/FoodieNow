@@ -38,7 +38,6 @@ class MerchantOrdersViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                // Sử dụng cách lấy user đã hoạt động ổn định từ MerchantViewModel
                 val currentUser = authRepository.getAuthState().firstOrNull()
                 val merchantId = currentUser?.id
 

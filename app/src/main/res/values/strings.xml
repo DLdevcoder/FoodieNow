@@ -225,4 +225,11 @@
     <string name="me_help">Help Centre</string>
     <string name="me_settings">Settings</string>
 
+    <!-- Shipper -->
+    <string name="shipper_tab_available">Available</string>
+    <string name="shipper_tab_active">Active</string>
+    <string name="shipper_empty_available">No available orders.</string>
+    <string name="shipper_empty_active">You have no active orders.</string>
+    <string name="shipper_action_accept">Accept</string>
+    <string name="shipper_action_complete">Complete</string>
 </resources>

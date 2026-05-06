@@ -83,11 +83,10 @@ class OrderRepositoryImpl @Inject constructor(
                 .select {
                     filter {
                         eq("status", OrderStatus.PREPARING.name)
-                        // Local fallback filter is used instead to avoid syntax issues
                     }
                 }
                 .decodeList<Order>()
-                .filter { it.shipperId == null } // Fallback local filter just in case
+                .filter { it.shipperId == null }
         }
 
         send(fetchOrders())
@@ -96,6 +95,7 @@ class OrderRepositoryImpl @Inject constructor(
         val channel = supabaseClient.channel(channelName)
         val changes = channel.postgresChangeFlow<PostgresAction>("public") {
             table = "orders"
+            filter = "status=eq.${OrderStatus.PREPARING.name}"
         }
 
         launch {
@@ -129,6 +129,7 @@ class OrderRepositoryImpl @Inject constructor(
         val channel = supabaseClient.channel(channelName)
         val changes = channel.postgresChangeFlow<PostgresAction>("public") {
             table = "orders"
+            filter = "shipper_id=eq.$shipperId"
         }
 
         launch {

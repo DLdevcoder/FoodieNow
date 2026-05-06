@@ -48,7 +48,6 @@ class FoodDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                // Fetch tuần tự dữ liệu thật từ database
                 val food = foodRepository.getFoodById(foodId)
                 val store = merchantRepository.getStoreById(food.storeId)
                 val reviews = reviewRepository.getReviewsByFoodId(foodId)

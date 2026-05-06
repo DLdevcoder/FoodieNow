@@ -13,7 +13,7 @@ class FoodRepositoryImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
 ) : CustomerFoodRepository {
 
-    // 1. Lấy danh sách món ăn gợi ý (Trang chủ)
+    // Lấy danh sách món ăn
     override fun getRecommendedFoods(): Flow<List<Food>> = flow {
         val response = supabaseClient.postgrest["foods"]
             .select()
@@ -21,7 +21,7 @@ class FoodRepositoryImpl @Inject constructor(
         emit(response)
     }
 
-    // 2. Tìm kiếm món ăn theo tên
+    // Tìm kiếm món ăn theo tên
     override fun searchFoods(query: String): Flow<List<Food>> = flow {
         val response = supabaseClient.postgrest["foods"]
             .select {
@@ -33,7 +33,7 @@ class FoodRepositoryImpl @Inject constructor(
         emit(response)
     }
 
-    // 3. Lấy chi tiết một món ăn (Dùng cho FoodDetailScreen)
+    // Lấy chi tiết một món ăn (Dùng cho FoodDetailScreen)
     override suspend fun getFoodById(foodId: String): Food {
         return supabaseClient.postgrest["foods"]
             .select {
@@ -44,7 +44,7 @@ class FoodRepositoryImpl @Inject constructor(
             .decodeSingle<Food>()
     }
 
-    // 4. Lấy danh sách món ăn của một cửa hàng cụ thể (Dành cho Store Detail)
+    // Lấy danh sách món ăn của một cửa hàng cụ thể
     override suspend fun getFoodsByStoreId(storeId: String): List<Food> {
         return supabaseClient.postgrest["foods"]
             .select {
@@ -55,7 +55,7 @@ class FoodRepositoryImpl @Inject constructor(
             .decodeList<Food>()
     }
 
-    // 5. Thêm món ăn mới (Merchant)
+    // Thêm món ăn mới (Merchant)
     override suspend fun addFood(food: Food, imageBytes: ByteArray?) {
         var finalImageUrl: String? = food.imageUrl
         if (imageBytes != null) {
