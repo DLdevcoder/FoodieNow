@@ -47,13 +47,18 @@ fun CartScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.cart_title), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.SemiBold) },
+                title = { Text(stringResource(R.string.cart_title), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
@@ -63,8 +68,8 @@ fun CartScreen(
 
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 16.dp,
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                tonalElevation = 2.dp,
+                shape = MaterialTheme.shapes.large
             ) {
                 Row(
                     modifier = Modifier
@@ -90,8 +95,8 @@ fun CartScreen(
                             containerColor = MaterialTheme.colorScheme.primary,
                             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.height(48.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.height(52.dp),
                         enabled = cartItems.isNotEmpty() && !uiState.isLoading
                     ) {
                         if (uiState.isLoading) {
@@ -137,10 +142,10 @@ fun CartItemCard(
     quantity: Int,
     onQuantityChange: (Int) -> Unit
 ) {
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(1.dp)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -149,7 +154,7 @@ fun CartItemCard(
             AsyncImage(
                 model = food.imageUrl,
                 contentDescription = null,
-                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)),
+                modifier = Modifier.size(60.dp).clip(MaterialTheme.shapes.small),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -160,7 +165,9 @@ fun CartItemCard(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(50)).padding(2.dp)
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.large)
+                    .padding(2.dp)
             ) {
                 IconButton(onClick = { onQuantityChange(quantity - 1) }, modifier = Modifier.size(28.dp)) {
                     Icon(Icons.Default.Remove, contentDescription = stringResource(R.string.cart_decrease), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))

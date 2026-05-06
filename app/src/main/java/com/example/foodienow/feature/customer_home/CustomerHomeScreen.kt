@@ -1,219 +1,412 @@
 package com.example.foodienow.feature.customer_home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Brush
+import java.util.Calendar
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
-import com.example.foodienow.feature.customer_home.components.FoodItemCard
+import com.example.foodienow.feature.customer_home.components.formatPrice
 
-import com.example.foodienow.feature.cart.CartViewModel
-import com.example.foodienow.feature.customer_home.components.FoodDetailBottomSheet
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerHomeScreen(
     viewModel: CustomerHomeViewModel = hiltViewModel(),
-    cartViewModel: CartViewModel = hiltViewModel(),
-    onNavigateToCart: () -> Unit,
-    onNavigateToProfile: () -> Unit,
-    onNavigateToNotifications: () -> Unit,
     onNavigateToFoodDetail: (Food) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var isSearchExpanded by remember { mutableStateOf(false) }
-    var selectedFoodForSheet by remember { mutableStateOf<Food?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    if (isSearchExpanded) {
-                        OutlinedTextField(
-                            value = uiState.searchQuery,
-                            onValueChange = viewModel::onSearchQueryChange,
-                            modifier = Modifier.fillMaxWidth().height(52.dp),
-                            placeholder = { Text(stringResource(R.string.home_search_placeholder)) },
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    isSearchExpanded = false
-                                    viewModel.onSearchQueryChange("") // Xóa query khi đóng
-                                }) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.home_search_cancel),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            },
-                            shape = RoundedCornerShape(24.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                focusedBorderColor = Color.Transparent,
-                                unfocusedBorderColor = Color.Transparent
-                            )
-                        )
-                    } else {
-                        Text(
-                            stringResource(R.string.app_name),
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                actions = {
-                    if (!isSearchExpanded) {
-                        IconButton(onClick = { isSearchExpanded = true }) {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = stringResource(R.string.home_search_action),
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+    ) {
+        item {
+            HomeTopSection(
+                searchQuery = uiState.searchQuery, 
+                onSearchQueryChange = viewModel::onSearchQueryChange,
+                address = uiState.address
             )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = stringResource(R.string.home_nav_home)) },
-                    label = { Text(stringResource(R.string.home_nav_home), fontWeight = FontWeight.SemiBold) },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        indicatorColor = MaterialTheme.colorScheme.surfaceVariant,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+        }
+        item {
+            CategoriesSection()
+        }
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalFoodSection(
+                title = stringResource(R.string.home_section_good_meal),
+                foods = uiState.recommendedFoods,
+                headerColor = MaterialTheme.colorScheme.primary,
+                isLoading = uiState.isLoading,
+                onFoodClick = onNavigateToFoodDetail
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalFoodSection(
+                title = stringResource(R.string.home_section_must_try),
+                foods = uiState.recommendedFoods.shuffled(),
+                headerColor = Color(0xFF1E3A8A), // Dark blue
+                isLoading = uiState.isLoading,
+                onFoodClick = onNavigateToFoodDetail
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            CollectionsSection(foods = uiState.recommendedFoods, isLoading = uiState.isLoading)
+        }
+    }
+}
+
+@Composable
+private fun HomeTopSection(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    address: String
+) {
+    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val greeting = when (currentHour) {
+        in 0..11 -> "Chào buổi sáng ☀️"
+        in 12..17 -> "Chào buổi chiều ⛅"
+        else -> "Chào buổi tối 🌙"
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary,
+                        Color(0xFFF97316) // Orange
                     )
                 )
-
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = stringResource(R.string.home_nav_cart)) },
-                    label = { Text(stringResource(R.string.home_nav_cart), fontWeight = FontWeight.SemiBold) },
-                    selected = false,
-                    onClick = onNavigateToCart,
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Notifications, contentDescription = stringResource(R.string.home_nav_notifications)) },
-                    label = { Text(stringResource(R.string.home_nav_notifications), fontWeight = FontWeight.SemiBold) },
-                    selected = false,
-                    onClick = onNavigateToNotifications,
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = stringResource(R.string.home_nav_profile)) },
-                    label = { Text(stringResource(R.string.home_nav_profile), fontWeight = FontWeight.SemiBold) },
-                    selected = false,
-                    onClick = onNavigateToProfile,
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)) {
-
-            if (isSearchExpanded && uiState.searchQuery.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize())
-            } else if (uiState.searchQuery.isNotEmpty()) {
+            )
+            .padding(top = 24.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
                 Text(
-                    stringResource(R.string.home_search_results),
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    fontWeight = FontWeight.Bold
+                    greeting,
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
                 )
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Deliver To: ",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Text(
+                        address,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearchQueryChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            placeholder = { Text(stringResource(R.string.home_search_hint), fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent
+            ),
+            shape = RoundedCornerShape(8.dp)
+        )
+    }
+}
 
-                val displayList = uiState.searchResults
+@Composable
+private fun CategoriesSection() {
+    val categories = listOf(
+        R.string.home_category_1, R.string.home_category_2,
+        R.string.home_category_3, R.string.home_category_4,
+        R.string.home_category_5, R.string.home_category_6,
+        R.string.home_category_7, R.string.home_category_8
+    )
 
-                if (displayList.isEmpty()) {
-                    Text(stringResource(R.string.home_search_empty), color = Color.Gray)
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(displayList) { food ->
-                            FoodItemCard(
-                                food = food,
-                                onCardClick = { onNavigateToFoodDetail(it) },
-                                onAddToCartClick = { selectedFoodForSheet = it }
-                            )
-                        }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(vertical = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            categories.take(4).forEach { catRes ->
+                CategoryItem(catRes)
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            categories.drop(4).forEach { catRes ->
+                CategoryItem(catRes)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryItem(labelRes: Int) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(72.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFFF3F4F6)),
+            contentAlignment = Alignment.Center
+        ) {
+            // Placeholder for category icon
+            Text("🍲", fontSize = 24.sp)
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            stringResource(labelRes),
+            fontSize = 11.sp,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            maxLines = 2,
+            lineHeight = 14.sp
+        )
+    }
+}
+
+@Composable
+private fun HorizontalFoodSection(
+    title: String,
+    foods: List<Food>,
+    headerColor: Color,
+    isLoading: Boolean,
+    onFoodClick: (Food) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(headerColor)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                title,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+            Text(
+                stringResource(R.string.home_see_all),
+                color = Color.White,
+                fontSize = 12.sp
+            )
+        }
+        
+        if (isLoading) {
+            LazyRow(
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(3) {
+                    Box(modifier = Modifier.width(140.dp)) {
+                        com.example.foodienow.core.designsystem.components.FoodItemShimmer()
                     }
                 }
-            } else {
-                Text(
-                    stringResource(R.string.home_recommendations),
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(uiState.recommendedFoods) { food ->
-                        FoodItemCard(
-                            food = food,
-                            onCardClick = { onNavigateToFoodDetail(it) },
-                            onAddToCartClick = { selectedFoodForSheet = it }
-                        )
-                    }
+            }
+        } else {
+            LazyRow(
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(foods) { food ->
+                    FoodCard(food, onFoodClick)
                 }
             }
         }
     }
+}
 
-    selectedFoodForSheet?.let { food ->
-        FoodDetailBottomSheet(
-            food = food,
-            onDismiss = { selectedFoodForSheet = null },
-            onAddToCart = { addedFood, quantity ->
-                cartViewModel.addToCart(addedFood, quantity)
-                selectedFoodForSheet = null
+@Composable
+private fun FoodCard(food: Food, onClick: (Food) -> Unit) {
+    Card(
+        modifier = Modifier
+            .width(140.dp)
+            .clickable { onClick(food) },
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .background(Color.LightGray)
+            ) {
+                if (!food.imageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = food.imageUrl,
+                        contentDescription = food.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
-        )
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(
+                    food.name,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    food.price.formatPrice(),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(vertical = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                stringResource(R.string.home_section_collections),
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                stringResource(R.string.home_see_all),
+                color = Color.Gray,
+                fontSize = 12.sp
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        if (isLoading) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(3) {
+                    Box(modifier = Modifier.width(120.dp)) {
+                        com.example.foodienow.core.designsystem.components.FoodItemShimmer()
+                    }
+                }
+            }
+        } else {
+            val collectionFoods = foods.take(3)
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(collectionFoods) { food ->
+                    Card(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(160.dp)
+                            .clickable { /* Could navigate to a collection page */ },
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                                    .background(MaterialTheme.colorScheme.primary)
+                            ) {
+                                if (!food.imageUrl.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = food.imageUrl,
+                                        contentDescription = food.name,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            }
+                            Text(
+                                food.name,
+                                modifier = Modifier.padding(8.dp),
+                                fontSize = 12.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }

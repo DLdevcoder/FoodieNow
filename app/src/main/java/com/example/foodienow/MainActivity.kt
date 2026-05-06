@@ -1,7 +1,7 @@
 package com.example.foodienow
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +19,7 @@ import com.example.foodienow.feature.settings.UiPreferencesViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val uiPreferencesViewModel: UiPreferencesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {

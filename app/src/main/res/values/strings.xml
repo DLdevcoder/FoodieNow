@@ -4,7 +4,9 @@
 
     <string name="auth_checking_session">Checking sign-in session...</string>
     <string name="auth_login_title">Sign in</string>
+    <string name="auth_login_subtitle">Welcome back, please sign in to continue.</string>
     <string name="auth_register_title">Sign up</string>
+    <string name="auth_register_subtitle">Create a new account to get started.</string>
     <string name="auth_email_label">Email</string>
     <string name="auth_password_label">Password</string>
     <string name="auth_confirm_password_label">Confirm password</string>
@@ -26,12 +28,14 @@
     <string name="auth_error_password_mismatch">Passwords do not match.</string>
 
     <string name="auth_verify_title">Verify account</string>
+    <string name="auth_verify_subtitle">Confirm your email to unlock full access.</string>
     <string name="auth_verify_sent_to">We have sent a verification email to:</string>
     <string name="auth_verify_instruction">After clicking the link in your email, come back and sign in.</string>
     <string name="auth_verify_resend">Resend verification email</string>
     <string name="auth_verify_back_to_login">I have verified, back to sign in</string>
 
     <string name="auth_forgot_password_title">Recover password</string>
+    <string name="auth_forgot_password_subtitle">Enter your email to receive a reset link.</string>
     <string name="auth_forgot_password_send">Send recovery email</string>
 
     <string name="profile_title">Profile</string>
@@ -47,13 +51,21 @@
 
     <string name="payment_title">Payment</string>
     <string name="payment_order_information">Order information</string>
-    <string name="payment_subtotal">Subtotal: 120,000 VND</string>
-    <string name="payment_delivery_fee">Delivery fee: 15,000 VND</string>
-    <string name="payment_total">Total: 135,000 VND</string>
+    <string name="payment_subtotal">Subtotal: %1$s</string>
+    <string name="payment_delivery_fee">Delivery fee: %1$s</string>
+    <string name="payment_total">Total: %1$s</string>
     <string name="payment_method_title">Payment method</string>
     <string name="payment_method_cod">Cash on delivery</string>
     <string name="payment_method_card">Bank card</string>
-    <string name="payment_method_wallet">E-wallet</string>
+    <string name="payment_method_wallet">E-wallet (Sandbox)</string>
+    <string name="payment_method_foodie_pay">FoodiePay Wallet</string>
+    <string name="payment_wallet_method_with_provider">E-wallet (%1$s)</string>
+    <string name="payment_wallet_provider_title">Select sandbox wallet</string>
+    <string name="payment_wallet_provider_zalopay">ZaloPay</string>
+    <string name="payment_wallet_provider_momo">MoMo</string>
+    <string name="payment_wallet_provider_vnpay">VNPAY</string>
+    <string name="payment_wallet_provider_paypal">PayPal</string>
+    <string name="payment_wallet_provider_google">Google Play</string>
     <string name="payment_delivery_address_label">Delivery address</string>
     <string name="payment_note_label">Note (optional)</string>
     <string name="payment_processing">Processing</string>
@@ -144,16 +156,73 @@
     <string name="error_load_order_history">Unable to load order history.</string>
 
     <!-- Merchant Orders -->
-    <string name="merchant_orders_status_pending">Cooking</string>
-    <string name="merchant_orders_status_preparing">Waiting Shipper</string>
+    <string name="merchant_orders_status_pending">Pending</string>
+    <string name="merchant_orders_status_preparing">Preparing</string>
     <string name="merchant_orders_status_delivering">Delivering</string>
     <string name="merchant_orders_status_completed">Completed</string>
     <string name="merchant_orders_status_cancelled">Cancelled</string>
     <string name="merchant_orders_empty">No orders in this status.</string>
-    <string name="merchant_orders_action_accept">Done</string>
+    <string name="merchant_orders_action_accept">Accept Order</string>
     <string name="merchant_orders_action_ready">Mark as Ready</string>
     <string name="merchant_orders_action_cancel">Reject</string>
     <string name="merchant_orders_customer_name">Customer: %1$s</string>
-    <string name="merchant_orders_status_ready">Ready</string>
-    <string name="merchant_orders_action_handover">Handover</string>
+
+    <!-- FoodieNow UI Strings -->
+    <!-- Bottom Navigation -->
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_orders">My Orders</string>
+    <string name="bottom_nav_likes">Likes</string>
+    <string name="bottom_nav_notifications">Notifications</string>
+    <string name="bottom_nav_me">Me</string>
+
+    <!-- Home Tab -->
+    <string name="home_search_hint">What are you craving?</string>
+    <string name="home_category_1">Rice</string>
+    <string name="home_category_2">Noodles</string>
+    <string name="home_category_3">Milk Tea</string>
+    <string name="home_category_4">Snacks</string>
+    <string name="home_category_5">Fast Food</string>
+    <string name="home_category_6">Healthy</string>
+    <string name="home_category_7">Pizza</string>
+    <string name="home_category_8">Promotions</string>
+    <string name="home_section_good_meal">Good Meal - Good Deal</string>
+    <string name="home_section_must_try">Our Recommendations</string>
+    <string name="home_section_collections">Collections</string>
+    <string name="home_section_flash_sale">FLASH SALE</string>
+    <string name="home_see_all">See All ></string>
+    <string name="home_free_shipping">Free shipping</string>
+    <string name="home_save_up_to">Save up to 50%</string>
+
+    <!-- My Orders Tab -->
+    <string name="my_orders_title">My Orders</string>
+    <string name="my_orders_tab_ongoing">Ongoing</string>
+    <string name="my_orders_tab_deals">Vouchers</string>
+    <string name="my_orders_tab_history">History</string>
+    <string name="my_orders_tab_rate">To Rate</string>
+    <string name="my_orders_tab_cancelled">Cancelled</string>
+    <string name="my_orders_empty_title">Have you ordered?</string>
+    <string name="my_orders_empty_desc">Confirmed items which are currently being prepared and delivered will show up here so you can track your delivery!</string>
+    <string name="my_orders_you_may_also_like">You May Also Like</string>
+
+    <!-- Notifications Tab -->
+    <string name="notifications_tab_title">Notification</string>
+    <string name="notifications_news">News</string>
+    <string name="notifications_news_desc">No News yet</string>
+    <string name="notifications_order_updates">Order Updates</string>
+    <string name="notifications_order_updates_desc">No updates yet</string>
+    <string name="notifications_promotions">Promotions</string>
+
+    <!-- Me Tab -->
+    <string name="me_must_try">Top Recommendations</string>
+    <string name="me_vouchers">My Vouchers</string>
+    <string name="me_vouchers_count">1 Voucher</string>
+    <string name="me_coins">Reward Points</string>
+    <string name="me_coins_count">200 Points</string>
+    <string name="me_payment">Payment</string>
+    <string name="me_address">Address</string>
+    <string name="me_invite">Invite Friends</string>
+    <string name="me_shop_owners">For Shop Owners</string>
+    <string name="me_help">Help Centre</string>
+    <string name="me_settings">Settings</string>
+
 </resources>

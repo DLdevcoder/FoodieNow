@@ -1,158 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FoodieNow</string>
-    <string name="common_back">Quay lai</string>
+    <string name="common_back">Quay lại</string>
 
-    <string name="auth_checking_session">Dang kiem tra phien dang nhap...</string>
-    <string name="auth_login_title">Dang nhap</string>
-    <string name="auth_register_title">Dang ky</string>
+    <string name="auth_checking_session">Đang kiểm tra phiên đăng nhập...</string>
+    <string name="auth_login_title">Đăng nhập</string>
+    <string name="auth_login_subtitle">Chào mừng bạn quay lại, hãy đăng nhập để tiếp tục.</string>
+    <string name="auth_register_title">Đăng ký</string>
+    <string name="auth_register_subtitle">Tạo tài khoản mới để bắt đầu.</string>
     <string name="auth_email_label">Email</string>
-    <string name="auth_password_label">Mat khau</string>
-    <string name="auth_confirm_password_label">Nhap lai mat khau</string>
-    <string name="auth_role_label">Vai tro</string>
-    <string name="auth_hide_password">An mat khau</string>
-    <string name="auth_show_password">Hien mat khau</string>
-    <string name="auth_hide_confirm_password">An xac nhan mat khau</string>
-    <string name="auth_show_confirm_password">Hien xac nhan mat khau</string>
-    <string name="auth_login_button">Dang nhap</string>
-    <string name="auth_create_account_button">Tao tai khoan</string>
-    <string name="auth_forgot_password_action">Quen mat khau?</string>
-    <string name="auth_register_action">Chua co tai khoan? Dang ky</string>
-    <string name="auth_back_to_login_action">Da co tai khoan? Quay lai dang nhap</string>
-    <string name="auth_back_to_login">Quay lai dang nhap</string>
-    <string name="auth_try_again_in_seconds">Thu lai sau %1$ds</string>
-    <string name="auth_error_empty_email_password">Email va mat khau khong duoc de trong.</string>
-    <string name="auth_error_invalid_email">Email khong dung dinh dang.</string>
-    <string name="auth_error_password_min_length">Mat khau toi thieu 6 ky tu.</string>
-    <string name="auth_error_password_mismatch">Mat khau nhap lai khong khop.</string>
+    <string name="auth_password_label">Mật khẩu</string>
+    <string name="auth_confirm_password_label">Nhập lại mật khẩu</string>
+    <string name="auth_role_label">Vai trò</string>
+    <string name="auth_hide_password">Ẩn mật khẩu</string>
+    <string name="auth_show_password">Hiện mật khẩu</string>
+    <string name="auth_hide_confirm_password">Ẩn xác nhận mật khẩu</string>
+    <string name="auth_show_confirm_password">Hiện xác nhận mật khẩu</string>
+    <string name="auth_login_button">Đăng nhập</string>
+    <string name="auth_create_account_button">Tạo tài khoản</string>
+    <string name="auth_forgot_password_action">Quên mật khẩu?</string>
+    <string name="auth_register_action">Chưa có tài khoản? Đăng ký</string>
+    <string name="auth_back_to_login_action">Đã có tài khoản? Quay lại đăng nhập</string>
+    <string name="auth_back_to_login">Quay lại đăng nhập</string>
+    <string name="auth_try_again_in_seconds">Thử lại sau %1$ds</string>
+    <string name="auth_error_empty_email_password">Email và mật khẩu không được để trống.</string>
+    <string name="auth_error_invalid_email">Email không đúng định dạng.</string>
+    <string name="auth_error_password_min_length">Mật khẩu tối thiểu 6 ký tự.</string>
+    <string name="auth_error_password_mismatch">Mật khẩu nhập lại không khớp.</string>
 
-    <string name="auth_verify_title">Xac thuc tai khoan</string>
-    <string name="auth_verify_sent_to">He thong da gui email xac thuc den:</string>
-    <string name="auth_verify_instruction">Sau khi bam link trong email, hay quay lai dang nhap.</string>
-    <string name="auth_verify_resend">Gui lai email xac thuc</string>
-    <string name="auth_verify_back_to_login">Toi da xac thuc, quay lai dang nhap</string>
+    <string name="auth_verify_title">Xác thực tài khoản</string>
+    <string name="auth_verify_subtitle">Xác nhận email để mở khóa đầy đủ tính năng.</string>
+    <string name="auth_verify_sent_to">Hệ thống đã gửi email xác thực đến:</string>
+    <string name="auth_verify_instruction">Sau khi bấm link trong email, hãy quay lại đăng nhập.</string>
+    <string name="auth_verify_resend">Gửi lại email xác thực</string>
+    <string name="auth_verify_back_to_login">Tôi đã xác thực, quay lại đăng nhập</string>
 
-    <string name="auth_forgot_password_title">Khoi phuc mat khau</string>
-    <string name="auth_forgot_password_send">Gui email khoi phuc</string>
+    <string name="auth_forgot_password_title">Khôi phục mật khẩu</string>
+    <string name="auth_forgot_password_subtitle">Nhập email để nhận liên kết đặt lại mật khẩu.</string>
+    <string name="auth_forgot_password_send">Gửi email khôi phục</string>
 
-    <string name="profile_title">Ho so</string>
-    <string name="profile_account_information">Thong tin tai khoan</string>
-    <string name="profile_name_value">Ten: %1$s</string>
+    <string name="profile_title">Hồ sơ</string>
+    <string name="profile_account_information">Thông tin tài khoản</string>
+    <string name="profile_name_value">Tên: %1$s</string>
     <string name="profile_email_value">Email: %1$s</string>
-    <string name="profile_role_value">Vai tro: %1$s</string>
-    <string name="profile_name_label">Ho ten</string>
-    <string name="profile_phone_label">So dien thoai</string>
-    <string name="profile_address_label">Dia chi</string>
-    <string name="profile_save_button">Luu ho so</string>
-    <string name="profile_logout">Dang xuat</string>
+    <string name="profile_role_value">Vai trò: %1$s</string>
+    <string name="profile_name_label">Họ tên</string>
+    <string name="profile_phone_label">Số điện thoại</string>
+    <string name="profile_address_label">Địa chỉ</string>
+    <string name="profile_save_button">Lưu hồ sơ</string>
+    <string name="profile_logout">Đăng xuất</string>
 
-    <string name="payment_title">Thanh toan</string>
-    <string name="payment_order_information">Thong tin don hang</string>
-    <string name="payment_subtotal">Tong tam tinh: 120,000 VND</string>
-    <string name="payment_delivery_fee">Phi giao hang: 15,000 VND</string>
-    <string name="payment_total">Tong thanh toan: 135,000 VND</string>
-    <string name="payment_method_title">Phuong thuc thanh toan</string>
-    <string name="payment_method_cod">Thanh toan khi nhan hang</string>
-    <string name="payment_method_card">The ngan hang</string>
-    <string name="payment_method_wallet">Vi dien tu</string>
-    <string name="payment_delivery_address_label">Dia chi nhan hang</string>
-    <string name="payment_note_label">Ghi chu (tuy chon)</string>
-    <string name="payment_processing">Dang xu ly</string>
-    <string name="payment_confirm_button">Xac nhan thanh toan</string>
+    <string name="payment_title">Thanh toán</string>
+    <string name="payment_order_information">Thông tin đơn hàng</string>
+    <string name="payment_subtotal">Tổng tạm tính: %1$s</string>
+    <string name="payment_delivery_fee">Phí giao hàng: %1$s</string>
+    <string name="payment_total">Tổng thanh toán: %1$s</string>
+    <string name="payment_method_title">Phương thức thanh toán</string>
+    <string name="payment_method_cod">Thanh toán khi nhận hàng</string>
+    <string name="payment_method_card">Thẻ ngân hàng</string>
+    <string name="payment_method_wallet">Ví điện tử</string>
+    <string name="payment_method_foodie_pay">Ví FoodiePay</string>
+    <string name="payment_wallet_method_with_provider">Ví điện tử (%1$s)</string>
+    <string name="payment_wallet_provider_title">Chọn ví điện tử</string>
+    <string name="payment_wallet_provider_zalopay">ZaloPay</string>
+    <string name="payment_wallet_provider_momo">MoMo</string>
+    <string name="payment_wallet_provider_vnpay">VNPAY</string>
+    <string name="payment_wallet_provider_paypal">PayPal</string>
+    <string name="payment_wallet_provider_google">Google Play</string>
+    <string name="payment_delivery_address_label">Địa chỉ nhận hàng</string>
+    <string name="payment_note_label">Ghi chú (tùy chọn)</string>
+    <string name="payment_processing">Đang xử lý</string>
+    <string name="payment_confirm_button">Xác nhận thanh toán</string>
 
-    <string name="notifications_title">Thong bao</string>
-    <string name="notifications_unread_count">Chua doc: %1$d</string>
-    <string name="notifications_mark_all_read">Danh dau da doc</string>
+    <string name="notifications_title">Thông báo</string>
+    <string name="notifications_unread_count">Chưa đọc: %1$d</string>
+    <string name="notifications_mark_all_read">Đánh dấu đã đọc</string>
 
-    <string name="activity_history_title">Lich su hoat dong</string>
-    <string name="activity_history_empty">Chua co hoat dong nao.</string>
-    <string name="activity_history_time_unknown">Khong ro thoi gian</string>
-    <string name="activity_history_order_title">Don hang #%1$s</string>
-    <string name="activity_history_payment_title">Thanh toan #%1$s</string>
-    <string name="activity_history_payment_subtitle">Don hang #%1$s | %2$s | %3$s</string>
+    <string name="activity_history_title">Lịch sử hoạt động</string>
+    <string name="activity_history_empty">Chưa có hoạt động nào.</string>
+    <string name="activity_history_time_unknown">Không rõ thời gian</string>
+    <string name="activity_history_order_title">Đơn hàng #%1$s</string>
+    <string name="activity_history_payment_title">Thanh toán #%1$s</string>
+    <string name="activity_history_payment_subtitle">Đơn hàng #%1$s | %2$s | %3$s</string>
 
-    <string name="order_history_title">Lich su dat hang</string>
-    <string name="order_history_empty">Chua co don hang nao.</string>
-    <string name="order_history_time_unknown">Khong ro thoi gian</string>
-    <string name="order_history_order_title">Don hang #%1$s</string>
+    <string name="order_history_title">Lịch sử đặt hàng</string>
+    <string name="order_history_empty">Chưa có đơn hàng nào.</string>
+    <string name="order_history_time_unknown">Không rõ thời gian</string>
+    <string name="order_history_order_title">Đơn hàng #%1$s</string>
 
-    <string name="settings_language_title">Ngon ngu</string>
-    <string name="settings_language_english">Tieng Anh</string>
-    <string name="settings_language_vietnamese">Tieng Viet</string>
-    <string name="settings_theme_title">Giao dien</string>
-    <string name="settings_theme_system">Theo he thong</string>
-    <string name="settings_theme_light">Sang</string>
-    <string name="settings_theme_dark">Toi</string>
+    <string name="settings_language_title">Ngôn ngữ</string>
+    <string name="settings_language_english">Tiếng Anh</string>
+    <string name="settings_language_vietnamese">Tiếng Việt</string>
+    <string name="settings_theme_title">Giao diện</string>
+    <string name="settings_theme_system">Theo hệ thống</string>
+    <string name="settings_theme_light">Sáng</string>
+    <string name="settings_theme_dark">Tối</string>
 
-    <string name="role_customer">Khach hang</string>
-    <string name="role_merchant">Nguoi ban</string>
+    <string name="role_customer">Khách hàng</string>
+    <string name="role_merchant">Người bán</string>
     <string name="role_shipper">Shipper</string>
 
-    <string name="nav_cart">Gio hang</string>
+    <string name="nav_cart">Giỏ hàng</string>
     <string name="nav_merchant_home">Trang Merchant</string>
     <string name="nav_shipper_home">Trang Shipper</string>
 
-    <string name="home_search_placeholder">Ban muon an gi?</string>
-    <string name="home_search_cancel">Huy</string>
-    <string name="home_search_action">Tim</string>
-    <string name="home_nav_home">Trang chu</string>
-    <string name="home_nav_cart">Gio hang</string>
-    <string name="home_nav_notifications">Thong bao</string>
-    <string name="home_nav_profile">Ho so</string>
-    <string name="home_search_results">Ket qua tim kiem</string>
-    <string name="home_search_empty">Khong tim thay mon an nao phu hop.</string>
-    <string name="home_recommendations">Goi y</string>
+    <string name="home_search_placeholder">Bạn muốn ăn gì?</string>
+    <string name="home_search_cancel">Hủy</string>
+    <string name="home_search_action">Tìm</string>
+    <string name="home_nav_home">Trang chủ</string>
+    <string name="home_nav_cart">Giỏ hàng</string>
+    <string name="home_nav_notifications">Thông báo</string>
+    <string name="home_nav_profile">Hồ sơ</string>
+    <string name="home_search_results">Kết quả tìm kiếm</string>
+    <string name="home_search_empty">Không tìm thấy món ăn nào phù hợp.</string>
+    <string name="home_recommendations">Gợi ý</string>
 
-    <string name="cart_title">Gio hang cua ban</string>
-    <string name="cart_total_label">Tong thanh toan</string>
-    <string name="cart_checkout">Thanh toan</string>
-    <string name="cart_empty">Gio hang cua ban dang trong.</string>
-    <string name="cart_decrease">Giam</string>
-    <string name="cart_increase">Tang</string>
+    <string name="cart_title">Giỏ hàng của bạn</string>
+    <string name="cart_total_label">Tổng thanh toán</string>
+    <string name="cart_checkout">Thanh toán</string>
+    <string name="cart_empty">Giỏ hàng của bạn đang trống.</string>
+    <string name="cart_decrease">Giảm</string>
+    <string name="cart_increase">Tăng</string>
 
-    <string name="food_add_to_cart">Them vao gio</string>
-    <string name="food_detail_title">Chi tiet mon an</string>
-    <string name="food_detail_add_to_cart">Them vao gio</string>
-    <string name="food_detail_sold_count">Da ban %1$s</string>
-    <string name="food_detail_store_hint">Xem cua hang</string>
-    <string name="food_detail_section_title">Chi tiet mon an</string>
-    <string name="food_detail_no_description">Chu quan chua cap nhat mo ta cho mon an nay.</string>
-    <string name="food_detail_reviews_title">Danh gia san pham</string>
-    <string name="food_detail_reviews_view_all">Xem tat ca &gt;</string>
-    <string name="food_detail_write_review">Viet danh gia cho mon nay</string>
-    <string name="food_detail_no_reviews">Chua co danh gia nao.</string>
-    <string name="food_detail_image_desc">Anh mon an</string>
+    <string name="food_add_to_cart">Thêm vào giỏ</string>
+    <string name="food_detail_title">Chi tiết món ăn</string>
+    <string name="food_detail_add_to_cart">Thêm vào giỏ</string>
+    <string name="food_detail_sold_count">Đã bán %1$s</string>
+    <string name="food_detail_store_hint">Xem cửa hàng</string>
+    <string name="food_detail_section_title">Chi tiết món ăn</string>
+    <string name="food_detail_no_description">Chủ quán chưa cập nhật mô tả cho món ăn này.</string>
+    <string name="food_detail_reviews_title">Đánh giá sản phẩm</string>
+    <string name="food_detail_reviews_view_all">Xem tất cả &gt;</string>
+    <string name="food_detail_write_review">Viết đánh giá cho món này</string>
+    <string name="food_detail_no_reviews">Chưa có đánh giá nào.</string>
+    <string name="food_detail_image_desc">Ảnh món ăn</string>
 
-    <string name="rating_dialog_title">Danh gia mon an</string>
-    <string name="rating_dialog_placeholder">Ban thay mon nay the nao?</string>
-    <string name="rating_dialog_submit">Gui</string>
-    <string name="rating_dialog_cancel">Huy</string>
+    <string name="rating_dialog_title">Đánh giá món ăn</string>
+    <string name="rating_dialog_placeholder">Bạn thấy món này thế nào?</string>
+    <string name="rating_dialog_submit">Gửi</string>
+    <string name="rating_dialog_cancel">Hủy</string>
     <string name="rating_star_content_desc">Sao %1$d</string>
 
-    <string name="bottomsheet_image_desc">Anh mon %1$s</string>
-    <string name="bottomsheet_no_description">Chua co mo ta cho mon an nay.</string>
-    <string name="bottomsheet_decrease">Giam</string>
-    <string name="bottomsheet_increase">Tang</string>
-    <string name="bottomsheet_add_to_cart_total">Them %1$d vao gio - %2$s</string>
+    <string name="bottomsheet_image_desc">Ảnh món %1$s</string>
+    <string name="bottomsheet_no_description">Chưa có mô tả cho món ăn này.</string>
+    <string name="bottomsheet_decrease">Giảm</string>
+    <string name="bottomsheet_increase">Tăng</string>
+    <string name="bottomsheet_add_to_cart_total">Thêm %1$d vào giỏ - %2$s</string>
 
-    <string name="food_reviews_title">Tat ca danh gia</string>
-    <string name="food_reviews_empty">Chua co danh gia nao.</string>
+    <string name="food_reviews_title">Tất cả đánh giá</string>
+    <string name="food_reviews_empty">Chưa có đánh giá nào.</string>
 
-    <string name="activity_history_item_subtitle">Trang thai: %1$s | Tong: %2$s</string>
-    <string name="order_history_item_subtitle">Trang thai: %1$s | Tong: %2$s</string>
+    <string name="activity_history_item_subtitle">Trạng thái: %1$s | Tổng: %2$s</string>
+    <string name="order_history_item_subtitle">Trạng thái: %1$s | Tổng: %2$s</string>
 
-    <string name="error_no_session">Khong tim thay phien dang nhap.</string>
-    <string name="error_load_order_history">Khong the tai lich su dat hang.</string>
+    <string name="error_no_session">Không tìm thấy phiên đăng nhập.</string>
+    <string name="error_load_order_history">Không thể tải lịch sử đặt hàng.</string>
 
-    <string name="merchant_orders_status_pending">Đang nấu</string>
-    <string name="merchant_orders_status_preparing">Chờ shipper</string>
+    <!-- Merchant Orders -->
+    <string name="merchant_orders_status_pending">Chờ xác nhận</string>
+    <string name="merchant_orders_status_preparing">Đang chuẩn bị</string>
     <string name="merchant_orders_status_delivering">Đang giao</string>
     <string name="merchant_orders_status_completed">Hoàn thành</string>
     <string name="merchant_orders_status_cancelled">Đã hủy</string>
     <string name="merchant_orders_empty">Không có đơn hàng nào ở trạng thái này.</string>
-    <string name="merchant_orders_action_accept">Nấu xong</string>
+    <string name="merchant_orders_action_accept">Nhận đơn</string>
     <string name="merchant_orders_action_ready">Đã chuẩn bị xong</string>
     <string name="merchant_orders_action_cancel">Từ chối</string>
     <string name="merchant_orders_customer_name">Khách hàng: %1$s</string>
-    <string name="merchant_orders_status_ready">Chờ lấy hàng</string>
-    <string name="merchant_orders_action_handover">Giao cho Shipper</string>
+
+    <!-- FoodieNow UI Strings -->
+    <!-- Bottom Navigation -->
+    <string name="bottom_nav_home">Trang chủ</string>
+    <string name="bottom_nav_orders">Đơn hàng</string>
+    <string name="bottom_nav_likes">Yêu thích</string>
+    <string name="bottom_nav_notifications">Thông báo</string>
+    <string name="bottom_nav_me">Tôi</string>
+
+    <!-- Home Tab -->
+    <string name="home_search_hint">Tìm kiếm món ăn, nhà hàng...</string>
+    <string name="home_category_1">Cơm</string>
+    <string name="home_category_2">Bún/Phở</string>
+    <string name="home_category_3">Trà Sữa</string>
+    <string name="home_category_4">Ăn Vặt</string>
+    <string name="home_category_5">Đồ Ăn Nhanh</string>
+    <string name="home_category_6">Món Khỏe</string>
+    <string name="home_category_7">Pizza</string>
+    <string name="home_category_8">Khuyến Mãi</string>
+    <string name="home_section_good_meal">Bữa Ngon Giá Tốt</string>
+    <string name="home_section_must_try">Món Ngon Phải Thử</string>
+    <string name="home_section_collections">Bộ Sưu Tập</string>
+    <string name="home_section_flash_sale">GIỜ VÀNG</string>
+    <string name="home_see_all">Xem tất cả &gt;</string>
+    <string name="home_free_shipping">Miễn phí giao hàng</string>
+    <string name="home_save_up_to">Giảm đến 50%</string>
+
+    <!-- My Orders Tab -->
+    <string name="my_orders_title">Đơn hàng của tôi</string>
+    <string name="my_orders_tab_ongoing">Đang giao</string>
+    <string name="my_orders_tab_deals">Khuyến mãi</string>
+    <string name="my_orders_tab_history">Lịch sử</string>
+    <string name="my_orders_tab_rate">Đánh giá</string>
+    <string name="my_orders_tab_cancelled">Đã hủy</string>
+    <string name="my_orders_empty_title">Bạn chưa đặt món?</string>
+    <string name="my_orders_empty_desc">Các món đã đặt và đang được chuẩn bị sẽ hiển thị ở đây để bạn theo dõi nhé!</string>
+    <string name="my_orders_you_may_also_like">Có Thể Bạn Sẽ Thích</string>
+
+    <!-- Notifications Tab -->
+    <string name="notifications_tab_title">Thông báo</string>
+    <string name="notifications_news">Tin tức</string>
+    <string name="notifications_news_desc">Chưa có tin mới</string>
+    <string name="notifications_order_updates">Cập nhật đơn hàng</string>
+    <string name="notifications_order_updates_desc">Chưa có cập nhật nào</string>
+    <string name="notifications_promotions">Khuyến mãi</string>
+
+    <!-- Me Tab -->
+    <string name="me_must_try">Đề Xuất Cho Bạn</string>
+    <string name="me_vouchers">Mã Khuyến Mãi</string>
+    <string name="me_vouchers_count">1 Mã</string>
+    <string name="me_coins">Điểm Thưởng</string>
+    <string name="me_coins_count">200 Điểm</string>
+    <string name="me_payment">Thanh toán</string>
+    <string name="me_address">Địa chỉ</string>
+    <string name="me_invite">Mời bạn bè</string>
+    <string name="me_shop_owners">Dành cho quán ăn</string>
+    <string name="me_help">Trung tâm trợ giúp</string>
+    <string name="me_settings">Cài đặt</string>
 </resources>

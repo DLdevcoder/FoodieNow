@@ -1,155 +1,150 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.foodienow.feature.notification
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.foodienow.R
-import com.example.foodienow.domain.model.AppNotification
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
-    onBack: () -> Unit,
-    viewModel: NotificationViewModel = hiltViewModel()
+    onBack: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+    ) {
+        TopAppBar(
+            title = {
+                Text(
+                    stringResource(R.string.notifications_tab_title),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+        )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.notifications_title)) }
-            )
-        }
-    ) { padding ->
-        if (uiState.isLoading) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator(modifier = Modifier.padding(start = 16.dp))
-            }
-            return@Scaffold
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            uiState.errorMessage?.let {
-                Text(text = it, color = MaterialTheme.colorScheme.error)
+            item {
+                Text(
+                    stringResource(R.string.notifications_promotions),
+                    color = Color.Gray,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(stringResource(R.string.notifications_unread_count, uiState.unreadCount))
-                    TextButton(onClick = viewModel::markAllAsRead) {
-                        Text(stringResource(R.string.notifications_mark_all_read))
-                    }
-                }
-            }
-
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(
-                    uiState.notifications,
-                    key = { it.id ?: "${it.createdAt}-${it.title}" }
-                ) { item ->
-                    NotificationCard(
-                        item = item,
-                        onClick = { item.id?.let(viewModel::markAsRead) }
-                    )
-                }
-                item {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    TextButton(
-                        onClick = onBack,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.common_back))
-                    }
-                }
+            items(5) { index ->
+                NotificationCard(index)
             }
         }
     }
 }
 
 @Composable
-private fun NotificationCard(
-    item: AppNotification,
-    onClick: () -> Unit
-) {
-    val cardColor = if (item.isRead) {
-        MaterialTheme.colorScheme.surface
-    } else {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-    }
+private fun NotificationCard(index: Int) {
+    val titles = listOf(
+        "Đơn hàng giao thành công",
+        "GIẢM 99.000Đ, lễ to deal giảm to!",
+        "Khao MÓN GIẢM 30.000Đ",
+        "Đơn hàng đang được chuẩn bị",
+        "Giảm 50% tất cả món ăn"
+    )
+    val descs = listOf(
+        "Đơn hàng #384729 của bạn đã được giao thành công. Chúc bạn ngon miệng!",
+        "👉Khi nhập mã HOLIDAY99 🍗Gà Nướng & Gà Bó Xôi Thành Công 🍕Pizza & Spaghetti Pizza Huu🍲Tiệm Lẩu Nhà An... Mở tiệc thôi!",
+        "👉Khi nhập mã SPFMOI30K 🍮Rau câu bánh flan 🍹Trà trái cây nhiệt đới 🥥Nước dừa tươi... Ăn xế thôi!",
+        "Nhà hàng đang chuẩn bị món ăn cho đơn hàng #384730 của bạn.",
+        "Nhập mã DEALSOCK để được giảm giá ngay hôm nay."
+    )
+    val isUnread = index < 2
+    val iconBg = if (index % 3 == 0) Color(0xFF10B981) else MaterialTheme.colorScheme.primary
+    val icon = if (index % 3 == 0) Icons.Default.ReceiptLong else Icons.Default.Campaign
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(containerColor = if (isUnread) Color(0xFFFFF9F2) else Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(16.dp)
         ) {
-            val dotColor = if (item.isRead) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.primary
-            Spacer(
+            Box(
                 modifier = Modifier
-                    .size(10.dp)
-                    .clip(CircleShape)
-                    .background(dotColor)
-                    .align(Alignment.CenterVertically)
-            )
+                    .size(48.dp)
+                    .background(iconBg.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = iconBg, modifier = Modifier.size(24.dp))
+            }
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(item.title, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(item.message)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        titles.getOrElse(index) { "Notification" },
+                        fontSize = 16.sp,
+                        fontWeight = if (isUnread) FontWeight.Bold else FontWeight.Medium,
+                        color = Color.Black,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (isUnread) {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 8.dp, top = 4.dp)
+                                .size(8.dp)
+                                .background(Color.Red, CircleShape)
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    item.createdAt ?: "-",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    descs.getOrElse(index) { "Description" },
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    if (index == 0) "Vừa xong" else "${index * 2} giờ trước",
+                    fontSize = 12.sp,
+                    color = Color.LightGray
                 )
             }
         }

@@ -4,8 +4,8 @@ import androidx.compose.ui.graphics.Color
 
 val OrangePrimary = Color(0xFFF97316)
 val OrangeOnPrimary = Color(0xFFFFFFFF)
-val OrangePrimaryContainer = Color(0xFFFFE6D6)
-val OrangeOnPrimaryContainer = Color(0xFF3A1A00)
+val OrangePrimaryContainer = Color(0xFFFFEAEA)
+val OrangeOnPrimaryContainer = Color(0xFF4A1308)
 
 val TealSecondary = Color(0xFF0F766E)
 val TealOnSecondary = Color(0xFFFFFFFF)

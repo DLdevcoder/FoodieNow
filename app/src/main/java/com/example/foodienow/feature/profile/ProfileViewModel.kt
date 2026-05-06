@@ -41,36 +41,34 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null, infoMessage = null) }
 
-            val sessionUser = authRepository.getAuthState().first()
-            if (sessionUser == null) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        user = null,
-                        profile = null,
-                        errorMessage = "Khong tim thay phien dang nhap."
-                    )
+            authRepository.getAuthState().collect { sessionUser ->
+                if (sessionUser == null) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            user = null,
+                            profile = null,
+                            errorMessage = "Không tìm thấy phiên đăng nhập."
+                        )
+                    }
+                } else {
+                    profileRepository.getProfile(sessionUser.id).collect { existingProfile ->
+                        val profile = existingProfile ?: Profile(
+                            id = sessionUser.id,
+                            email = sessionUser.email,
+                            fullName = sessionUser.name,
+                            role = sessionUser.role
+                        )
+
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                user = sessionUser,
+                                profile = profile
+                            )
+                        }
+                    }
                 }
-                return@launch
-            }
-
-            val existingProfile = runCatching {
-                profileRepository.getProfile(sessionUser.id).first()
-            }.getOrNull()
-
-            val profile = existingProfile ?: Profile(
-                id = sessionUser.id,
-                email = sessionUser.email,
-                fullName = sessionUser.name,
-                role = sessionUser.role
-            )
-
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    user = sessionUser,
-                    profile = profile
-                )
             }
         }
     }
@@ -135,6 +133,10 @@ class ProfileViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    fun clearMessages() {
+        _uiState.update { it.copy(errorMessage = null, infoMessage = null) }
     }
 }
 

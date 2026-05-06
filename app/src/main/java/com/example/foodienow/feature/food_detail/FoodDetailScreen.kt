@@ -36,10 +36,10 @@ fun FoodDetailScreen(
     store: Store,
     reviews: List<ReviewUiModel>,
     onBackClick: () -> Unit,
-    onAddToCart: (Food, Int) -> Unit,
+    onAddToCart: (Food, Int) -> Unit, // Đã thêm callback thêm vào giỏ
     onNavigateToStore: (String) -> Unit,
-    onNavigateToAllReviews: () -> Unit,
-    onSubmitProductReview: (Int, String) -> Unit
+    onNavigateToAllReviews: () -> Unit, // Callback mở trang Xem tất cả
+    onSubmitProductReview: (Int, String) -> Unit // Callback gửi đánh giá món ăn
 ) {
     var showProductReviewDialog by remember { mutableStateOf(false) }
 
@@ -49,7 +49,7 @@ fun FoodDetailScreen(
                 title = {
                     Text(
                         stringResource(R.string.food_detail_title),
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold
                     )
                 },
@@ -58,28 +58,33 @@ fun FoodDetailScreen(
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 16.dp,
+                tonalElevation = 2.dp,
                 modifier = Modifier.navigationBarsPadding()
             ) {
                 Button(
                     onClick = { onAddToCart(food, 1) },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = MaterialTheme.shapes.medium,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
-                        .height(48.dp)
+                        .height(52.dp)
                 ) {
                     Text(
                         stringResource(R.string.food_detail_add_to_cart),
@@ -105,12 +110,15 @@ fun FoodDetailScreen(
             )
 
             // Khối Thông tin món ăn
-            Column(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = food.price.formatPrice(),
                     style = MaterialTheme.typography.headlineMedium,
@@ -136,24 +144,30 @@ fun FoodDetailScreen(
                         color = Color(0xFFFFD700),
                         fontSize = 16.sp
                     )
-                    Text(text = " | ", color = Color.LightGray, modifier = Modifier.padding(horizontal = 8.dp))
+                    Text(
+                        text = " | ",
+                        color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
                     Text(
                         text = stringResource(R.string.food_detail_sold_count, soldLabel),
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
                 }
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
             // Khối Thông tin Cửa hàng
-            Column(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
                         model = store.imageUrl,
@@ -179,17 +193,19 @@ fun FoodDetailScreen(
                         )
                     }
                 }
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
             // Khối Chi tiết
-            Column(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = stringResource(R.string.food_detail_section_title),
                     fontWeight = FontWeight.Bold,
@@ -201,17 +217,19 @@ fun FoodDetailScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 22.sp
                 )
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Khối đánh giá sản phẩm
-            Column(
+            // Khối Đánh giá sản phẩm
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp, bottom = 24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -232,10 +250,11 @@ fun FoodDetailScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Nút Viết đánh giá món ăn
                 OutlinedButton(
                     onClick = { showProductReviewDialog = true },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = MaterialTheme.shapes.small
                 ) {
                     Text(stringResource(R.string.food_detail_write_review), color = MaterialTheme.colorScheme.primary)
                 }
@@ -254,12 +273,12 @@ fun FoodDetailScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
+                }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
+    // Dialog đánh giá Món ăn
     if (showProductReviewDialog) {
         RatingDialog(
             title = stringResource(R.string.rating_dialog_title),

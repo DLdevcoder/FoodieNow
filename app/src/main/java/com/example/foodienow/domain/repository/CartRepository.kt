@@ -1,32 +1,43 @@
 package com.example.foodienow.domain.repository
 
+import com.example.foodienow.data.local.room.CartDao
+import com.example.foodienow.data.local.room.CartEntity
 import com.example.foodienow.domain.model.Food
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CartRepository @Inject constructor() {
-    private val _cartItems = MutableStateFlow<Map<Food, Int>>(emptyMap())
-    val cartItems: StateFlow<Map<Food, Int>> = _cartItems.asStateFlow()
+class CartRepository @Inject constructor(
+    private val cartDao: CartDao
+) {
+    val cartItems: Flow<Map<Food, Int>> = cartDao.getAllCartItems().map { list ->
+        list.associate { it.toFood() to it.quantity }
+    }
 
-    fun addToCart(food: Food, quantity: Int) {
-        _cartItems.update { currentCart ->
-            val newCart = currentCart.toMutableMap()
-            val existingQty = newCart[food] ?: 0
-            newCart[food] = existingQty + quantity
-            newCart
+    suspend fun addToCart(food: Food, quantity: Int) = withContext(Dispatchers.IO) {
+        val currentStoreId = cartDao.getCurrentStoreId()
+        if (currentStoreId != null && currentStoreId != food.storeId) {
+            cartDao.clearCart()
+        }
+        
+        val existingItem = cartDao.getCartItemById(food.id)
+        val newQuantity = (existingItem?.quantity ?: 0) + quantity
+        cartDao.insertCartItem(CartEntity.fromFood(food, newQuantity))
+    }
+
+    suspend fun updateQuantity(food: Food, quantity: Int) = withContext(Dispatchers.IO) {
+        if (quantity <= 0) {
+            cartDao.deleteCartItem(food.id)
+        } else {
+            cartDao.insertCartItem(CartEntity.fromFood(food, quantity))
         }
     }
 
-    fun updateQuantity(food: Food, quantity: Int) {
-        _cartItems.update { currentCart ->
-            val newCart = currentCart.toMutableMap()
-            if (quantity <= 0) newCart.remove(food) else newCart[food] = quantity
-            newCart
-        }
+    suspend fun clearCart() = withContext(Dispatchers.IO) {
+        cartDao.clearCart()
     }
 }

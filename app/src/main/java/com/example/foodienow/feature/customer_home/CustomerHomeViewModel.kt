@@ -3,6 +3,7 @@ package com.example.foodienow.feature.customer_home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodienow.domain.model.Food
+import com.example.foodienow.data.repository.MockAddressRepository
 import com.example.foodienow.domain.repository.CustomerFoodRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,11 +18,13 @@ data class HomeUiState(
     val recommendedFoods: List<Food> = emptyList(),
     val searchQuery: String = "",
     val searchResults: List<Food> = emptyList(),
+    val address: String = "Chọn địa chỉ giao hàng"
 )
 
 @HiltViewModel
 class CustomerHomeViewModel @Inject constructor(
-    private val foodRepository: CustomerFoodRepository
+    private val foodRepository: CustomerFoodRepository,
+    private val addressRepository: MockAddressRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -36,9 +39,13 @@ class CustomerHomeViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             try {
-                foodRepository.getRecommendedFoods().collect { realFoods ->
-                    _uiState.update {
-                        it.copy(isLoading = false, recommendedFoods = realFoods)
+                addressRepository.addresses.collect { addresses ->
+                    val defaultAddress = addresses.firstOrNull { it.isDefault }?.detail ?: "Chọn địa chỉ giao hàng"
+                    
+                    foodRepository.getRecommendedFoods().collect { realFoods ->
+                        _uiState.update {
+                            it.copy(isLoading = false, recommendedFoods = realFoods, address = defaultAddress)
+                        }
                     }
                 }
             } catch (e: Exception) {

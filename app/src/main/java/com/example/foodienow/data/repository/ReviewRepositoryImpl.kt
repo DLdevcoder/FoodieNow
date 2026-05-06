@@ -45,4 +45,23 @@ class ReviewRepositoryImpl @Inject constructor(
             )
         }
     }
+    override suspend fun submitReview(foodId: String, userId: String, rating: Int, comment: String): Boolean {
+        return try {
+            @Serializable
+            data class ReviewInsert(
+                @SerialName("food_id") val foodId: String,
+                @SerialName("user_id") val userId: String,
+                val rating: Int,
+                val comment: String
+            )
+            
+            supabase.postgrest["reviews"].insert(
+                ReviewInsert(foodId = foodId, userId = userId, rating = rating, comment = comment)
+            )
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 }
