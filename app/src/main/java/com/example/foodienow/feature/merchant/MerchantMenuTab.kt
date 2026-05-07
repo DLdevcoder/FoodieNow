@@ -64,7 +64,6 @@ fun MerchantMenuTab(
             }
         }
 
-        // Nút thêm món mới
         FloatingActionButton(
             onClick = onAddFoodClick,
             containerColor = ColorPrimaryDark,

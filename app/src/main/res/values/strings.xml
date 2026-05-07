@@ -232,4 +232,14 @@
     <string name="shipper_empty_active">You have no active orders.</string>
     <string name="shipper_action_accept">Accept</string>
     <string name="shipper_action_complete">Complete</string>
+    <string name="shipper_nav_home">Home</string>
+    <string name="shipper_nav_orders">Orders</string>
+    <string name="shipper_nav_earnings">Earnings</string>
+    <string name="shipper_nav_profile">Profile</string>
+    <string name="shipper_earnings_title">My Earnings</string>
+    <string name="shipper_earnings_today">Today\'s Earnings</string>
+    <string name="shipper_earnings_week">This Week</string>
+    <string name="shipper_earnings_month">This Month</string>
+    <string name="shipper_tab_completed">Complete</string>
+    <string name="shipper_empty_completed">No orders have been completed yet</string>
 </resources>

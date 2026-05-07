@@ -25,4 +25,7 @@ interface OrderRepository {
 
     // cập nhật trạng thái
     suspend fun updateOrderStatus(orderId: String, newStatus: OrderStatus): Result<Unit>
+
+    // Shipper xem đơn hoàn thành
+    fun getShipperCompletedOrders(shipperId: String): Flow<List<Order>>
 }

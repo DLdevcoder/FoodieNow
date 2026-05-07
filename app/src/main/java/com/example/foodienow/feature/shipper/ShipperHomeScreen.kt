@@ -35,7 +35,8 @@ fun ShipperHomeScreen(
 
     val tabs = listOf(
         R.string.shipper_tab_available,
-        R.string.shipper_tab_active
+        R.string.shipper_tab_active,
+        R.string.shipper_tab_completed
     )
 
     Column(
@@ -99,6 +100,12 @@ fun ShipperHomeScreen(
                 emptyMessageRes = R.string.shipper_empty_active,
                 actionTextRes = R.string.shipper_action_complete,
                 onActionClick = viewModel::completeOrder
+            )
+            2 -> OrderList(
+                orders = uiState.completedOrders,
+                emptyMessageRes = R.string.shipper_empty_completed,
+                actionTextRes = null,
+                onActionClick = {}
             )
         }
     }
@@ -174,7 +181,7 @@ private fun ShipperTopSection(activeOrderCount: Int, onLogout: () -> Unit) {
 private fun OrderList(
     orders: List<Order>,
     emptyMessageRes: Int,
-    actionTextRes: Int,
+    actionTextRes: Int?,
     onActionClick: (String) -> Unit
 ) {
     if (orders.isEmpty()) {
@@ -191,9 +198,10 @@ private fun OrderList(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(orders, key = { it.id ?: it.hashCode() }) { order ->
+                val actionText = actionTextRes?.let { stringResource(it) }
                 ShipperOrderCard(
                     order = order,
-                    actionText = stringResource(actionTextRes),
+                    actionText = actionText,
                     onAction = { order.id?.let { onActionClick(it) } }
                 )
             }
@@ -204,7 +212,7 @@ private fun OrderList(
 @Composable
 private fun ShipperOrderCard(
     order: Order,
-    actionText: String,
+    actionText: String?,
     onAction: () -> Unit
 ) {
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
@@ -255,12 +263,22 @@ private fun ShipperOrderCard(
             }
 
             Spacer(modifier = Modifier.height(4.dp))
-            Button(
-                onClick = onAction,
-                modifier = Modifier.align(Alignment.End),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text(actionText)
+
+            if (actionText != null) {
+                Button(
+                    onClick = onAction,
+                    modifier = Modifier.align(Alignment.End),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text(actionText)
+                }
+            } else {
+                Text(
+                    text = "Đã giao thành công",
+                    color = Color(0xFF4CAF50),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.End)
+                )
             }
         }
     }

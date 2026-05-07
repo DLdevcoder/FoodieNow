@@ -233,4 +233,14 @@
     <string name="shipper_empty_active">Bạn chưa nhận đơn hàng nào.</string>
     <string name="shipper_action_accept">Nhận đơn</string>
     <string name="shipper_action_complete">Hoàn tất</string>
+    <string name="shipper_nav_home">Trang chủ</string>
+    <string name="shipper_nav_orders">Đơn hàng</string>
+    <string name="shipper_nav_earnings">Thu nhập</string>
+    <string name="shipper_nav_profile">Hồ sơ</string>
+    <string name="shipper_earnings_title">Thu nhập của tôi</string>
+    <string name="shipper_earnings_today">Thu nhập hôm nay</string>
+    <string name="shipper_earnings_week">Tuần này</string>
+    <string name="shipper_earnings_month">Tháng này</string>
+    <string name="shipper_tab_completed">Hoàn thành</string>
+    <string name="shipper_empty_completed">Chưa có đơn hàng nào hoàn thành.</string>
 </resources>

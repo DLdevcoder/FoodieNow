@@ -19,6 +19,7 @@ data class ShipperUiState(
     val isLoading: Boolean = false,
     val availableOrders: List<Order> = emptyList(),
     val activeOrders: List<Order> = emptyList(),
+    val completedOrders: List<Order> = emptyList(),
     val currentShipperId: String? = null,
     val error: String? = null
 )
@@ -46,6 +47,7 @@ class ShipperViewModel @Inject constructor(
                 if (shipperId != null) {
                     _uiState.update { it.copy(currentShipperId = shipperId) }
 
+                    // Lắng nghe đơn chờ nhận
                     launch {
                         orderRepository.getAvailableDeliveries().collect { orders ->
                             _uiState.update { state ->
@@ -54,6 +56,7 @@ class ShipperViewModel @Inject constructor(
                         }
                     }
 
+                    // Lắng nghe đơn đang giao
                     launch {
                         orderRepository.getShipperActiveOrder(shipperId).collect { order ->
                             _uiState.update { state ->
@@ -61,6 +64,16 @@ class ShipperViewModel @Inject constructor(
                                 state.copy(
                                     activeOrders = activeList,
                                     isLoading = false
+                                )
+                            }
+                        }
+                    }
+
+                    launch {
+                        orderRepository.getShipperCompletedOrders(shipperId).collect { orders ->
+                            _uiState.update { state ->
+                                state.copy(
+                                    completedOrders = orders.sortedByDescending { it.createdAt }
                                 )
                             }
                         }
@@ -79,6 +92,7 @@ class ShipperViewModel @Inject constructor(
         viewModelScope.launch {
             val result = orderRepository.acceptOrder(orderId, shipperId)
             if (result.isFailure) {
+                android.util.Log.e("ShipperApp", "Lỗi nhận đơn: ", result.exceptionOrNull())
                 _uiState.update { it.copy(error = "Không thể nhận đơn. Vui lòng thử lại.") }
             }
         }
@@ -88,6 +102,7 @@ class ShipperViewModel @Inject constructor(
         viewModelScope.launch {
             val result = orderRepository.updateOrderStatus(orderId, OrderStatus.COMPLETED)
             if (result.isFailure) {
+                android.util.Log.e("ShipperApp", "Lỗi hoàn tất đơn: ", result.exceptionOrNull())
                 _uiState.update { it.copy(error = "Không thể cập nhật trạng thái. Vui lòng thử lại.") }
             }
         }

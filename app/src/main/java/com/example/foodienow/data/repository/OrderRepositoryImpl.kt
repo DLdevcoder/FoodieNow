@@ -176,4 +176,33 @@ class OrderRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override fun getShipperCompletedOrders(shipperId: String): Flow<List<Order>> = channelFlow {
+        val fetchCompleted = suspend {
+            supabaseClient.postgrest["orders"]
+                .select {
+                    filter {
+                        eq("shipper_id", shipperId)
+                        eq("status", OrderStatus.COMPLETED.name)
+                    }
+                }
+                .decodeList<Order>()
+        }
+
+        send(fetchCompleted())
+
+        val channelName = "orders_shipper_completed_$shipperId"
+        val channel = supabaseClient.channel(channelName)
+        val changes = channel.postgresChangeFlow<PostgresAction>("public") {
+            table = "orders"
+            filter = "shipper_id=eq.$shipperId"
+        }
+
+        launch {
+            changes.collect { send(fetchCompleted()) }
+        }
+
+        channel.subscribe()
+        awaitClose { launch { supabaseClient.realtime.removeChannel(channel) } }
+    }
 }
