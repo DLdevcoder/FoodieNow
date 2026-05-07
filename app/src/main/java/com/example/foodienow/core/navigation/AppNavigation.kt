@@ -48,6 +48,7 @@ import com.example.foodienow.feature.payment.PaymentScreen
 import com.example.foodienow.feature.profile.ProfileScreen
 import com.example.foodienow.feature.main.CustomerMainScreen
 import com.example.foodienow.feature.customer_home.components.SearchScreen // Import SearchScreen
+import com.example.foodienow.feature.main.ShipperMainScreen
 
 @Composable
 fun AppNavigation() {
@@ -346,7 +347,8 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.ShipperHome.route) {
-            com.example.foodienow.feature.shipper.ShipperHomeScreen(
+            ShipperMainScreen(
+                rootNavController = navController,
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
