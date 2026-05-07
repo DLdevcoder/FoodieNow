@@ -240,4 +240,6 @@
     <string name="shipper_earnings_today">Today\'s Earnings</string>
     <string name="shipper_earnings_week">This Week</string>
     <string name="shipper_earnings_month">This Month</string>
+    <string name="shipper_tab_completed">Complete</string>
+    <string name="shipper_empty_completed">No orders have been completed yet</string>
 </resources>

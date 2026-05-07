@@ -53,7 +53,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:realtime-kt:${supabaseVersion}")
 
     // Ktor & Serialization
-    implementation("io.ktor:ktor-client-android:2.3.11")
+    implementation("io.ktor:ktor-client-okhttp:2.3.11")
     implementation("io.ktor:ktor-client-core:2.3.11")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 

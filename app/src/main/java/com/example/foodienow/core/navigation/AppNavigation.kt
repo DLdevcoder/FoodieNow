@@ -41,7 +41,7 @@ import com.example.foodienow.feature.food_detail.FoodDetailScreen
 import com.example.foodienow.feature.food_detail.FoodDetailViewModel
 import com.example.foodienow.feature.food_detail.FoodReviewsScreen
 import com.example.foodienow.feature.merchant.AddEditFoodScreen
-import com.example.foodienow.feature.merchant.MerchantHomeScreen
+import com.example.foodienow.feature.main.MerchantMainScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.order_history.OrderHistoryScreen
 import com.example.foodienow.feature.payment.PaymentScreen
@@ -358,7 +358,8 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.MerchantHome.route) {
-            MerchantHomeScreen(
+            com.example.foodienow.feature.main.MerchantMainScreen(
+                rootNavController = navController,
                 onNavigateToAddFood = { storeId ->
                     navController.navigate("add_edit_food/new?storeId=$storeId")
                 },
@@ -369,12 +370,6 @@ fun AppNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                },
-                onNavigateToHistory = {
-                    navController.navigate(Screen.ActivityHistory.route)
-                },
-                onNavigateToOrderHistory = {
-                    navController.navigate(Screen.OrderHistory.route)
                 }
             )
         }
