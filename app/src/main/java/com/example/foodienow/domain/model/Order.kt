@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
 enum class OrderStatus {
     PENDING,    // Chờ chủ quán xác nhận
     PREPARING,  // Đang chuẩn bị món
-    READY_FOR_PICKUP,
     DELIVERING, // Shipper đang giao
     COMPLETED,  // Hoàn thành
     CANCELLED   // Đã hủy
