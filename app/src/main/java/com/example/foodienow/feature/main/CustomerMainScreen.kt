@@ -84,7 +84,10 @@ fun CustomerMainScreen(
                     onNavigateToSearch = { rootNavController.navigate("search_screen") }
                 )
                 1 -> OrderHistoryScreen(
-                    onBack = { selectedTab = 0 } // Or handle back differently
+                    onBack = { selectedTab = 0 },
+                    onNavigateToOrderDetail = { orderId ->
+                        rootNavController.navigate("order_detail/$orderId")
+                    }
                 )
                 2 -> NotificationScreen(
                     onBack = { selectedTab = 0 }

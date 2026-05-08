@@ -24,5 +24,6 @@ data class Order(
     val note: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("preview_image_url") val previewImageUrl: String? = null,
-    @SerialName("preview_food_name") val previewFoodName: String? = null
+    @SerialName("preview_food_name") val previewFoodName: String? = null,
+    @SerialName("food_id") val foodId: String? = null
 )

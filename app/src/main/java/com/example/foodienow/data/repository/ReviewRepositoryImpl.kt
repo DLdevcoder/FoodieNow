@@ -1,10 +1,11 @@
 package com.example.foodienow.data.repository
 
+import com.example.foodienow.domain.model.Review
 import com.example.foodienow.domain.model.ReviewUiModel
 import com.example.foodienow.domain.repository.ReviewRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.Columns // Thêm dòng import này
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
@@ -45,19 +46,59 @@ class ReviewRepositoryImpl @Inject constructor(
             )
         }
     }
-    override suspend fun submitReview(foodId: String, userId: String, rating: Int, comment: String): Boolean {
+
+    // Sửa hàm này: Filter theo cả order_id và food_id
+    override suspend fun getReviewByOrderAndFood(orderId: String, foodId: String): Review? {
+        return try {
+            supabase.postgrest["reviews"].select {
+                filter {
+                    eq("order_id", orderId)
+                    eq("food_id", foodId)
+                }
+            }.decodeSingleOrNull<Review>()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    override suspend fun submitReview(orderId: String, customerId: String, foodId: String, rating: Int, comment: String): Boolean {
         return try {
             @Serializable
             data class ReviewInsert(
+                @SerialName("order_id") val orderId: String,
+                @SerialName("customer_id") val customerId: String,
                 @SerialName("food_id") val foodId: String,
-                @SerialName("user_id") val userId: String,
                 val rating: Int,
                 val comment: String
             )
-            
+
             supabase.postgrest["reviews"].insert(
-                ReviewInsert(foodId = foodId, userId = userId, rating = rating, comment = comment)
+                ReviewInsert(
+                    orderId = orderId,
+                    customerId = customerId,
+                    foodId = foodId,
+                    rating = rating,
+                    comment = comment
+                )
             )
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    override suspend fun updateReview(reviewId: String, rating: Int, comment: String): Boolean {
+        return try {
+            supabase.postgrest["reviews"].update(
+                {
+                    set("rating", rating)
+                    set("comment", comment)
+                }
+            ) {
+                filter { eq("id", reviewId) }
+            }
             true
         } catch (e: Exception) {
             e.printStackTrace()

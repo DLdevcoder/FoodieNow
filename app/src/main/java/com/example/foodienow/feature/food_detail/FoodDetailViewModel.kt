@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,7 +49,7 @@ class FoodDetailViewModel @Inject constructor(
             try {
                 val food = foodRepository.getFoodById(foodId)
                 val store = merchantRepository.getStoreById(food.storeId)
-                val reviews = reviewRepository.getReviewsByFoodId(foodId)
+                val reviews = reviewRepository.getReviewsByFoodId(foodId) // Vẫn fetch data
 
                 _uiState.update {
                     it.copy(
@@ -68,20 +67,4 @@ class FoodDetailViewModel @Inject constructor(
         }
     }
 
-    fun submitReview(rating: Int, comment: String) {
-        viewModelScope.launch {
-            val user = authRepository.getAuthState().firstOrNull()
-            if (user != null) {
-                val success = reviewRepository.submitReview(
-                    foodId = foodId,
-                    userId = user.id,
-                    rating = rating,
-                    comment = comment
-                )
-                if (success) {
-                    loadFoodDetail() // Reload reviews after submitting
-                }
-            }
-        }
-    }
 }

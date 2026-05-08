@@ -1,6 +1,7 @@
 package com.example.foodienow.domain.repository
 
 import com.example.foodienow.domain.model.Order
+import com.example.foodienow.domain.model.OrderItemUiModel
 import com.example.foodienow.domain.model.OrderStatus
 import kotlinx.coroutines.flow.Flow
 
@@ -28,4 +29,6 @@ interface OrderRepository {
 
     // Shipper xem đơn hoàn thành
     fun getShipperCompletedOrders(shipperId: String): Flow<List<Order>>
+
+    suspend fun getOrderItemsByOrderId(orderId: String): List<OrderItemUiModel>
 }
