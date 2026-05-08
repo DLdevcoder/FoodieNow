@@ -43,10 +43,9 @@ fun ShipperMainScreen(
                 // Đã cập nhật thành 5 tab để chứa đủ Thu nhập, Thông báo và Profile
                 val tabs = listOf(
                     Triple(Icons.Default.Home, R.string.shipper_nav_home, 0),
-                    Triple(Icons.Default.ListAlt, R.string.shipper_nav_orders, 1),
-                    Triple(Icons.Default.AccountBalanceWallet, R.string.shipper_nav_earnings, 2),
-                    Triple(Icons.Default.Notifications, R.string.bottom_nav_notifications, 3),
-                    Triple(Icons.Default.Person, R.string.shipper_nav_profile, 4)
+                    Triple(Icons.Default.AccountBalanceWallet, R.string.shipper_nav_earnings, 1),
+                    Triple(Icons.Default.Notifications, R.string.bottom_nav_notifications, 2),
+                    Triple(Icons.Default.Person, R.string.shipper_nav_profile, 3)
                 )
 
                 tabs.forEach { (icon, labelRes, index) ->
@@ -80,10 +79,9 @@ fun ShipperMainScreen(
         ) {
             when (selectedTab) {
                 0 -> ShipperHomeScreen(onLogout = onLogout)
-                1 -> OrderHistoryScreen(onBack = { selectedTab = 0 })
-                2 -> ShipperEarningsScreen(onBack = { selectedTab = 0 })
-                3 -> NotificationScreen(onBack = { selectedTab = 0 })
-                4 -> ProfileScreen(
+                1 -> ShipperEarningsScreen(onBack = { selectedTab = 0 })
+                2 -> NotificationScreen(onBack = { selectedTab = 0 })
+                3 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
                     onNavigateToOrderHistory = { selectedTab = 1 },
                     onNavigateToActivityHistory = { selectedTab = 1 },

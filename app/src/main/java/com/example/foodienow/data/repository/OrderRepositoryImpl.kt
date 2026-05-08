@@ -1,10 +1,13 @@
 package com.example.foodienow.data.repository
 
 import com.example.foodienow.domain.model.Order
+import com.example.foodienow.domain.model.OrderItemResponse
+import com.example.foodienow.domain.model.OrderItemUiModel
 import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.domain.repository.OrderRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
@@ -204,5 +207,30 @@ class OrderRepositoryImpl @Inject constructor(
 
         channel.subscribe()
         awaitClose { launch { supabaseClient.realtime.removeChannel(channel) } }
+    }
+
+    override suspend fun getOrderItemsByOrderId(orderId: String): List<OrderItemUiModel> {
+        return try {
+            val response = supabaseClient.postgrest["order_items"]
+                .select(columns = Columns.raw("*, foods(name, image_url)")) {
+                    filter { eq("order_id", orderId) }
+                }
+                .decodeList<OrderItemResponse>()
+
+            response.map { item ->
+                OrderItemUiModel(
+                    id = item.id,
+                    orderId = item.orderId,
+                    foodId = item.foodId,
+                    quantity = item.quantity,
+                    priceAtTime = item.priceAtTime,
+                    foodName = item.foods?.name ?: "Món ăn không xác định",
+                    foodImageUrl = item.foods?.imageUrl
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 }

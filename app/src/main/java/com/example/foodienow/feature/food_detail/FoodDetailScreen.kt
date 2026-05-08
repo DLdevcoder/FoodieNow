@@ -9,8 +9,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,13 +34,10 @@ fun FoodDetailScreen(
     store: Store,
     reviews: List<ReviewUiModel>,
     onBackClick: () -> Unit,
-    onAddToCart: (Food, Int) -> Unit, // Đã thêm callback thêm vào giỏ
+    onAddToCart: (Food, Int) -> Unit,
     onNavigateToStore: (String) -> Unit,
-    onNavigateToAllReviews: () -> Unit, // Callback mở trang Xem tất cả
-    onSubmitProductReview: (Int, String) -> Unit // Callback gửi đánh giá món ăn
+    onNavigateToAllReviews: () -> Unit
 ) {
-    var showProductReviewDialog by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -119,42 +114,42 @@ fun FoodDetailScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = food.price.formatPrice(),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = food.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                val soldLabel = if (food.soldCount > 999) "999+" else food.soldCount.toString()
-                Row(
-                    modifier = Modifier.padding(top = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
                     Text(
-                        text = "${if (food.rating > 0) String.format("%.1f", food.rating) else "0.0"} ☆",
+                        text = food.price.formatPrice(),
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFFD700),
-                        fontSize = 16.sp
+                        color = MaterialTheme.colorScheme.primary
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = " | ",
-                        color = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.padding(horizontal = 8.dp)
+                        text = food.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text(
-                        text = stringResource(R.string.food_detail_sold_count, soldLabel),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
-                }
+
+                    val soldLabel = if (food.soldCount > 999) "999+" else food.soldCount.toString()
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${if (food.rating > 0) String.format("%.1f", food.rating) else "0.0"} ☆",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFFD700),
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            text = " | ",
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.food_detail_sold_count, soldLabel),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
 
@@ -168,31 +163,31 @@ fun FoodDetailScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = store.imageUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable { onNavigateToStore(store.id) },
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f).clickable { onNavigateToStore(store.id) }) {
-                        Text(
-                            text = store.name,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AsyncImage(
+                            model = store.imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .clickable { onNavigateToStore(store.id) },
+                            contentScale = ContentScale.Crop
                         )
-                        Text(
-                            text = stringResource(R.string.food_detail_store_hint),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f).clickable { onNavigateToStore(store.id) }) {
+                            Text(
+                                text = store.name,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = stringResource(R.string.food_detail_store_hint),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                }
                 }
             }
 
@@ -206,21 +201,21 @@ fun FoodDetailScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = stringResource(R.string.food_detail_section_title),
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = food.description ?: stringResource(R.string.food_detail_no_description),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 22.sp
-                )
+                    Text(
+                        text = stringResource(R.string.food_detail_section_title),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = food.description ?: stringResource(R.string.food_detail_no_description),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 22.sp
+                    )
                 }
             }
 
-            // Khối Đánh giá sản phẩm
+            // Khối Đánh giá sản phẩm (Chỉ xem, không viết)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -230,124 +225,42 @@ fun FoodDetailScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.food_detail_reviews_title),
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = stringResource(R.string.food_detail_reviews_view_all),
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 14.sp,
-                        modifier = Modifier.clickable { onNavigateToAllReviews() }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Nút Viết đánh giá món ăn
-                OutlinedButton(
-                    onClick = { showProductReviewDialog = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(stringResource(R.string.food_detail_write_review), color = MaterialTheme.colorScheme.primary)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (reviews.isEmpty()) {
-                    Text(
-                        stringResource(R.string.food_detail_no_reviews),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 14.sp
-                    )
-                } else {
-                    reviews.take(3).forEach { review ->
-                        ReviewItem(review = review)
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                }
-                }
-            }
-        }
-    }
-
-    // Dialog đánh giá Món ăn
-    if (showProductReviewDialog) {
-        RatingDialog(
-            title = stringResource(R.string.rating_dialog_title),
-            showCommentField = true,
-            onDismiss = { showProductReviewDialog = false },
-            onSubmit = { rating, comment ->
-                onSubmitProductReview(rating, comment)
-                showProductReviewDialog = false
-            }
-        )
-    }
-}
-
-@Composable
-fun RatingDialog(
-    title: String,
-    showCommentField: Boolean,
-    onDismiss: () -> Unit,
-    onSubmit: (Int, String) -> Unit
-) {
-    var selectedRating by remember { mutableIntStateOf(0) }
-    var comment by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = title, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth()) },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                    for (i in 1..5) {
-                        Icon(
-                            imageVector = if (i <= selectedRating) Icons.Filled.Star else Icons.Outlined.Star,
-                            contentDescription = stringResource(R.string.rating_star_content_desc, i),
-                            tint = if (i <= selectedRating) Color(0xFFFFD700) else Color.LightGray,
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clickable { selectedRating = i }
-                                .padding(4.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.food_detail_reviews_title),
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = stringResource(R.string.food_detail_reviews_view_all),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 14.sp,
+                            modifier = Modifier.clickable { onNavigateToAllReviews() }
                         )
                     }
-                }
 
-                if (showCommentField) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = comment,
-                        onValueChange = { comment = it },
-                        placeholder = { Text(stringResource(R.string.rating_dialog_placeholder)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 3
-                    )
+
+                    if (reviews.isEmpty()) {
+                        Text(
+                            stringResource(R.string.food_detail_no_reviews),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
+                    } else {
+                        reviews.take(3).forEach { review ->
+                            ReviewItem(review = review)
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
                 }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onSubmit(selectedRating, comment) },
-                enabled = selectedRating > 0,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Text(stringResource(R.string.rating_dialog_submit), color = MaterialTheme.colorScheme.onPrimary)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.rating_dialog_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-    )
+    }
 }
 
 @Composable

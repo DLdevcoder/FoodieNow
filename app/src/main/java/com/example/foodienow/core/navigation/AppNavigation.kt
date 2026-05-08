@@ -313,9 +313,6 @@ fun AppNavigation() {
                     onNavigateToStore = { /* TODO */ },
                     onNavigateToAllReviews = {
                         navController.navigate("food_reviews/${uiState.food!!.id}")
-                    },
-                    onSubmitProductReview = { rating, comment ->
-                        viewModel.submitReview(rating, comment)
                     }
                 )
             }
@@ -339,7 +336,39 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.OrderHistory.route) {
-            OrderHistoryScreen(onBack = { navController.popBackStack() })
+            OrderHistoryScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToOrderDetail = { orderId ->
+                    navController.navigate("order_detail/$orderId")
+                }
+            )
+        }
+
+        composable(
+            route = "order_detail/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+        ) {
+            com.example.foodienow.feature.order_detail.OrderDetailScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToReview = { orderId, foodId ->
+                    navController.navigate("review_order/$orderId/$foodId")
+                }
+            )
+        }
+
+        composable(
+            route = "review_order/{orderId}/{foodId}",
+            arguments = listOf(
+                navArgument("orderId") { type = NavType.StringType },
+                navArgument("foodId") { type = NavType.StringType }
+            )
+        ) {
+            com.example.foodienow.feature.review.ReviewScreen(
+                onBack = { navController.popBackStack() },
+                onReviewSuccess = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(route = Screen.Notifications.route) {

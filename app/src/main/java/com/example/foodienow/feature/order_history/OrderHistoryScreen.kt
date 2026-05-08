@@ -25,10 +25,12 @@ import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderStatus
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clip
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
-    onBack: () -> Unit, // Might not be needed in bottom nav, but keeping for compatibility
+    onBack: () -> Unit,
+    onNavigateToOrderDetail: (String) -> Unit,
     viewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -58,11 +60,11 @@ fun OrderHistoryScreen(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+            )
         )
 
         TabRow(
@@ -102,16 +104,16 @@ fun OrderHistoryScreen(
             }
         } else {
             when (selectedTabIndex) {
-                0 -> OrdersTabContent(orders = ongoingOrders, isEmptyState = ongoingOrders.isEmpty())
-                1 -> OrdersTabContent(orders = historyOrders, isEmptyState = historyOrders.isEmpty())
-                2 -> OrdersTabContent(orders = cancelledOrders, isEmptyState = cancelledOrders.isEmpty())
+                0 -> OrdersTabContent(orders = ongoingOrders, isEmptyState = ongoingOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail)
+                1 -> OrdersTabContent(orders = historyOrders, isEmptyState = historyOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail)
+                2 -> OrdersTabContent(orders = cancelledOrders, isEmptyState = cancelledOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail)
             }
         }
     }
 }
 
 @Composable
-private fun OrdersTabContent(orders: List<Order>, isEmptyState: Boolean) {
+private fun OrdersTabContent(orders: List<Order>, isEmptyState: Boolean, onNavigateToOrderDetail: (String) -> Unit) {
     if (isEmptyState) {
         EmptyOngoingState()
     } else {
@@ -120,7 +122,7 @@ private fun OrdersTabContent(orders: List<Order>, isEmptyState: Boolean) {
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             items(orders.size) { index ->
-                OrderCardItem(order = orders[index])
+                OrderCardItem(order = orders[index], onNavigateToOrderDetail = onNavigateToOrderDetail)
             }
         }
     }
@@ -157,7 +159,7 @@ private fun EmptyOngoingState() {
 }
 
 @Composable
-private fun OrderCardItem(order: Order) {
+private fun OrderCardItem(order: Order, onNavigateToOrderDetail: (String) -> Unit) {
     val statusColor = when (order.status) {
         OrderStatus.COMPLETED -> Color(0xFF10B981) // Green
         OrderStatus.CANCELLED -> Color(0xFFEF4444) // Red
@@ -183,7 +185,10 @@ private fun OrderCardItem(order: Order) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    stringResource(R.string.order_history_order_title, order.id?.substring(0, 8) ?: "Unknown"),
+                    stringResource(
+                        R.string.order_history_order_title,
+                        order.id?.substring(0, 8) ?: "Unknown"
+                    ),
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     color = Color.Black
@@ -204,10 +209,14 @@ private fun OrderCardItem(order: Order) {
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = Color(0xFFF3F4F6))
             Spacer(modifier = Modifier.height(12.dp))
-            
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 AsyncImage(
-                    model = order.previewImageUrl ?: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
+                    model = order.previewImageUrl
+                        ?: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
@@ -234,15 +243,15 @@ private fun OrderCardItem(order: Order) {
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(color = Color(0xFFF3F4F6))
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             val formattedDate = order.createdAt?.let {
                 if (it.length >= 16) it.substring(0, 16).replace("T", " ") else it
             } ?: ""
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -256,7 +265,9 @@ private fun OrderCardItem(order: Order) {
                 )
                 Column(horizontalAlignment = Alignment.End) {
                     Text("Tổng cộng", fontSize = 12.sp, color = Color.Gray)
-                    val formattedPrice = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("vi", "VN")).format(order.totalPrice)
+                    val formattedPrice =
+                        java.text.NumberFormat.getCurrencyInstance(java.util.Locale("vi", "VN"))
+                            .format(order.totalPrice)
                     Text(
                         formattedPrice,
                         fontWeight = FontWeight.Bold,
@@ -268,13 +279,31 @@ private fun OrderCardItem(order: Order) {
 
             if (order.status == OrderStatus.COMPLETED) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = { /* TODO: Reorder */ },
-                    modifier = Modifier.fillMaxWidth().height(40.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), contentColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Đặt lại đơn này", fontWeight = FontWeight.Bold)
+                    OutlinedButton(
+                        onClick = { order.id?.let { onNavigateToOrderDetail(it) } },
+                        modifier = Modifier.weight(1f).height(40.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Chi tiết", fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = { /* TODO: Reorder */ },
+                        modifier = Modifier.weight(1f).height(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.1f
+                            ), contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Đặt lại đơn này", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
