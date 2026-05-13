@@ -87,7 +87,7 @@ class ReviewViewModel @Inject constructor(
                     // Update
                     reviewRepository.updateReview(existingId, rating, comment)
                 } else {
-                    // Insert: Lúc này truyền foodId chắc chắn sẽ có dữ liệu lưu lên db
+                    // Insert
                     reviewRepository.submitReview(
                         orderId = orderId,
                         customerId = user.id,

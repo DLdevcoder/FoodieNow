@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Order
+import com.example.foodienow.domain.model.OrderStatus
 import java.text.NumberFormat
 import java.util.Calendar
 import java.util.Locale
@@ -28,6 +29,7 @@ import java.util.Locale
 @Composable
 fun ShipperHomeScreen(
     viewModel: ShipperViewModel = hiltViewModel(),
+    onNavigateToTracking: (String) -> Unit, // Callback mở màn hình Bản đồ
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -93,19 +95,22 @@ fun ShipperHomeScreen(
                 orders = uiState.availableOrders,
                 emptyMessageRes = R.string.shipper_empty_available,
                 actionTextRes = R.string.shipper_action_accept,
-                onActionClick = viewModel::acceptOrder
+                onActionClick = viewModel::acceptOrder,
+                onNavigateToMapClick = { } // Không hiển thị bản đồ ở mục chờ nhận
             )
             1 -> OrderList(
                 orders = uiState.activeOrders,
                 emptyMessageRes = R.string.shipper_empty_active,
                 actionTextRes = R.string.shipper_action_complete,
-                onActionClick = viewModel::completeOrder
+                onActionClick = viewModel::completeOrder,
+                onNavigateToMapClick = onNavigateToTracking // Truyền lệnh mở bản đồ
             )
             2 -> OrderList(
                 orders = uiState.completedOrders,
                 emptyMessageRes = R.string.shipper_empty_completed,
                 actionTextRes = null,
-                onActionClick = {}
+                onActionClick = {},
+                onNavigateToMapClick = { }
             )
         }
     }
@@ -182,7 +187,8 @@ private fun OrderList(
     orders: List<Order>,
     emptyMessageRes: Int,
     actionTextRes: Int?,
-    onActionClick: (String) -> Unit
+    onActionClick: (String) -> Unit,
+    onNavigateToMapClick: (String) -> Unit
 ) {
     if (orders.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -202,7 +208,8 @@ private fun OrderList(
                 ShipperOrderCard(
                     order = order,
                     actionText = actionText,
-                    onAction = { order.id?.let { onActionClick(it) } }
+                    onAction = { order.id?.let { onActionClick(it) } },
+                    onNavigateToMap = { order.id?.let { onNavigateToMapClick(it) } }
                 )
             }
         }
@@ -213,7 +220,8 @@ private fun OrderList(
 private fun ShipperOrderCard(
     order: Order,
     actionText: String?,
-    onAction: () -> Unit
+    onAction: () -> Unit,
+    onNavigateToMap: () -> Unit
 ) {
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
     val formattedPrice = "${formatter.format(order.totalPrice)} VND"
@@ -264,21 +272,37 @@ private fun ShipperOrderCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            if (actionText != null) {
-                Button(
-                    onClick = onAction,
-                    modifier = Modifier.align(Alignment.End),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Text(actionText)
+            // Hàng chứa các nút hành động
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Nút Bản đồ chỉ hiện khi đơn đang giao
+                if (order.status == OrderStatus.DELIVERING) {
+                    OutlinedButton(
+                        onClick = onNavigateToMap,
+                        modifier = Modifier.padding(end = 8.dp),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text("Bản đồ")
+                    }
                 }
-            } else {
-                Text(
-                    text = "Đã giao thành công",
-                    color = Color(0xFF4CAF50),
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.End)
-                )
+
+                if (actionText != null) {
+                    Button(
+                        onClick = onAction,
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text(actionText)
+                    }
+                } else if (order.status == OrderStatus.COMPLETED) {
+                    Text(
+                        text = "Đã giao thành công",
+                        color = Color(0xFF4CAF50),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

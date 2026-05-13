@@ -31,4 +31,6 @@ interface OrderRepository {
     fun getShipperCompletedOrders(shipperId: String): Flow<List<Order>>
 
     suspend fun getOrderItemsByOrderId(orderId: String): List<OrderItemUiModel>
+
+    suspend fun updateShipperLocation(orderId: String, lat: Double, lng: Double): Result<Unit>
 }

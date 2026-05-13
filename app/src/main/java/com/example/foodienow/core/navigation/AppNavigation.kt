@@ -386,6 +386,15 @@ fun AppNavigation() {
             )
         }
 
+        composable(
+            route = "shipper_tracking/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+        ) {
+            com.example.foodienow.feature.shipper_tracking.ShipperTrackingScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(route = Screen.MerchantHome.route) {
             com.example.foodienow.feature.main.MerchantMainScreen(
                 rootNavController = navController,
