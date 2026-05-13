@@ -233,4 +233,20 @@ class OrderRepositoryImpl @Inject constructor(
             emptyList()
         }
     }
+
+    override suspend fun updateShipperLocation(orderId: String, lat: Double, lng: Double): Result<Unit> {
+        return try {
+            supabaseClient.postgrest["orders"].update(
+                {
+                    set("shipper_lat", lat)
+                    set("shipper_lng", lng)
+                }
+            ) {
+                filter { eq("id", orderId) }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

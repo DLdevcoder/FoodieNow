@@ -78,7 +78,12 @@ fun ShipperMainScreen(
                 .padding(paddingValues)
         ) {
             when (selectedTab) {
-                0 -> ShipperHomeScreen(onLogout = onLogout)
+                0 -> ShipperHomeScreen(
+                    onLogout = onLogout,
+                    onNavigateToTracking = { orderId ->
+                        rootNavController.navigate("shipper_tracking/$orderId")
+                    }
+                )
                 1 -> ShipperEarningsScreen(onBack = { selectedTab = 0 })
                 2 -> NotificationScreen(onBack = { selectedTab = 0 })
                 3 -> ProfileScreen(
