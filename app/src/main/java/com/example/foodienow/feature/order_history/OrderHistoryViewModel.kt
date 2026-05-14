@@ -19,7 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class OrderHistoryViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val customerFoodRepository: com.example.foodienow.domain.repository.CustomerFoodRepository,
+    private val cartRepository: com.example.foodienow.domain.repository.CartRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OrderHistoryUiState())
@@ -62,6 +64,34 @@ class OrderHistoryViewModel @Inject constructor(
                         errorResId = R.string.error_load_order_history
                     )
                 }
+            }
+        }
+    }
+
+    fun reorder(orderId: String, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                // 1. Get items of the past order
+                val orderItems = orderRepository.getOrderItemsByOrderId(orderId)
+                
+                // 2. Fetch each food and add to cart
+                for (item in orderItems) {
+                    try {
+                        val food = customerFoodRepository.getFoodById(item.foodId)
+                        cartRepository.addToCart(food, item.quantity)
+                    } catch (e: Exception) {
+                        // Ignore individual item failure or handle it
+                        e.printStackTrace()
+                    }
+                }
+                
+                // 3. Trigger success callback
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorResId = R.string.error_load_order_history) }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

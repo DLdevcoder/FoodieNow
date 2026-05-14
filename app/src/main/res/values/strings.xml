@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">FoodieNow</string>
     <string name="common_back">Back</string>
-
+    <string name="good_morning">Good morning ☀️</string>
+    <string name="good_afternoon">Good afternoon ⛅</string>
+    <string name="good_evening">Good evening 🌙</string>
     <string name="auth_checking_session">Checking sign-in session...</string>
     <string name="auth_login_title">Sign in</string>
     <string name="auth_login_subtitle">Welcome back, please sign in to continue.</string>
@@ -315,4 +317,15 @@
     <string name="shipper_earnings_month">This Month</string>
     <string name="shipper_tab_completed">Complete</string>
     <string name="shipper_empty_completed">No orders have been completed yet</string>
+
+    <string name="profile_unnamed">Not updated yet</string>
+    <string name="profile_unnamed_email">Email not updated</string>
+    <string name="profile_header_title">Personal Profile</string>
+    <string name="profile_wallet_foodiepay">FoodiePay Wallet</string>
+    <string name="profile_foodiecoins">FoodieCoins</string>
+    <string name="profile_vouchers">Vouchers</string>
+    <string name="profile_vouchers_count">%1$s vouchers</string>
+    <string name="profile_change_password">Change password</string>
+    <string name="profile_logout_btn">Log out</string>
+    <string name="feature_under_development">Feature under development</string>
 </resources>

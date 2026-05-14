@@ -56,8 +56,8 @@ fun ProfileScreen(
     val profileUiState by profileViewModel.uiState.collectAsState()
     val user = profileUiState.user
     val profile = profileUiState.profile
-    val fullName = profile?.fullName ?: "Chưa cập nhật tên"
-    val email = profile?.email ?: "Chưa cập nhật email"
+    val fullName = profile?.fullName ?: stringResource(R.string.profile_unnamed)
+    val email = profile?.email ?: stringResource(R.string.profile_unnamed_email)
     val balance = profile?.balance ?: 0L
     val rewardPoints = profile?.rewardPoints ?: 0
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
@@ -191,7 +191,7 @@ fun ProfileScreen(
                             MenuItem(
                                 icon = Icons.Default.Lock,
                                 iconColor = Color.Gray,
-                                title = "Đổi mật khẩu",
+                                title = stringResource(R.string.profile_change_password),
                                 onClick = onNavigateToChangePassword
                             )
                         }
@@ -211,7 +211,7 @@ fun ProfileScreen(
                         MenuItem(
                             icon = Icons.AutoMirrored.Filled.ExitToApp,
                             iconColor = Color.Red,
-                            title = "Đăng xuất",
+                            title = stringResource(R.string.profile_logout_btn),
                             onClick = onLoggedOut
                         )
                     }
@@ -243,7 +243,7 @@ private fun QuickStatsRow(
     ) {
         QuickStatCard(
             modifier = Modifier.weight(1f),
-            title = "Ví FoodiePay",
+            title = stringResource(R.string.profile_wallet_foodiepay),
             value = balance,
             icon = Icons.Default.AccountBalanceWallet,
             iconColor = Color(0xFF3B82F6), // Blue
@@ -251,7 +251,7 @@ private fun QuickStatsRow(
         )
         QuickStatCard(
             modifier = Modifier.weight(1f),
-            title = "FoodieCoins",
+            title = stringResource(R.string.profile_foodiecoins),
             value = rewardPoints,
             icon = Icons.Default.MonetizationOn,
             iconColor = Color(0xFFF59E0B), // Yellow/Amber
@@ -259,8 +259,8 @@ private fun QuickStatsRow(
         )
         QuickStatCard(
             modifier = Modifier.weight(1f),
-            title = "Voucher",
-            value = "3 mã", // Hardcode tạm
+            title = stringResource(R.string.profile_vouchers),
+            value = stringResource(R.string.profile_vouchers_count, "3"), // Hardcode tạm
             icon = Icons.Default.ConfirmationNumber,
             iconColor = Color(0xFF10B981), // Green
             onClick = onNavigateToVouchers
@@ -284,8 +284,11 @@ private fun QuickStatCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.height(4.dp))
@@ -307,8 +310,30 @@ private fun ProfileHeader(fullName: String, email: String, onNavigateToEditProfi
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primary)
-            .padding(top = 40.dp, bottom = 44.dp, start = 16.dp, end = 16.dp) // padding bottom nhiều hơn để chừa chỗ cho QuickStatsRow
+            .statusBarsPadding()
+            .padding(top = 12.dp, bottom = 32.dp, start = 16.dp, end = 16.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                stringResource(R.string.profile_header_title),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White
+            )
+            IconButton(
+                onClick = onNavigateToEditProfile,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit Profile", tint = Color.White)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
         Row(verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
                 model = "https://ui-avatars.com/api/?name=${fullName.replace(" ", "+")}&background=random&size=200",
@@ -324,7 +349,7 @@ private fun ProfileHeader(fullName: String, email: String, onNavigateToEditProfi
                 Text(
                     text = fullName,
                     color = Color.White,
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
@@ -332,9 +357,6 @@ private fun ProfileHeader(fullName: String, email: String, onNavigateToEditProfi
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 14.sp
                 )
-            }
-            IconButton(onClick = onNavigateToEditProfile) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Profile", tint = Color.White)
             }
         }
     }
@@ -350,7 +372,7 @@ private fun MenuItem(
 ) {
     val context = LocalContext.current
     val actualOnClick = onClick ?: {
-        Toast.makeText(context, "Tính năng đang được phát triển", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.feature_under_development), Toast.LENGTH_SHORT).show()
     }
     
     Row(

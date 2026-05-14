@@ -25,14 +25,18 @@ import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderStatus
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderHistoryScreen(
     onBack: () -> Unit,
     onNavigateToOrderDetail: (String) -> Unit,
+    onNavigateToCart: () -> Unit = {},
     viewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf(
@@ -46,26 +50,28 @@ fun OrderHistoryScreen(
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    stringResource(R.string.my_orders_title),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            },
-            actions = {
-                IconButton(onClick = { }) {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primary)
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                stringResource(R.string.my_orders_title),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onPrimary
             )
-        )
+            IconButton(
+                onClick = { },
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+            }
+        }
 
         TabRow(
             selectedTabIndex = selectedTabIndex,
@@ -103,17 +109,23 @@ fun OrderHistoryScreen(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
+            val onReorder: (String) -> Unit = { orderId ->
+                viewModel.reorder(orderId) {
+                    Toast.makeText(context, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+                    onNavigateToCart()
+                }
+            }
             when (selectedTabIndex) {
-                0 -> OrdersTabContent(orders = ongoingOrders, isEmptyState = ongoingOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail)
-                1 -> OrdersTabContent(orders = historyOrders, isEmptyState = historyOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail)
-                2 -> OrdersTabContent(orders = cancelledOrders, isEmptyState = cancelledOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail)
+                0 -> OrdersTabContent(orders = ongoingOrders, isEmptyState = ongoingOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail, onReorder = onReorder)
+                1 -> OrdersTabContent(orders = historyOrders, isEmptyState = historyOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail, onReorder = onReorder)
+                2 -> OrdersTabContent(orders = cancelledOrders, isEmptyState = cancelledOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail, onReorder = onReorder)
             }
         }
     }
 }
 
 @Composable
-private fun OrdersTabContent(orders: List<Order>, isEmptyState: Boolean, onNavigateToOrderDetail: (String) -> Unit) {
+private fun OrdersTabContent(orders: List<Order>, isEmptyState: Boolean, onNavigateToOrderDetail: (String) -> Unit, onReorder: (String) -> Unit) {
     if (isEmptyState) {
         EmptyOngoingState()
     } else {
@@ -122,7 +134,7 @@ private fun OrdersTabContent(orders: List<Order>, isEmptyState: Boolean, onNavig
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             items(orders.size) { index ->
-                OrderCardItem(order = orders[index], onNavigateToOrderDetail = onNavigateToOrderDetail)
+                OrderCardItem(order = orders[index], onNavigateToOrderDetail = onNavigateToOrderDetail, onReorder = onReorder)
             }
         }
     }
@@ -159,7 +171,7 @@ private fun EmptyOngoingState() {
 }
 
 @Composable
-private fun OrderCardItem(order: Order, onNavigateToOrderDetail: (String) -> Unit) {
+private fun OrderCardItem(order: Order, onNavigateToOrderDetail: (String) -> Unit, onReorder: (String) -> Unit) {
     val statusColor = when (order.status) {
         OrderStatus.COMPLETED -> Color(0xFF10B981) // Green
         OrderStatus.CANCELLED -> Color(0xFFEF4444) // Red
@@ -287,14 +299,16 @@ private fun OrderCardItem(order: Order, onNavigateToOrderDetail: (String) -> Uni
                         onClick = { order.id?.let { onNavigateToOrderDetail(it) } },
                         modifier = Modifier.weight(1f).height(40.dp),
                         shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("Chi tiết", fontWeight = FontWeight.Bold)
+                        Text("Chi tiết", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     }
 
                     Button(
-                        onClick = { /* TODO: Reorder */ },
+                        onClick = { order.id?.let { onReorder(it) } },
                         modifier = Modifier.weight(1f).height(40.dp),
+                        contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary.copy(
                                 alpha = 0.1f
@@ -302,7 +316,7 @@ private fun OrderCardItem(order: Order, onNavigateToOrderDetail: (String) -> Uni
                         ),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Đặt lại đơn này", fontWeight = FontWeight.Bold)
+                        Text("Đặt lại đơn", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     }
                 }
             }

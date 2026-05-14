@@ -3,6 +3,10 @@ package com.example.foodienow.feature.main
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
@@ -46,7 +50,8 @@ fun CustomerMainScreen(
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
+                tonalElevation = 8.dp,
+                modifier = Modifier.height(56.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
             ) {
                 val tabs = listOf(
                     Triple(Icons.Default.Home, R.string.bottom_nav_home, 0),
@@ -76,7 +81,7 @@ fun CustomerMainScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(bottom = paddingValues.calculateBottomPadding())
         ) {
             when (selectedTab) {
                 0 -> CustomerHomeScreen(
@@ -87,7 +92,8 @@ fun CustomerMainScreen(
                     onBack = { selectedTab = 0 },
                     onNavigateToOrderDetail = { orderId ->
                         rootNavController.navigate("order_detail/$orderId")
-                    }
+                    },
+                    onNavigateToCart = onNavigateToCart
                 )
                 2 -> NotificationScreen(
                     onBack = { selectedTab = 0 }

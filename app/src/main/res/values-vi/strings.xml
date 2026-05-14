@@ -2,7 +2,9 @@
 <resources>
     <string name="app_name">FoodieNow</string>
     <string name="common_back">Quay lại</string>
-
+    <string name="good_morning">Chào buổi sáng ☀️</string>
+    <string name="good_afternoon">Chào buổi chiều ⛅</string>
+    <string name="good_evening">Chào buổi tối 🌙</string>
     <string name="auth_checking_session">Đang kiểm tra phiên đăng nhập...</string>
     <string name="auth_login_title">Đăng nhập</string>
     <string name="auth_login_subtitle">Chào mừng bạn quay lại, hãy đăng nhập để tiếp tục.</string>
@@ -318,4 +320,15 @@ sẽ xuất hiện tại đây</string>
     <string name="notification_mark_read">Đánh dấu đã đọc</string>
     <string name="notification_delete">Xóa</string>
     <string name="notification_mark_all_read">Đánh dấu tất cả đã đọc</string>
+
+    <string name="profile_unnamed">Chưa cập nhật tên</string>
+    <string name="profile_unnamed_email">Chưa cập nhật email</string>
+    <string name="profile_header_title">Hồ sơ cá nhân</string>
+    <string name="profile_wallet_foodiepay">Ví FoodiePay</string>
+    <string name="profile_foodiecoins">FoodieCoins</string>
+    <string name="profile_vouchers">Voucher</string>
+    <string name="profile_vouchers_count">%1$s mã</string>
+    <string name="profile_change_password">Đổi mật khẩu</string>
+    <string name="profile_logout_btn">Đăng xuất</string>
+    <string name="feature_under_development">Tính năng đang được phát triển</string>
 </resources>

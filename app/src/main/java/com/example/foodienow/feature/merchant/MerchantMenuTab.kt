@@ -89,14 +89,14 @@ fun MerchantFoodItem(
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
                 model = food.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(64.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color.LightGray),
                 contentScale = ContentScale.Crop
@@ -105,26 +105,26 @@ fun MerchantFoodItem(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = food.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(food.price.formatPrice(), color = ColorPrimaryDark, fontWeight = FontWeight.SemiBold)
+                Text(text = food.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(food.price.formatPrice(), color = ColorPrimaryDark, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = if (food.isAvailable) "Đang bán" else "Tạm hết",
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         color = if (food.isAvailable) Color(0xFF4CAF50) else Color.Red
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Switch(
                         checked = food.isAvailable,
                         onCheckedChange = { onToggle() },
-                        modifier = Modifier.scale(0.7f)
+                        modifier = Modifier.scale(0.6f)
                     )
                 }
             }
 
-            IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, contentDescription = "Sửa", tint = Color.Gray)
+            IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Default.Edit, contentDescription = "Sửa", tint = Color.Gray, modifier = Modifier.size(20.dp))
             }
         }
     }

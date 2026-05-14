@@ -1,4 +1,4 @@
-﻿package com.example.foodienow.feature.customer_home
+package com.example.foodienow.feature.customer_home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -54,45 +54,53 @@ fun CustomerHomeScreen(
             )
         }
         item {
+            Spacer(modifier = Modifier.height(12.dp))
             CategoriesSection()
         }
         item {
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             HorizontalFoodSection(
                 title = stringResource(R.string.home_section_good_meal),
                 foods = uiState.recommendedFoods,
-                headerColor = MaterialTheme.colorScheme.primary,
                 isLoading = uiState.isLoading,
-                onFoodClick = onNavigateToFoodDetail
+                onFoodClick = onNavigateToFoodDetail,
+                onSeeAllClick = onNavigateToSearch
             )
         }
         item {
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             HorizontalFoodSection(
                 title = stringResource(R.string.home_section_must_try),
                 foods = uiState.recommendedFoods.shuffled(),
-                headerColor = Color(0xFF1E3A8A), // Dark blue
                 isLoading = uiState.isLoading,
-                onFoodClick = onNavigateToFoodDetail
+                onFoodClick = onNavigateToFoodDetail,
+                onSeeAllClick = onNavigateToSearch
             )
         }
         item {
-            Spacer(modifier = Modifier.height(8.dp))
-            CollectionsSection(foods = uiState.recommendedFoods, isLoading = uiState.isLoading)
+            Spacer(modifier = Modifier.height(12.dp))
+            CollectionsSection(
+                foods = uiState.recommendedFoods, 
+                isLoading = uiState.isLoading,
+                onSeeAllClick = onNavigateToSearch
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(24.dp)) // Extra space at bottom
         }
     }
 }
 
 @Composable
 private fun HomeTopSection(
-    onNavigateToSearch: () -> Unit, // Äá»•i tham sá»‘ nÃ y
+    onNavigateToSearch: () -> Unit,
     address: String
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (currentHour) {
-        in 0..11 -> "ChÃ o buá»•i sÃ¡ng â˜€ï¸"
-        in 12..17 -> "ChÃ o buá»•i chiá»u â›…"
-        else -> "ChÃ o buá»•i tá»‘i ðŸŒ™"
+        in 0..11 -> stringResource(R.string.good_morning)
+        in 12..17 -> stringResource(R.string.good_afternoon)
+        else -> stringResource(R.string.good_evening)
     }
 
     Column(
@@ -101,12 +109,13 @@ private fun HomeTopSection(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        Color(0xFFF97316) // Orange
+                        Color(0xFFE65100), // Dark Orange for better status bar contrast
+                        MaterialTheme.colorScheme.primary
                     )
                 )
             )
-            .padding(top = 20.dp, bottom = 12.dp, start = 12.dp, end = 12.dp)
+            .statusBarsPadding()
+            .padding(top = 12.dp, bottom = 12.dp, start = 12.dp, end = 12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -181,14 +190,22 @@ private fun CategoriesSection() {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(vertical = 10.dp)
+            .padding(vertical = 16.dp, horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(categories) { catRes ->
-                CategoryItem(catRes)
+        val rows = categories.chunked(4)
+        rows.forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                rowItems.forEach { catRes ->
+                    CategoryItem(catRes)
+                }
+                // Fill empty spaces if needed
+                repeat(4 - rowItems.size) {
+                    Spacer(modifier = Modifier.width(58.dp))
+                }
             }
         }
     }
@@ -225,9 +242,9 @@ private fun CategoryItem(labelRes: Int) {
 private fun HorizontalFoodSection(
     title: String,
     foods: List<Food>,
-    headerColor: Color,
     isLoading: Boolean,
-    onFoodClick: (Food) -> Unit
+    onFoodClick: (Food) -> Unit,
+    onSeeAllClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -237,21 +254,25 @@ private fun HorizontalFoodSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(headerColor)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 title,
-                color = Color.White,
+                color = Color.Black,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                fontSize = 18.sp
             )
             Text(
                 stringResource(R.string.home_see_all),
-                color = Color.White,
-                fontSize = 12.sp
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium,
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .clickable { onSeeAllClick() }
+                    .padding(4.dp)
             )
         }
         
@@ -307,6 +328,7 @@ fun FoodCard(food: Food, onClick: (Food) -> Unit) {
             Column(modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp)) {
                 Text(
                     food.name,
+                    minLines = 2,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 12.sp,
@@ -327,7 +349,7 @@ fun FoodCard(food: Food, onClick: (Food) -> Unit) {
 }
 
 @Composable
-private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
+private fun CollectionsSection(foods: List<Food>, isLoading: Boolean, onSeeAllClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -337,20 +359,25 @@ private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 stringResource(R.string.home_section_collections),
+                color = Color.Black,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.primary
+                fontSize = 18.sp
             )
             Text(
                 stringResource(R.string.home_see_all),
-                color = Color.Gray,
-                fontSize = 12.sp
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium,
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .clickable { onSeeAllClick() }
+                    .padding(4.dp)
             )
         }
         Spacer(modifier = Modifier.height(8.dp))

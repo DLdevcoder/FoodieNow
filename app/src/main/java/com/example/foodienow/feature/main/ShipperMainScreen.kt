@@ -3,6 +3,10 @@ package com.example.foodienow.feature.main
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Home
@@ -38,7 +42,8 @@ fun ShipperMainScreen(
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
+                tonalElevation = 8.dp,
+                modifier = Modifier.height(56.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
             ) {
                 // Đã cập nhật thành 5 tab để chứa đủ Thu nhập, Thông báo và Profile
                 val tabs = listOf(
