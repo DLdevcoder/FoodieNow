@@ -161,12 +161,12 @@ fun AppNavigation() {
             route = Screen.PaymentResult.route,
             arguments = listOf(
                 navArgument("orderId") { type = NavType.StringType },
-                navArgument("amount") { type = NavType.FloatType },
+                navArgument("amount") { type = NavType.LongType },
                 navArgument("methodLabel") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
-            val amount = backStackEntry.arguments?.getFloat("amount")?.toDouble() ?: 0.0
+            val amount = backStackEntry.arguments?.getLong("amount") ?: 0L
             val methodLabel = backStackEntry.arguments?.getString("methodLabel") ?: ""
 
             com.example.foodienow.feature.payment.PaymentResultScreen(

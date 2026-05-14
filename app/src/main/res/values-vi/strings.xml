@@ -214,7 +214,7 @@
     <string name="notifications_promotions">Khuyến mãi</string>
 
     <!-- Me Tab -->
-    <string name="me_must_try">Đề Xuất Cho Bạn</string>
+    <string name="me_must_try">Đề xuất cho bạn</string>
     <string name="me_vouchers">Mã Khuyến Mãi</string>
     <string name="me_vouchers_count">1 Mã</string>
     <string name="me_coins">Điểm Thưởng</string>
@@ -243,4 +243,79 @@
     <string name="shipper_earnings_month">Tháng này</string>
     <string name="shipper_tab_completed">Hoàn thành</string>
     <string name="shipper_empty_completed">Chưa có đơn hàng nào hoàn thành.</string>
+
+    <!-- Payment Result - Failure -->
+    <string name="payment_result_failure_title">Thanh toán thất bại</string>
+    <string name="payment_result_failure_subtitle">Có lỗi xảy ra trong quá trình thanh toán</string>
+    <string name="payment_result_status_failed">Thất bại ❌</string>
+    <string name="payment_result_try_again">Thử lại</string>
+    <string name="payment_result_failure_reason">Lý do</string>
+
+    <!-- Payment ViewModel messages -->
+    <string name="payment_vm_error_empty_address">Địa chỉ nhận hàng không được để trống.</string>
+    <string name="payment_vm_error_invalid_session">Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.</string>
+    <string name="payment_vm_error_select_wallet">Vui lòng chọn nhà cung cấp ví điện tử.</string>
+    <string name="payment_vm_error_insufficient_balance">Số dư FoodiePay không đủ. Vui lòng nạp thêm.</string>
+    <string name="payment_vm_error_create_order">Không thể tạo đơn hàng.</string>
+    <string name="payment_vm_error_payment_failed">Thanh toán thất bại. Đơn hàng đã bị hủy.</string>
+    <string name="payment_vm_error_wallet_failed">Giao dịch ví thất bại. Đơn hàng đã bị hủy.</string>
+    <string name="payment_vm_error_foodiepay_deduct">Không thể trừ tiền FoodiePay.</string>
+    <string name="payment_vm_success">Thanh toán thành công.</string>
+    <string name="payment_vm_notify_success_title">Thanh toán thành công</string>
+    <string name="payment_vm_notify_success_message">Đơn hàng %1$s đã thanh toán. Bạn được cộng %2$d FoodieCoins.</string>
+    <string name="payment_vm_notify_failure_title">Thanh toán thất bại</string>
+    <string name="payment_vm_notify_failure_message">Đơn hàng %1$s đã bị hủy do lỗi giao dịch.</string>
+    <string name="payment_vm_notify_failure_refund_suffix"> Số tiền đã được hoàn lại vào FoodiePay.</string>
+    <string name="payment_vm_refund_description">Hoàn tiền đơn hàng %1$s</string>
+    <string name="payment_vm_payment_description">Thanh toán đơn hàng</string>
+    <string name="payment_vm_method_cod">Tiền mặt khi nhận hàng (COD)</string>
+    <string name="payment_vm_method_card">Thẻ ngân hàng</string>
+    <string name="payment_vm_method_wallet">Ví điện tử</string>
+    <string name="payment_vm_method_foodie_pay">FoodiePay</string>
+
+    <!-- Delivery Fee Config -->
+    <string name="payment_free_delivery_threshold">Miễn phí giao hàng cho đơn trên %1$s</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_back_content_desc">Quay lại</string>
+    <string name="settings_push_notifications">Nhận thông báo đẩy</string>
+    <string name="settings_dark_mode">Giao diện tối</string>
+    <string name="settings_use_english">Dùng tiếng Anh</string>
+    <string name="payment_voucher_title">Mã giảm giá</string>
+    <string name="payment_voucher_hint">Nhập mã (vd: GIAM20K)</string>
+    <string name="payment_voucher_apply">Áp dụng</string>
+    <string name="payment_voucher_discount">Giảm giá voucher: -%1$s</string>
+    <string name="payment_reward_title">Dùng FoodieCoins</string>
+    <string name="payment_reward_detail">Bạn có %1$d điểm (tiết kiệm %2$s)</string>
+    <string name="payment_reward_discount">FoodieCoins: -%1$s</string>
+    <string name="payment_confirm_dialog_title">Xác nhận thanh toán</string>
+    <string name="payment_confirm_dialog_message">Bạn có chắc muốn thanh toán đơn hàng này?</string>
+    <string name="payment_confirm_dialog_method">Phương thức: %1$s</string>
+    <string name="payment_confirm_dialog_total">Tổng: %1$s</string>
+    <string name="payment_confirm_dialog_address">Địa chỉ: %1$s</string>
+    <string name="payment_confirm_dialog_confirm">Xác nhận</string>
+    <string name="payment_confirm_dialog_cancel">Hủy</string>
+    <string name="payment_result_success_title">Thanh toán thành công!</string>
+    <string name="payment_result_success_subtitle">Đơn hàng của bạn đã được ghi nhận</string>
+    <string name="payment_result_detail_title">Chi tiết đơn hàng</string>
+    <string name="payment_result_order_id">Mã đơn hàng</string>
+    <string name="payment_result_total">Tổng tiền</string>
+    <string name="payment_result_method">Phương thức</string>
+    <string name="payment_result_status">Trạng thái</string>
+    <string name="payment_result_status_paid">Đã thanh toán ✅</string>
+    <string name="payment_result_view_order">Xem đơn hàng</string>
+    <string name="payment_result_go_home">Về trang chủ</string>
+    <string name="notification_loading">Đang tải thông báo…</string>
+    <string name="notification_error_title">Không thể tải thông báo</string>
+    <string name="notification_error_retry">Thử lại</string>
+    <string name="notification_empty_title">Chưa có thông báo nào</string>
+    <string name="notification_empty_subtitle">Thông báo đơn hàng và khuyến mãi
+sẽ xuất hiện tại đây</string>
+    <string name="notification_unread_count">%1$d thông báo chưa đọc</string>
+    <string name="notification_section_recent">Gần đây</string>
+    <string name="notification_count_badge">%1$d thông báo</string>
+    <string name="notification_mark_read">Đánh dấu đã đọc</string>
+    <string name="notification_delete">Xóa</string>
+    <string name="notification_mark_all_read">Đánh dấu tất cả đã đọc</string>
 </resources>

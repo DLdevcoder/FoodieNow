@@ -32,7 +32,7 @@ data class Payment(
     val id: String? = null,
     @SerialName("customer_id") val customerId: String,
     @SerialName("order_id") val orderId: String? = null,
-    val amount: Double,
+    val amount: Long,
     val method: PaymentMethod,
     val provider: WalletProvider? = null,
     @SerialName("transaction_id") val transactionId: String? = null,

@@ -34,7 +34,7 @@ data class ActivityHistoryItem(
     val status: String? = null,
     val method: PaymentMethod? = null,
     val provider: WalletProvider? = null,
-    val totalPrice: Double? = null,
+    val totalPrice: Long? = null,
     val createdAt: String?
 )
 

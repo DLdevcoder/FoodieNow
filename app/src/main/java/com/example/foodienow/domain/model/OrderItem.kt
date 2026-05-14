@@ -9,7 +9,7 @@ data class OrderItemResponse(
     @SerialName("order_id") val orderId: String,
     @SerialName("food_id") val foodId: String,
     val quantity: Int,
-    @SerialName("price_at_time") val priceAtTime: Double,
+    @SerialName("price_at_time") val priceAtTime: Long,
     val foods: FoodBasicInfo? = null
 )
 
@@ -24,7 +24,7 @@ data class OrderItemUiModel(
     val orderId: String,
     val foodId: String,
     val quantity: Int,
-    val priceAtTime: Double,
+    val priceAtTime: Long,
     val foodName: String,
     val foodImageUrl: String?
 )

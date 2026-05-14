@@ -1,5 +1,6 @@
 package com.example.foodienow.feature.profile
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,8 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,11 +35,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
-import androidx.compose.runtime.collectAsState
+import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.AppLanguage
 import com.example.foodienow.domain.model.ThemeMode
 import com.example.foodienow.feature.settings.UiPreferencesViewModel
@@ -52,18 +53,20 @@ fun SettingsScreen(
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     val uiPreferences by viewModel.uiPreferences.collectAsState()
-    val context = LocalContext.current
-    
+
     val darkModeEnabled = uiPreferences.themeMode == ThemeMode.DARK
     val englishLanguage = uiPreferences.appLanguage == AppLanguage.ENGLISH
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Cài đặt") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.settings_back_content_desc)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -81,35 +84,39 @@ fun SettingsScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 SettingSwitchItem(
                     icon = Icons.Default.NotificationsActive,
                     iconColor = Color(0xFFF59E0B),
-                    title = "Nhận thông báo đẩy",
+                    title = stringResource(R.string.settings_push_notifications),
                     checked = notificationsEnabled,
                     onCheckedChange = { notificationsEnabled = it }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                
+
                 SettingSwitchItem(
                     icon = Icons.Default.DarkMode,
                     iconColor = Color(0xFF374151),
-                    title = "Giao diện tối (Dark Mode)",
+                    title = stringResource(R.string.settings_dark_mode),
                     checked = darkModeEnabled,
-                    onCheckedChange = { 
+                    onCheckedChange = {
                         viewModel.setThemeMode(if (it) ThemeMode.DARK else ThemeMode.LIGHT)
                     }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                
+
                 SettingSwitchItem(
                     icon = Icons.Default.Language,
                     iconColor = Color(0xFF3B82F6),
-                    title = "Tiếng Anh (English)",
+                    title = stringResource(R.string.settings_use_english),
                     checked = englishLanguage,
-                    onCheckedChange = { 
-                        viewModel.setAppLanguage(if (it) AppLanguage.ENGLISH else AppLanguage.VIETNAMESE)
+                    onCheckedChange = {
+                        val language = if (it) AppLanguage.ENGLISH else AppLanguage.VIETNAMESE
+                        viewModel.setAppLanguage(language)
+                        AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags(language.languageTag)
+                        )
                     }
                 )
             }

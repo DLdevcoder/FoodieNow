@@ -5,7 +5,7 @@ import com.example.foodienow.domain.model.WalletProvider
 interface WalletPaymentGateway {
     suspend fun charge(
         provider: WalletProvider,
-        amount: Double,
+        amount: Long,
         orderId: String,
         customerId: String
     ): Result<WalletChargeResult>

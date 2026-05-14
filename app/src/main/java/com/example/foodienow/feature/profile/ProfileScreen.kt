@@ -58,7 +58,7 @@ fun ProfileScreen(
     val profile = profileUiState.profile
     val fullName = profile?.fullName ?: "Chưa cập nhật tên"
     val email = profile?.email ?: "Chưa cập nhật email"
-    val balance = profile?.balance ?: 0.0
+    val balance = profile?.balance ?: 0L
     val rewardPoints = profile?.rewardPoints ?: 0
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 

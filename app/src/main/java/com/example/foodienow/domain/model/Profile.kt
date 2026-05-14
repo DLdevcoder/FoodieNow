@@ -11,7 +11,7 @@ data class Profile(
     val role: UserRole,
     val phone: String? = null,
     val address: String? = null,
-    val balance: Double = 0.0,
+    val balance: Long = 0L,
     @SerialName("reward_points") val rewardPoints: Int = 0,
     @SerialName("updated_at") val updatedAt: String? = null
 )

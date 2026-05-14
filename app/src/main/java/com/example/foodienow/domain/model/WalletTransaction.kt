@@ -12,7 +12,7 @@ enum class WalletTransactionType {
 data class WalletTransaction(
     val id: String,
     val type: WalletTransactionType,
-    val amount: Double,
+    val amount: Long,
     val description: String,
     val createdAt: String
 )

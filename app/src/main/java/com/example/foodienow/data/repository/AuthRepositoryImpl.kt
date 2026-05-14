@@ -135,7 +135,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun getAuthState(): Flow<User?> = authSessionDataStore.sessionFlow
 
-    override suspend fun updateBalance(amount: Double): Result<User> = withContext(Dispatchers.IO) {
+    override suspend fun updateBalance(amount: Long): Result<User> = withContext(Dispatchers.IO) {
         try {
             val currentUser = authSessionDataStore.sessionFlow.firstOrNull()
                 ?: return@withContext Result.failure(Exception("No user logged in"))

@@ -2,6 +2,7 @@
 
 package com.example.foodienow.feature.payment
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,41 +13,46 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -54,14 +60,13 @@ import java.util.Locale
 fun PaymentScreen(
     onBack: () -> Unit,
     onNavigateToOrderHistory: () -> Unit,
-    onNavigateToPaymentResult: (orderId: String, amount: Double, methodLabel: String) -> Unit = { _, _, _ -> onNavigateToOrderHistory() },
+    onNavigateToPaymentResult: (orderId: String, amount: Long, methodLabel: String) -> Unit = { _, _, _ -> onNavigateToOrderHistory() },
     viewModel: PaymentViewModel = hiltViewModel()
 ) {
     var deliveryAddress by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
-    
     var voucherCodeText by remember { mutableStateOf("") }
-    var discountAmount by remember { mutableStateOf(0.0) }
+    var discountAmount by remember { mutableStateOf(0L) }
     var useRewardPoints by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var addressInitialized by remember { mutableStateOf(false) }
@@ -69,6 +74,7 @@ fun PaymentScreen(
     var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
     var selectedProvider by remember { mutableStateOf(WalletProvider.ZALOPAY) }
 
+    val scope = rememberCoroutineScope()
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
 
     val cartViewModel: com.example.foodienow.feature.cart.CartViewModel = hiltViewModel()
@@ -79,19 +85,17 @@ fun PaymentScreen(
         deliveryAddress = uiState.defaultAddress
         addressInitialized = true
     }
-    
-    if (!paymentMethodInitialized && uiState.defaultPaymentMethod != null) {
+
+    if (!paymentMethodInitialized) {
         selectedMethod = uiState.defaultPaymentMethod
         selectedProvider = uiState.defaultWalletProvider
         paymentMethodInitialized = true
     }
-    
+
     val subtotal = cartUiState.cartItems.entries.sumOf { it.key.price * it.value }
-    val deliveryFee = if (subtotal > 100000) 0.0 else 15000.0
-    val pointsDiscount = if (useRewardPoints) uiState.rewardPointsAvailable.toDouble() else 0.0
-    val totalAmount = maxOf(0.0, subtotal + deliveryFee - discountAmount - pointsDiscount)
-
-
+    val deliveryFee = if (subtotal > 100000L) 0L else 15_000L
+    val pointsDiscount = if (useRewardPoints) uiState.rewardPointsAvailable.toLong() else 0L
+    val totalAmount = maxOf(0L, subtotal + deliveryFee - discountAmount - pointsDiscount)
 
     val canPay = deliveryAddress.isNotBlank() && !uiState.isProcessing && totalAmount > 0
 
@@ -112,7 +116,18 @@ fun PaymentScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.payment_title), fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Text(
+                        stringResource(R.string.payment_title),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -120,7 +135,8 @@ fun PaymentScreen(
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -130,6 +146,7 @@ fun PaymentScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // --- ORDER SUMMARY ---
             Text(
                 text = stringResource(R.string.payment_order_information),
                 style = MaterialTheme.typography.titleMedium,
@@ -141,7 +158,7 @@ fun PaymentScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     if (cartUiState.cartItems.isNotEmpty()) {
                         cartUiState.cartItems.forEach { (food, quantity) ->
@@ -158,10 +175,16 @@ fun PaymentScreen(
                     Text(stringResource(R.string.payment_subtotal, formatter.format(subtotal)))
                     Text(stringResource(R.string.payment_delivery_fee, formatter.format(deliveryFee)))
                     if (discountAmount > 0) {
-                        Text("Giảm giá (Voucher): -${formatter.format(discountAmount)}", color = Color(0xFF10B981))
+                        Text(
+                            stringResource(R.string.payment_voucher_discount, formatter.format(discountAmount)),
+                            color = com.example.foodienow.core.designsystem.theme.SuccessGreen
+                        )
                     }
                     if (useRewardPoints && uiState.rewardPointsAvailable > 0) {
-                        Text("Điểm thưởng (FoodieCoins): -${formatter.format(pointsDiscount)}", color = Color(0xFFF59E0B))
+                        Text(
+                            stringResource(R.string.payment_reward_discount, formatter.format(pointsDiscount)),
+                            color = com.example.foodienow.core.designsystem.theme.WarningYellow
+                        )
                     }
                     Text(
                         text = stringResource(R.string.payment_total, formatter.format(totalAmount)),
@@ -173,7 +196,7 @@ fun PaymentScreen(
 
             // --- VOUCHER ---
             Text(
-                text = "Mã giảm giá",
+                text = stringResource(R.string.payment_voucher_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -190,13 +213,13 @@ fun PaymentScreen(
                         value = voucherCodeText,
                         onValueChange = { voucherCodeText = it },
                         modifier = Modifier.weight(1f),
-                        label = { Text("Nhập mã (VD: GIAM20K)") },
+                        label = { Text(stringResource(R.string.payment_voucher_hint)) },
                         singleLine = true
                     )
                     Button(
-                        onClick = { discountAmount = viewModel.applyVoucher(voucherCodeText) }
+                        onClick = { scope.launch { discountAmount = viewModel.applyVoucher(voucherCodeText) } }
                     ) {
-                        Text("Áp dụng")
+                        Text(stringResource(R.string.payment_voucher_apply))
                     }
                 }
             }
@@ -215,9 +238,9 @@ fun PaymentScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text("Dùng FoodieCoins", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.payment_reward_title), fontWeight = FontWeight.Bold)
                             Text(
-                                "Bạn có ${uiState.rewardPointsAvailable} điểm (giảm ${formatter.format(uiState.rewardPointsAvailable.toDouble())})",
+                            stringResource(R.string.payment_reward_detail, uiState.rewardPointsAvailable, formatter.format(uiState.rewardPointsAvailable.toLong())),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -229,6 +252,43 @@ fun PaymentScreen(
                 }
             }
 
+            // --- PAYMENT METHOD ---
+            Text(
+                text = stringResource(R.string.payment_method_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PaymentMethod.entries.forEach { method ->
+                        FilterChip(
+                            selected = selectedMethod == method,
+                            onClick = { selectedMethod = method },
+                            label = {
+                                Text(
+                                    text = when (method) {
+                                        PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
+                                        PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
+                                        PaymentMethod.WALLET -> stringResource(R.string.payment_method_wallet)
+                                        PaymentMethod.FOODIE_PAY -> stringResource(R.string.payment_method_foodie_pay)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+
+            // --- WALLET PROVIDER ---
             if (selectedMethod == PaymentMethod.WALLET) {
                 Text(
                     text = stringResource(R.string.payment_wallet_provider_title),
@@ -267,41 +327,7 @@ fun PaymentScreen(
                 }
             }
 
-            Text(
-                text = stringResource(R.string.payment_method_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    PaymentMethod.entries.forEach { method ->
-                        FilterChip(
-                            selected = selectedMethod == method,
-                            onClick = { selectedMethod = method },
-                            label = {
-                                Text(
-                                    text = when (method) {
-                                        PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
-                                        PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
-                                        PaymentMethod.WALLET -> stringResource(R.string.payment_method_wallet)
-                                        PaymentMethod.FOODIE_PAY -> stringResource(R.string.payment_method_foodie_pay)
-                                    }
-                                )
-                            }
-                        )
-                    }
-                }
-            }
-
+            // --- DELIVERY INFO ---
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -372,18 +398,18 @@ fun PaymentScreen(
         val methodLabel = when (selectedMethod) {
             PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
             PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
-            PaymentMethod.WALLET -> "Ví điện tử (${selectedProvider.name})"
+            PaymentMethod.WALLET -> stringResource(R.string.payment_wallet_method_with_provider, selectedProvider.name)
             PaymentMethod.FOODIE_PAY -> stringResource(R.string.payment_method_foodie_pay)
         }
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
-            title = { Text("Xác nhận thanh toán") },
+            title = { Text(stringResource(R.string.payment_confirm_dialog_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Bạn có chắc chắn muốn thanh toán đơn hàng này không?")
-                    Text("Phương thức: $methodLabel", fontWeight = FontWeight.SemiBold)
-                    Text("Tổng tiền: ${formatter.format(totalAmount)}", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                    Text("Địa chỉ: $deliveryAddress")
+                    Text(stringResource(R.string.payment_confirm_dialog_message))
+                    Text(stringResource(R.string.payment_confirm_dialog_method, methodLabel), fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.payment_confirm_dialog_total, formatter.format(totalAmount)), fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.payment_confirm_dialog_address, deliveryAddress))
                 }
             },
             confirmButton = {
@@ -400,16 +426,14 @@ fun PaymentScreen(
                         )
                     }
                 ) {
-                    Text("Xác nhận")
+                    Text(stringResource(R.string.payment_confirm_dialog_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showConfirmDialog = false }) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.payment_confirm_dialog_cancel))
                 }
             }
         )
     }
 }
-
-

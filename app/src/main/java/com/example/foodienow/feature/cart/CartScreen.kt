@@ -64,7 +64,7 @@ fun CartScreen(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             // Thanh này luôn hiển thị, tự tính toán dựa trên giỏ hàng
-            val totalPrice = if (cartItems.isNotEmpty()) cartItems.entries.sumOf { it.key.price * it.value } else 0.0
+            val totalPrice = if (cartItems.isNotEmpty()) cartItems.entries.sumOf { it.key.price * it.value } else 0L
 
             Surface(
                 color = MaterialTheme.colorScheme.surface,

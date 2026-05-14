@@ -21,16 +21,16 @@ import javax.inject.Inject
 data class Transaction(
     val id: String,
     val title: String,
-    val amount: Double,
+    val amount: Long,
     val date: Date,
     val isIncome: Boolean
 )
 
 data class ShipperEarningsUiState(
     val isLoading: Boolean = true,
-    val currentBalance: Double = 0.0,
-    val todayEarnings: Double = 0.0,
-    val weekEarnings: Double = 0.0,
+    val currentBalance: Long = 0L,
+    val todayEarnings: Long = 0L,
+    val weekEarnings: Long = 0L,
     val recentTransactions: List<Transaction> = emptyList(),
     val error: String? = null
 )

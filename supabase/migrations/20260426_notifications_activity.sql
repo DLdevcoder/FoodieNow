@@ -10,6 +10,14 @@ create table if not exists public.notifications (
     created_at timestamptz not null default now()
 );
 
+alter table public.notifications
+    add column if not exists user_id uuid references auth.users(id) on delete cascade,
+    add column if not exists title text not null default '',
+    add column if not exists message text not null default '',
+    add column if not exists is_read boolean not null default false,
+    add column if not exists read_at timestamptz,
+    add column if not exists created_at timestamptz not null default now();
+
 create index if not exists idx_notifications_user on public.notifications(user_id);
 create index if not exists idx_notifications_unread on public.notifications(user_id, is_read);
 create index if not exists idx_notifications_created_at on public.notifications(created_at desc);

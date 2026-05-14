@@ -10,7 +10,7 @@ data class CartEntity(
     val storeId: String,
     val name: String,
     val description: String?,
-    val price: Double,
+    val price: Long,
     val imageUrl: String?,
     val quantity: Int
 ) {

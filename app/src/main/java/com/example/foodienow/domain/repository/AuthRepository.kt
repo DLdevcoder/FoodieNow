@@ -24,7 +24,7 @@ interface AuthRepository {
     fun getAuthState(): Flow<User?>
 
     // Nạp tiền hoặc trừ tiền
-    suspend fun updateBalance(amount: Double): Result<User>
+    suspend fun updateBalance(amount: Long): Result<User>
 
     // Cộng hoặc trừ điểm thưởng
     suspend fun updateRewardPoints(points: Int): Result<User>

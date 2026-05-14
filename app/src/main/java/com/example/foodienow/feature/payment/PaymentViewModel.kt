@@ -2,25 +2,20 @@ package com.example.foodienow.feature.payment
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodienow.domain.model.Order
-import com.example.foodienow.domain.model.Payment
-import com.example.foodienow.domain.model.PaymentMethod
-import com.example.foodienow.domain.model.PaymentStatus
-import com.example.foodienow.domain.model.WalletProvider
-import com.example.foodienow.domain.model.AppNotification
-import com.example.foodienow.domain.model.OrderStatus
-import com.example.foodienow.domain.payment.WalletChargeResult
-import com.example.foodienow.domain.payment.WalletPaymentGateway
-import com.example.foodienow.domain.repository.AuthRepository
-import com.example.foodienow.domain.repository.NotificationRepository
-import com.example.foodienow.domain.repository.OrderRepository
-import com.example.foodienow.domain.repository.PaymentRepository
-import com.example.foodienow.domain.repository.CartRepository
-import com.example.foodienow.data.repository.MockWalletTransactionRepository
 import com.example.foodienow.data.repository.MockAddressRepository
 import com.example.foodienow.data.repository.MockPaymentSettingsRepository
+import com.example.foodienow.data.repository.MockWalletTransactionRepository
+import com.example.foodienow.domain.model.PaymentMethod
+import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.domain.model.WalletTransaction
 import com.example.foodienow.domain.model.WalletTransactionType
+import com.example.foodienow.domain.payment.WalletChargeResult
+import com.example.foodienow.domain.payment.WalletPaymentGateway
+import com.example.foodienow.domain.repository.AtomicPaymentRequest
+import com.example.foodienow.domain.repository.AuthRepository
+import com.example.foodienow.domain.repository.CartRepository
+import com.example.foodienow.domain.repository.PaymentRepository
+import com.example.foodienow.domain.repository.VoucherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
 import javax.inject.Inject
 
 data class PaymentUiState(
@@ -46,7 +42,7 @@ data class PaymentUiState(
 sealed class PaymentEvent {
     data class PaymentSuccess(
         val orderId: String,
-        val amount: Double,
+        val amount: Long,
         val methodLabel: String
     ) : PaymentEvent()
 }
@@ -54,11 +50,10 @@ sealed class PaymentEvent {
 @HiltViewModel
 class PaymentViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val orderRepository: OrderRepository,
     private val paymentRepository: PaymentRepository,
-    private val notificationRepository: NotificationRepository,
     private val walletPaymentGateway: WalletPaymentGateway,
     private val cartRepository: CartRepository,
+    private val voucherRepository: VoucherRepository,
     private val walletTransactionRepository: MockWalletTransactionRepository,
     private val addressRepository: MockAddressRepository,
     private val paymentSettingsRepository: MockPaymentSettingsRepository
@@ -84,22 +79,18 @@ class PaymentViewModel @Inject constructor(
         }
         viewModelScope.launch {
             paymentSettingsRepository.settings.collect { settings ->
-                _uiState.update { 
+                _uiState.update {
                     it.copy(
                         defaultPaymentMethod = settings.defaultMethod,
                         defaultWalletProvider = settings.defaultProvider
-                    ) 
+                    )
                 }
             }
         }
     }
 
-    fun applyVoucher(code: String): Double {
-        return when (code.uppercase()) {
-            "GIAM20K" -> 20000.0
-            "FREESHIP" -> 15000.0 // Giả sử freeship là 15k
-            else -> 0.0
-        }
+    suspend fun applyVoucher(code: String): Long {
+        return voucherRepository.getDiscount(code)
     }
 
     fun submitPayment(
@@ -107,19 +98,12 @@ class PaymentViewModel @Inject constructor(
         provider: WalletProvider?,
         deliveryAddress: String,
         note: String,
-        amount: Double,
+        amount: Long,
         usedRewardPoints: Int = 0
     ) {
         if (deliveryAddress.isBlank()) {
             _uiState.update {
-                it.copy(errorMessage = "Địa chỉ nhận hàng không được để trống.", infoMessage = null)
-            }
-            return
-        }
-
-        if (method == PaymentMethod.CARD) {
-            _uiState.update {
-                it.copy(errorMessage = "Thanh toán bằng thẻ đang được phát triển. Vui lòng chọn phương thức khác.", infoMessage = null)
+                it.copy(errorMessage = "Dia chi nhan hang khong duoc de trong.", infoMessage = null)
             }
             return
         }
@@ -131,7 +115,7 @@ class PaymentViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại."
+                        errorMessage = "Phien dang nhap khong hop le. Vui long dang nhap lai."
                     )
                 }
                 return@launch
@@ -141,157 +125,77 @@ class PaymentViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = "Vui lòng chọn ví điện tử để thanh toán."
+                        errorMessage = "Vui long chon vi dien tu de thanh toan."
                     )
                 }
                 return@launch
             }
 
-            if (method == PaymentMethod.FOODIE_PAY) {
-                if (user.balance < amount) {
-                    _uiState.update {
-                        it.copy(
-                            isProcessing = false,
-                            errorMessage = "So du Ví FoodiePay khong du. Vui long nap them tien."
-                        )
-                    }
-                    return@launch
+            if (method == PaymentMethod.FOODIE_PAY && user.balance < amount) {
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorMessage = "So du FoodiePay khong du. Vui long nap them tien."
+                    )
                 }
+                return@launch
             }
 
-            val orderResult = orderRepository.createOrder(
-                Order(
-                    customerId = user.id,
-                    totalPrice = amount,
-                    deliveryAddress = deliveryAddress,
-                    note = note.ifBlank { null }
-                )
+            val chargeResult = prepareClientSideCharge(
+                method = method,
+                provider = provider,
+                amount = amount,
+                customerId = user.id
             )
 
-            orderResult
-                .onSuccess { createdOrder ->
-                    val walletResult: Result<WalletChargeResult?> = if (method == PaymentMethod.WALLET && provider != null) {
-                        walletPaymentGateway.charge(
-                            provider = provider,
-                            amount = amount,
-                            orderId = createdOrder.id ?: "",
-                            customerId = user.id
-                        ).map { it }
-                    } else if (method == PaymentMethod.FOODIE_PAY) {
-                        // Trừ tiền trong ví
-                        val deductResult = authRepository.updateBalance(-amount)
-                        if (deductResult.isSuccess) {
-                            // Ghi log giao dịch ví
-                            walletTransactionRepository.addTransaction(
-                                WalletTransaction(
-                                    id = "FPAY-${System.currentTimeMillis()}",
-                                    type = WalletTransactionType.PAYMENT,
-                                    amount = amount,
-                                    description = "Thanh toán đơn hàng",
-                                    createdAt = java.time.Instant.now().toString()
-                                )
-                            )
-                            Result.success(WalletChargeResult(transactionId = "FPAY-${System.currentTimeMillis()}", message = "FoodiePay success"))
-                        } else {
-                            Result.failure(Exception("Loi tru tien FoodiePay"))
-                        }
-                    } else {
-                        Result.success(null)
-                    }
-
-                    walletResult
-                        .onSuccess { charge ->
-                            paymentRepository.createPayment(
-                                Payment(
-                                    customerId = user.id,
-                                    orderId = createdOrder.id,
-                                    amount = amount,
-                                    method = method,
-                                    provider = provider,
-                                    transactionId = charge?.transactionId,
-                                    status = PaymentStatus.SUCCESS,
-                                    deliveryAddress = deliveryAddress,
-                                    note = note.ifBlank { null }
-                                )
-                            )
-                                .onSuccess {
-                                    val earnedPoints = (amount * 0.01).toInt()
-                                    val pointDiff = earnedPoints - usedRewardPoints
-                                    if (pointDiff != 0) {
-                                        authRepository.updateRewardPoints(pointDiff)
-                                    }
-
-                                    createNotification(
-                                        userId = user.id,
-                                        title = "Thanh toán thành công",
-                                        message = "Đơn hàng ${createdOrder.id ?: ""} đã thanh toán. Bạn được cộng $earnedPoints FoodieCoins."
-                                    )
-                                    val methodLabel = when (method) {
-                                        PaymentMethod.COD -> "Tiền mặt (COD)"
-                                        PaymentMethod.CARD -> "Thẻ tín dụng"
-                                        PaymentMethod.WALLET -> provider?.name ?: "Ví điện tử"
-                                        PaymentMethod.FOODIE_PAY -> "FoodiePay"
-                                    }
-                                    _uiState.update {
-                                        it.copy(
-                                            isProcessing = false,
-                                            infoMessage = "Thanh toán thành công."
-                                        )
-                                    }
-                                    cartRepository.clearCart()
-                                    _paymentEvent.emit(PaymentEvent.PaymentSuccess(
-                                        orderId = createdOrder.id ?: "",
-                                        amount = amount,
-                                        methodLabel = methodLabel
-                                    ))
-                                }
-                                .onFailure { error ->
-                                    handlePaymentFailure(
-                                        customerId = user.id,
-                                        createdOrder = createdOrder,
-                                        method = method,
-                                        provider = provider,
-                                        transactionId = charge?.transactionId,
-                                        deliveryAddress = deliveryAddress,
-                                        note = note,
-                                        amount = amount,
-                                        cause = error
-                                    )
-                                    _uiState.update {
-                                        it.copy(
-                                            isProcessing = false,
-                                            errorMessage = "Thanh toan that bai. Don hang da duoc huy de tranh sai lech du lieu."
-                                        )
-                                    }
-                                }
-                        }
-                        .onFailure { error ->
-                            handlePaymentFailure(
-                                customerId = user.id,
-                                createdOrder = createdOrder,
-                                method = method,
-                                provider = provider,
-                                transactionId = null,
-                                deliveryAddress = deliveryAddress,
-                                note = note,
-                                amount = amount,
-                                cause = error
-                            )
-                            _uiState.update {
-                                it.copy(
-                                    isProcessing = false,
-                                    errorMessage = "Giao dich vi dien tu that bai. Don hang da duoc huy."
-                                )
-                            }
-                        }
-                }
+            chargeResult
                 .onFailure { error ->
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
-                            errorMessage = error.message ?: "Khong tao duoc don hang."
+                            errorMessage = error.message ?: "Giao dich vi dien tu that bai."
                         )
                     }
+                }
+                .onSuccess { charge ->
+                    paymentRepository.processPaymentAtomic(
+                        AtomicPaymentRequest(
+                            customerId = user.id,
+                            amount = amount,
+                            method = method,
+                            provider = provider,
+                            transactionId = charge?.transactionId,
+                            deliveryAddress = deliveryAddress,
+                            note = note.ifBlank { null },
+                            usedRewardPoints = usedRewardPoints
+                        )
+                    )
+                        .onSuccess { result ->
+                            _uiState.update {
+                                it.copy(
+                                    isProcessing = false,
+                                    infoMessage = "Thanh toan thanh cong."
+                                )
+                            }
+                            cartRepository.clearCart()
+                            _paymentEvent.emit(
+                                PaymentEvent.PaymentSuccess(
+                                    orderId = result.orderId,
+                                    amount = amount,
+                                    methodLabel = method.toDisplayLabel(provider)
+                                )
+                            )
+                        }
+                        .onFailure { error ->
+                            refundFoodiePayIfNeeded(method, amount)
+                            _uiState.update {
+                                it.copy(
+                                    isProcessing = false,
+                                    errorMessage = error.message
+                                        ?: "Thanh toan that bai. Du lieu don hang da duoc rollback."
+                                )
+                            }
+                        }
                 }
         }
     }
@@ -300,71 +204,61 @@ class PaymentViewModel @Inject constructor(
         _uiState.update { it.copy(infoMessage = null, errorMessage = null) }
     }
 
-    private suspend fun handlePaymentFailure(
-        customerId: String,
-        createdOrder: Order,
+    private suspend fun prepareClientSideCharge(
         method: PaymentMethod,
         provider: WalletProvider?,
-        transactionId: String?,
-        deliveryAddress: String,
-        note: String,
-        amount: Double,
-        cause: Throwable
-    ) {
-        val failedNote = buildString {
-            append(note.ifBlank { "Thanh toán thất bại" })
-            append(" | error=")
-            append(cause.message ?: "unknown")
-        }
-
-        paymentRepository.createPayment(
-            Payment(
-                customerId = customerId,
-                orderId = createdOrder.id,
-                amount = amount,
-                method = method,
-                provider = provider,
-                transactionId = transactionId,
-                status = PaymentStatus.FAILED,
-                deliveryAddress = deliveryAddress,
-                note = failedNote
-            )
-        )
-
-        if (method == PaymentMethod.FOODIE_PAY) {
-            authRepository.updateBalance(amount)
-            walletTransactionRepository.addTransaction(
-                WalletTransaction(
-                    id = "REFUND-${System.currentTimeMillis()}",
-                    type = WalletTransactionType.TOP_UP,
+        amount: Long,
+        customerId: String
+    ): Result<WalletChargeResult?> {
+        return when {
+            method == PaymentMethod.WALLET && provider != null -> {
+                walletPaymentGateway.charge(
+                    provider = provider,
                     amount = amount,
-                    description = "Hoàn tiền đơn hàng ${createdOrder.id ?: ""}",
-                    createdAt = java.time.Instant.now().toString()
-                )
+                    orderId = "PENDING-${System.currentTimeMillis()}",
+                    customerId = customerId
+                ).map { it }
+            }
+            method == PaymentMethod.FOODIE_PAY -> {
+                val transactionId = "FPAY-${System.currentTimeMillis()}"
+                authRepository.updateBalance(-amount).map {
+                    walletTransactionRepository.addTransaction(
+                        WalletTransaction(
+                            id = transactionId,
+                            type = WalletTransactionType.PAYMENT,
+                            amount = amount,
+                            description = "Thanh toan don hang",
+                            createdAt = Instant.now().toString()
+                        )
+                    )
+                    WalletChargeResult(transactionId = transactionId, message = "FoodiePay success")
+                }
+            }
+            else -> Result.success(null)
+        }
+    }
+
+    private suspend fun refundFoodiePayIfNeeded(method: PaymentMethod, amount: Long) {
+        if (method != PaymentMethod.FOODIE_PAY) return
+
+        authRepository.updateBalance(amount)
+        walletTransactionRepository.addTransaction(
+            WalletTransaction(
+                id = "REFUND-${System.currentTimeMillis()}",
+                type = WalletTransactionType.TOP_UP,
+                amount = amount,
+                description = "Hoan tien don hang thanh toan loi",
+                createdAt = Instant.now().toString()
             )
-        }
-
-        createdOrder.id?.let { orderId ->
-            orderRepository.updateOrderStatus(orderId, OrderStatus.CANCELLED)
-        }
-
-        createNotification(
-            userId = customerId,
-            title = "Thanh toán thất bại",
-            message = "Đơn hàng ${createdOrder.id ?: ""} đã bị hủy do giao dịch lỗi.${if (method == PaymentMethod.FOODIE_PAY) " Số tiền đã được hoàn lại vào ví FoodiePay." else ""}"
         )
     }
 
-    private suspend fun createNotification(userId: String, title: String, message: String) {
-        runCatching {
-            notificationRepository.createNotification(
-                AppNotification(
-                    userId = userId,
-                    title = title,
-                    message = message
-                )
-            )
+    private fun PaymentMethod.toDisplayLabel(provider: WalletProvider?): String {
+        return when (this) {
+            PaymentMethod.COD -> "Tien mat (COD)"
+            PaymentMethod.CARD -> "The tin dung"
+            PaymentMethod.WALLET -> provider?.name ?: "Vi dien tu"
+            PaymentMethod.FOODIE_PAY -> "FoodiePay"
         }
     }
 }
-

@@ -19,7 +19,7 @@ import java.time.Instant
 import javax.inject.Inject
 
 data class WalletUiState(
-    val balance: Double = 0.0,
+    val balance: Long = 0L,
     val isProcessing: Boolean = false,
     val transactions: List<WalletTransaction> = emptyList(),
     val successMessage: String? = null,
@@ -58,7 +58,7 @@ class WalletViewModel @Inject constructor(
         }
     }
 
-    fun topUp(amount: Double, provider: WalletProvider) {
+    fun topUp(amount: Long, provider: WalletProvider) {
         if (amount <= 0) {
             _uiState.update { it.copy(errorMessage = "So tien nap khong hop le.", successMessage = null) }
             return

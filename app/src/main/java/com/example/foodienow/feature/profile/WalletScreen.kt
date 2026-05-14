@@ -148,7 +148,7 @@ fun WalletScreen(
 
             Button(
                 onClick = {
-                    val amount = topUpAmountText.toDoubleOrNull() ?: 0.0
+                    val amount = topUpAmountText.toLongOrNull() ?: 0L
                     viewModel.topUp(amount, selectedProvider)
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp),

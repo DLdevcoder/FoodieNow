@@ -9,7 +9,7 @@ data class Food(
     @SerialName("store_id") val storeId: String,
     val name: String,
     val description: String? = null,
-    val price: Double,
+    val price: Long,
     @SerialName("image_url") val imageUrl: String? = null,
     @SerialName("is_available") val isAvailable: Boolean = true,
     val rating: Double = 0.0,

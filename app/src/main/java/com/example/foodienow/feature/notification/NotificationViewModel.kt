@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,13 +33,15 @@ class NotificationViewModel @Inject constructor(
     val uiState: StateFlow<NotificationUiState> = _uiState.asStateFlow()
 
     private var currentUserId: String? = null
+    private var observeJob: Job? = null
 
     init {
-        observeNotifications()
+        loadNotifications()
     }
 
-    private fun observeNotifications() {
-        viewModelScope.launch {
+    fun loadNotifications() {
+        observeJob?.cancel()
+        observeJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val user = authRepository.getAuthState().first()
             if (user == null) {
@@ -46,7 +49,7 @@ class NotificationViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         notifications = emptyList(),
-                        errorMessage = "Khong tim thay phien dang nhap."
+                        errorMessage = "Không tìm thấy phiên đăng nhập."
                     )
                 }
                 return@launch
@@ -70,7 +73,7 @@ class NotificationViewModel @Inject constructor(
             notificationRepository.markAsRead(id)
                 .onFailure { error ->
                     _uiState.update {
-                        it.copy(errorMessage = error.message ?: "Khong cap nhat duoc thong bao.")
+                        it.copy(errorMessage = error.message ?: "Không cập nhật được thông báo.")
                     }
                 }
         }
@@ -82,7 +85,18 @@ class NotificationViewModel @Inject constructor(
             notificationRepository.markAllAsRead(userId)
                 .onFailure { error ->
                     _uiState.update {
-                        it.copy(errorMessage = error.message ?: "Khong cap nhat duoc thong bao.")
+                        it.copy(errorMessage = error.message ?: "Không cập nhật được thông báo.")
+                    }
+                }
+        }
+    }
+
+    fun deleteNotification(id: String) {
+        viewModelScope.launch {
+            notificationRepository.deleteNotification(id)
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(errorMessage = error.message ?: "Không xóa được thông báo.")
                     }
                 }
         }

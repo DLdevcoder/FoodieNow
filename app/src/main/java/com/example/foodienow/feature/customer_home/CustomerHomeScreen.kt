@@ -1,4 +1,4 @@
-package com.example.foodienow.feature.customer_home
+﻿package com.example.foodienow.feature.customer_home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -57,7 +57,7 @@ fun CustomerHomeScreen(
             CategoriesSection()
         }
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             HorizontalFoodSection(
                 title = stringResource(R.string.home_section_good_meal),
                 foods = uiState.recommendedFoods,
@@ -67,7 +67,7 @@ fun CustomerHomeScreen(
             )
         }
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             HorizontalFoodSection(
                 title = stringResource(R.string.home_section_must_try),
                 foods = uiState.recommendedFoods.shuffled(),
@@ -85,14 +85,14 @@ fun CustomerHomeScreen(
 
 @Composable
 private fun HomeTopSection(
-    onNavigateToSearch: () -> Unit, // Đổi tham số này
+    onNavigateToSearch: () -> Unit, // Äá»•i tham sá»‘ nÃ y
     address: String
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (currentHour) {
-        in 0..11 -> "Chào buổi sáng ☀️"
-        in 12..17 -> "Chào buổi chiều ⛅"
-        else -> "Chào buổi tối 🌙"
+        in 0..11 -> "ChÃ o buá»•i sÃ¡ng â˜€ï¸"
+        in 12..17 -> "ChÃ o buá»•i chiá»u â›…"
+        else -> "ChÃ o buá»•i tá»‘i ðŸŒ™"
     }
 
     Column(
@@ -106,7 +106,7 @@ private fun HomeTopSection(
                     )
                 )
             )
-            .padding(top = 24.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
+            .padding(top = 20.dp, bottom = 12.dp, start = 12.dp, end = 12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -139,12 +139,12 @@ private fun HomeTopSection(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .clickable { onNavigateToSearch() }, // Khi bấm sẽ nhảy sang trang tìm kiếm
+                .height(44.dp)
+                .clickable { onNavigateToSearch() }, // Khi báº¥m sáº½ nháº£y sang trang tÃ¬m kiáº¿m
             shape = RoundedCornerShape(8.dp),
             color = Color.White
         ) {
@@ -159,7 +159,7 @@ private fun HomeTopSection(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = stringResource(R.string.home_search_placeholder), // "Bạn muốn ăn gì?"
+                    text = stringResource(R.string.home_search_placeholder), // "Báº¡n muá»‘n Äƒn gÃ¬?"
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
@@ -181,22 +181,13 @@ private fun CategoriesSection() {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(vertical = 16.dp)
+            .padding(vertical = 10.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            categories.take(4).forEach { catRes ->
-                CategoryItem(catRes)
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            categories.drop(4).forEach { catRes ->
+            items(categories) { catRes ->
                 CategoryItem(catRes)
             }
         }
@@ -207,25 +198,25 @@ private fun CategoriesSection() {
 private fun CategoryItem(labelRes: Int) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(72.dp)
+        modifier = Modifier.width(58.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .size(38.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .background(Color(0xFFF3F4F6)),
             contentAlignment = Alignment.Center
         ) {
             // Placeholder for category icon
-            Text("🍲", fontSize = 24.sp)
+            Text("🍲", fontSize = 20.sp)
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(3.dp))
         Text(
             stringResource(labelRes),
-            fontSize = 11.sp,
+            fontSize = 10.sp,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             maxLines = 2,
-            lineHeight = 14.sp
+            lineHeight = 12.sp
         )
     }
 }
@@ -247,7 +238,7 @@ private fun HorizontalFoodSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(headerColor)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -255,7 +246,7 @@ private fun HorizontalFoodSection(
                 title,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+                fontSize = 15.sp
             )
             Text(
                 stringResource(R.string.home_see_all),
@@ -266,19 +257,19 @@ private fun HorizontalFoodSection(
         
         if (isLoading) {
             LazyRow(
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(3) {
-                    Box(modifier = Modifier.width(140.dp)) {
+                    Box(modifier = Modifier.width(112.dp)) {
                         com.example.foodienow.core.designsystem.components.FoodItemShimmer()
                     }
                 }
             }
         } else {
             LazyRow(
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(foods) { food ->
                     FoodCard(food, onFoodClick)
@@ -292,7 +283,7 @@ private fun HorizontalFoodSection(
 fun FoodCard(food: Food, onClick: (Food) -> Unit) {
     Card(
         modifier = Modifier
-            .width(140.dp)
+            .width(112.dp)
             .clickable { onClick(food) },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -301,7 +292,7 @@ fun FoodCard(food: Food, onClick: (Food) -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f)
+                    .height(86.dp)
                     .background(Color.LightGray)
             ) {
                 if (!food.imageUrl.isNullOrBlank()) {
@@ -313,20 +304,22 @@ fun FoodCard(food: Food, onClick: (Food) -> Unit) {
                     )
                 }
             }
-            Column(modifier = Modifier.padding(8.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp)) {
                 Text(
                     food.name,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
+                    lineHeight = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(3.dp))
                 Text(
                     food.price.formatPrice(),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontSize = 12.sp,
+                    maxLines = 1
                 )
             }
         }
@@ -339,19 +332,19 @@ private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(vertical = 12.dp)
+            .padding(vertical = 10.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 stringResource(R.string.home_section_collections),
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
+                fontSize = 15.sp,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
@@ -360,15 +353,15 @@ private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
                 fontSize = 12.sp
             )
         }
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         
         if (isLoading) {
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(3) {
-                    Box(modifier = Modifier.width(120.dp)) {
+                    Box(modifier = Modifier.width(104.dp)) {
                         com.example.foodienow.core.designsystem.components.FoodItemShimmer()
                     }
                 }
@@ -376,14 +369,14 @@ private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
         } else {
             val collectionFoods = foods.take(3)
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(collectionFoods) { food ->
                     Card(
                         modifier = Modifier
-                            .width(120.dp)
-                            .height(160.dp)
+                            .width(104.dp)
+                            .height(136.dp)
                             .clickable { /* Could navigate to a collection page */ },
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -392,7 +385,7 @@ private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(100.dp)
+                                    .height(78.dp)
                                     .background(MaterialTheme.colorScheme.primary)
                             ) {
                                 if (!food.imageUrl.isNullOrBlank()) {
@@ -406,8 +399,9 @@ private fun CollectionsSection(foods: List<Food>, isLoading: Boolean) {
                             }
                             Text(
                                 food.name,
-                                modifier = Modifier.padding(8.dp),
-                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+                                fontSize = 11.sp,
+                                lineHeight = 13.sp,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )

@@ -37,17 +37,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.foodienow.R
+import com.example.foodienow.core.designsystem.theme.SuccessGreen
 import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
 fun PaymentResultScreen(
     orderId: String,
-    amount: Double,
+    amount: Long,
     methodLabel: String,
     onNavigateToHome: () -> Unit,
     onNavigateToOrderHistory: () -> Unit
@@ -67,7 +70,11 @@ fun PaymentResultScreen(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF10B981), Color(0xFF059669), Color(0xFFF3F4F6)),
+                    colors = listOf(
+                        SuccessGreen,
+                        SuccessGreen.copy(alpha = 0.85f),
+                        MaterialTheme.colorScheme.background
+                    ),
                     startY = 0f,
                     endY = 800f
                 )
@@ -93,14 +100,14 @@ fun PaymentResultScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            "Thanh toán thành công!",
+            stringResource(R.string.payment_result_success_title),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            "Đơn hàng của bạn đã được ghi nhận",
+            stringResource(R.string.payment_result_success_subtitle),
             fontSize = 14.sp,
             color = Color.White.copy(alpha = 0.9f)
         )
@@ -113,24 +120,36 @@ fun PaymentResultScreen(
                 .padding(horizontal = 24.dp),
             shape = RoundedCornerShape(20.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    "Chi tiết đơn hàng",
+                    stringResource(R.string.payment_result_detail_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                HorizontalDivider(color = Color(0xFFF3F4F6))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                ResultRow("Mã đơn hàng", "#${orderId.take(8)}")
-                ResultRow("Tổng tiền", formatter.format(amount))
-                ResultRow("Phương thức", methodLabel)
-                ResultRow("Trạng thái", "Đã thanh toán ✅")
+                ResultRow(
+                    stringResource(R.string.payment_result_order_id),
+                    "#${orderId.take(8)}"
+                )
+                ResultRow(
+                    stringResource(R.string.payment_result_total),
+                    formatter.format(amount)
+                )
+                ResultRow(
+                    stringResource(R.string.payment_result_method),
+                    methodLabel
+                )
+                ResultRow(
+                    stringResource(R.string.payment_result_status),
+                    stringResource(R.string.payment_result_status_paid)
+                )
             }
         }
 
@@ -148,7 +167,11 @@ fun PaymentResultScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Xem đơn hàng", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(
+                    stringResource(R.string.payment_result_view_order),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
             }
             OutlinedButton(
                 onClick = onNavigateToHome,
@@ -157,7 +180,11 @@ fun PaymentResultScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Về trang chủ", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(
+                    stringResource(R.string.payment_result_go_home),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
             }
         }
     }
@@ -170,12 +197,12 @@ private fun ResultRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, fontSize = 14.sp, color = Color.Gray)
+        Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
             value,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.End
         )
     }

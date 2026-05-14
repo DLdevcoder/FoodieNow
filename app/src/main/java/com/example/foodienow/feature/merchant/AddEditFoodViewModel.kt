@@ -56,7 +56,7 @@ class AddEditFoodViewModel @Inject constructor(
                 val food = Food(
                     id = foodId ?: "",
                     name = name,
-                    price = price.toDoubleOrNull() ?: 0.0,
+                    price = price.toLongOrNull() ?: 0L,
                     description = description,
                     storeId = storeId,
                     isAvailable = true

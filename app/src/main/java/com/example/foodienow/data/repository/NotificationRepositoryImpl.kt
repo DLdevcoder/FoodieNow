@@ -4,11 +4,14 @@ import com.example.foodienow.domain.model.AppNotification
 import com.example.foodienow.domain.repository.NotificationRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.realtime
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
 
@@ -16,23 +19,42 @@ class NotificationRepositoryImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
 ) : NotificationRepository {
 
-    override fun observeNotifications(userId: String): Flow<List<AppNotification>> = flow {
-        while (currentCoroutineContext().isActive) {
-            val notifications = runCatching {
-                supabaseClient.postgrest["notifications"]
-                    .select {
-                        filter {
-                            eq("user_id", userId)
-                        }
-                    }
-                    .decodeList<AppNotification>()
-                    .sortedByDescending { it.createdAt.orEmpty() }
-            }.getOrDefault(emptyList())
+    override fun observeNotifications(userId: String): Flow<List<AppNotification>> = channelFlow {
+        send(fetchNotifications(userId))
 
-            emit(notifications)
-            // Polling keeps UI in sync until websocket realtime is wired.
-            delay(POLL_INTERVAL_MILLIS)
+        val channel = supabaseClient.realtime.channel("notifications-$userId")
+        val changeFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+            table = "notifications"
+            filter = "user_id=eq.$userId"
         }
+
+        launch {
+            changeFlow.collect {
+                send(fetchNotifications(userId))
+            }
+        }
+
+        channel.subscribe()
+
+        awaitClose {
+            launch {
+                channel.unsubscribe()
+                supabaseClient.realtime.removeChannel(channel)
+            }
+        }
+    }
+
+    private suspend fun fetchNotifications(userId: String): List<AppNotification> {
+        return runCatching {
+            supabaseClient.postgrest["notifications"]
+                .select {
+                    filter {
+                        eq("user_id", userId)
+                    }
+                }
+                .decodeList<AppNotification>()
+                .sortedByDescending { it.createdAt.orEmpty() }
+        }.getOrDefault(emptyList())
     }
 
     override suspend fun createNotification(notification: AppNotification): Result<AppNotification> {
@@ -87,9 +109,16 @@ class NotificationRepositoryImpl @Inject constructor(
         }
     }
 
-    private companion object {
-        const val POLL_INTERVAL_MILLIS = 3000L
+    override suspend fun deleteNotification(notificationId: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest["notifications"].delete {
+                filter {
+                    eq("id", notificationId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
-
-

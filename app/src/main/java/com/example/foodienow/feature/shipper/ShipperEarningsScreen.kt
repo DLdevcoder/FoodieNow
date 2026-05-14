@@ -64,7 +64,7 @@ fun ShipperEarningsScreen(
 }
 
 @Composable
-private fun WalletHeaderSection(balance: Double) {
+private fun WalletHeaderSection(balance: Long) {
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
 
     Card(
@@ -112,7 +112,7 @@ private fun WalletHeaderSection(balance: Double) {
 }
 
 @Composable
-private fun EarningsStatsSection(todayEarnings: Double, weekEarnings: Double) {
+private fun EarningsStatsSection(todayEarnings: Long, weekEarnings: Long) {
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
 
     Row(

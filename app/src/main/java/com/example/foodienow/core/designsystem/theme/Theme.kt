@@ -8,6 +8,8 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.platform.LocalContext
 import com.example.foodienow.domain.model.ThemeMode
 
@@ -86,10 +88,43 @@ fun FoodieNowTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalSpacing provides Spacing(),
+        LocalElevation provides Elevation()
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            shapes = Shapes,
+            content = content
+        )
+    }
+}
+
+/**
+ * Convenience accessor for FoodieNow design tokens.
+ *
+ * Usage:
+ * ```
+ * val spacing = FoodieNowTheme.spacing
+ * val elevation = FoodieNowTheme.elevation
+ * ```
+ *
+ * For Material3 tokens, use MaterialTheme directly:
+ * ```
+ * MaterialTheme.colorScheme.primary
+ * MaterialTheme.typography.titleLarge
+ * MaterialTheme.shapes.medium
+ * ```
+ */
+object FoodieNowTheme {
+    val spacing: Spacing
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalSpacing.current
+
+    val elevation: Elevation
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalElevation.current
 }

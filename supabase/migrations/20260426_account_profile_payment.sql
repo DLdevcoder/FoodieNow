@@ -52,11 +52,13 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists profiles_set_updated_at on public.profiles;
 create trigger profiles_set_updated_at
 before update on public.profiles
 for each row
 execute function public.set_updated_at();
 
+drop trigger if exists orders_set_updated_at on public.orders;
 create trigger orders_set_updated_at
 before update on public.orders
 for each row
@@ -67,53 +69,65 @@ alter table public.orders enable row level security;
 alter table public.payments enable row level security;
 
 -- Temporary permissive RLS for anon/authenticated (tighten later)
+drop policy if exists "profiles_select_all" on public.profiles;
 create policy "profiles_select_all"
     on public.profiles for select
     using (true);
 
+drop policy if exists "profiles_insert_all" on public.profiles;
 create policy "profiles_insert_all"
     on public.profiles for insert
     with check (true);
 
+drop policy if exists "profiles_update_all" on public.profiles;
 create policy "profiles_update_all"
     on public.profiles for update
     using (true)
     with check (true);
 
+drop policy if exists "profiles_delete_all" on public.profiles;
 create policy "profiles_delete_all"
     on public.profiles for delete
     using (true);
 
+drop policy if exists "orders_select_all" on public.orders;
 create policy "orders_select_all"
     on public.orders for select
     using (true);
 
+drop policy if exists "orders_insert_all" on public.orders;
 create policy "orders_insert_all"
     on public.orders for insert
     with check (true);
 
+drop policy if exists "orders_update_all" on public.orders;
 create policy "orders_update_all"
     on public.orders for update
     using (true)
     with check (true);
 
+drop policy if exists "orders_delete_all" on public.orders;
 create policy "orders_delete_all"
     on public.orders for delete
     using (true);
 
+drop policy if exists "payments_select_all" on public.payments;
 create policy "payments_select_all"
     on public.payments for select
     using (true);
 
+drop policy if exists "payments_insert_all" on public.payments;
 create policy "payments_insert_all"
     on public.payments for insert
     with check (true);
 
+drop policy if exists "payments_update_all" on public.payments;
 create policy "payments_update_all"
     on public.payments for update
     using (true)
     with check (true);
 
+drop policy if exists "payments_delete_all" on public.payments;
 create policy "payments_delete_all"
     on public.payments for delete
     using (true);

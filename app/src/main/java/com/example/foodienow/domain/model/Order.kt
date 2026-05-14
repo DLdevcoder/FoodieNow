@@ -18,7 +18,7 @@ data class Order(
     @SerialName("customer_id") val customerId: String,
     @SerialName("merchant_id") val merchantId: String? = null,
     @SerialName("shipper_id") val shipperId: String? = null,
-    @SerialName("total_price") val totalPrice: Double,
+    @SerialName("total_price") val totalPrice: Long,
     val status: OrderStatus = OrderStatus.PENDING,
     @SerialName("delivery_address") val deliveryAddress: String,
     val note: String? = null,
