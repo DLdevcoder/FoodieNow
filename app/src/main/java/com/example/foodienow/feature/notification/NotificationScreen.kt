@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.DeleteOutline
@@ -21,6 +22,9 @@ import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Moped
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -93,6 +97,15 @@ fun NotificationScreen(
                         )
                     }
                 }
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { viewModel.sendTestNotification() },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Test Notification")
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -375,20 +388,32 @@ private fun resolveNotificationStyle(notification: AppNotification): Pair<Color,
     val message = notification.message.lowercase()
 
     return when {
-        title.contains("thành công") || message.contains("thành công") ->
-            SuccessGreen to Icons.Default.CheckCircleOutline
+        // 2. Cần hành động ngay (Action required - High priority)
+        listOf("hết món", "không liên lạc được", "không rõ", "thay đổi giá", "thất bại").any { title.contains(it) || message.contains(it) } ->
+            ErrorRed to Icons.Default.WarningAmber
 
-        title.contains("đơn hàng") || title.contains("giao hàng") ->
-            InfoBlue to Icons.Default.ShoppingBag
+        // 3. Vấn đề phát sinh (Issues)
+        listOf("trễ", "hủy đơn", "không tìm được", "sự cố", "thay đổi").any { title.contains(it) || message.contains(it) } ->
+            WarningYellow to Icons.Default.ErrorOutline
 
-        title.contains("thanh toán") || message.contains("thanh toán") ->
+        // 4. Thanh toán và hoàn tiền
+        listOf("thanh toán", "hoàn tiền", "phí").any { title.contains(it) || message.contains(it) } ->
             Color(0xFF8B5CF6) to Icons.AutoMirrored.Filled.ReceiptLong
 
-        title.contains("khuyến mãi") || title.contains("giảm giá") || title.contains("ưu đãi") ->
-            WarningYellow to Icons.Default.LocalOffer
+        // 6. Ưu đãi và khuyến mãi (Check before Order/Driver to catch promos first)
+        listOf("khuyến mãi", "giảm giá", "ưu đãi", "voucher", "flash sale", "miễn phí").any { title.contains(it) || message.contains(it) } ->
+            SuccessGreen to Icons.Default.LocalOffer
+
+        // 5. Thông báo về tài xế
+        listOf("tài xế").any { title.contains(it) || message.contains(it) } ->
+            InfoBlue to Icons.Default.Moped
+
+        // 1. Trạng thái đơn hàng (Order status)
+        listOf("đã xác nhận", "chuẩn bị", "đã nhận đơn", "đang giao", "thành công", "đơn hàng").any { title.contains(it) || message.contains(it) } ->
+            InfoBlue to Icons.Default.ShoppingBag
 
         else ->
-            ErrorRed to Icons.Default.Campaign
+            InfoBlue to Icons.Default.NotificationsNone
     }
 }
 

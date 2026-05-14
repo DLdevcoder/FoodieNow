@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -56,26 +57,31 @@ class NotificationViewModel @Inject constructor(
             }
 
             currentUserId = user.id
-            notificationRepository.observeNotifications(user.id).collect { notifications ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        notifications = notifications,
-                        errorMessage = null
-                    )
+            notificationRepository.observeNotifications(user.id)
+                .catch { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "Không tải được thông báo. Vui lòng thử lại sau."
+                        )
+                    }
                 }
-            }
+                .collect { notifications ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            notifications = notifications,
+                            errorMessage = null
+                        )
+                    }
+                }
         }
     }
 
     fun markAsRead(id: String) {
         viewModelScope.launch {
             notificationRepository.markAsRead(id)
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(errorMessage = error.message ?: "Không cập nhật được thông báo.")
-                    }
-                }
+                // Ignore failure to prevent hiding the whole list with an error state
         }
     }
 
@@ -83,22 +89,48 @@ class NotificationViewModel @Inject constructor(
         val userId = currentUserId ?: return
         viewModelScope.launch {
             notificationRepository.markAllAsRead(userId)
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(errorMessage = error.message ?: "Không cập nhật được thông báo.")
-                    }
-                }
         }
     }
 
     fun deleteNotification(id: String) {
         viewModelScope.launch {
             notificationRepository.deleteNotification(id)
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(errorMessage = error.message ?: "Không xóa được thông báo.")
-                    }
-                }
+        }
+    }
+
+    // Dành cho mục đích test Realtime
+    fun sendTestNotification() {
+        val userId = currentUserId ?: return
+        viewModelScope.launch {
+            val testNotifications = listOf(
+                AppNotification(
+                    userId = userId,
+                    title = "Đơn hàng đã xác nhận",
+                    message = "Nhà hàng đã nhận đơn và đang chuẩn bị món cho bạn.",
+                    createdAt = java.time.Instant.now().toString()
+                ),
+                AppNotification(
+                    userId = userId,
+                    title = "Tài xế đang giao",
+                    message = "Tài xế Nguyễn Văn A đang trên đường giao món đến bạn.",
+                    createdAt = java.time.Instant.now().toString()
+                ),
+                AppNotification(
+                    userId = userId,
+                    title = "Nhà hàng hết món",
+                    message = "Quán hiện đã hết Gà rán, vui lòng chọn món khác thay thế.",
+                    createdAt = java.time.Instant.now().toString()
+                ),
+                AppNotification(
+                    userId = userId,
+                    title = "Giảm giá 30%",
+                    message = "Voucher đặc biệt giảm 30% cho đơn hàng tiếp theo của bạn!",
+                    createdAt = java.time.Instant.now().toString()
+                )
+            )
+            // Lấy ngẫu nhiên 1 cái để test các style khác nhau
+            val randomNotif = testNotifications.random()
+            notificationRepository.createNotification(randomNotif)
         }
     }
 }
