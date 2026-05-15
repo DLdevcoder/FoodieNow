@@ -49,6 +49,7 @@ import com.example.foodienow.feature.profile.ProfileScreen
 import com.example.foodienow.feature.main.CustomerMainScreen
 import com.example.foodienow.feature.customer_home.components.SearchScreen // Import SearchScreen
 import com.example.foodienow.feature.main.ShipperMainScreen
+import com.example.foodienow.domain.model.Food
 
 @Composable
 fun AppNavigation() {
@@ -291,6 +292,27 @@ fun AppNavigation() {
             val uiState by viewModel.uiState.collectAsState()
 
             val cartViewModel: CartViewModel = hiltViewModel()
+            val cartUiState by cartViewModel.uiState.collectAsState()
+
+            // State quản lý luồng thêm vào giỏ
+            var showClearCartDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+            var pendingAddFood by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Food?>(null) }
+            var pendingAddQty by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(0) }
+
+            // Gọi Component Dialog từ file khác
+            if (showClearCartDialog && pendingAddFood != null) {
+                com.example.foodienow.feature.cart.components.ClearCartDialog(
+                    onConfirm = {
+                        cartViewModel.clearCart()
+                        cartViewModel.addToCart(pendingAddFood!!, pendingAddQty)
+                        showClearCartDialog = false
+                        navController.navigate(Screen.Cart.route)
+                    },
+                    onDismiss = {
+                        showClearCartDialog = false
+                    }
+                )
+            }
 
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -298,7 +320,10 @@ fun AppNavigation() {
                 }
             } else if (uiState.error != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Lỗi: ${uiState.error}", color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text = stringResource(R.string.error_prefix, uiState.error!!),
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             } else if (uiState.food != null && uiState.store != null) {
                 FoodDetailScreen(
@@ -307,8 +332,16 @@ fun AppNavigation() {
                     reviews = uiState.reviews,
                     onBackClick = { navController.popBackStack() },
                     onAddToCart = { food, quantity ->
-                        cartViewModel.addToCart(food, quantity)
-                        navController.navigate(Screen.Cart.route)
+                        val currentCartStoreId = cartUiState.cartItems.keys.firstOrNull()?.storeId
+
+                        if (currentCartStoreId != null && currentCartStoreId != food.storeId) {
+                            pendingAddFood = food
+                            pendingAddQty = quantity
+                            showClearCartDialog = true
+                        } else {
+                            cartViewModel.addToCart(food, quantity)
+                            navController.navigate(Screen.Cart.route)
+                        }
                     },
                     onNavigateToStore = { /* TODO */ },
                     onNavigateToAllReviews = {

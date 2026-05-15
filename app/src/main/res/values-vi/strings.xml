@@ -331,4 +331,10 @@ sẽ xuất hiện tại đây</string>
     <string name="profile_change_password">Đổi mật khẩu</string>
     <string name="profile_logout_btn">Đăng xuất</string>
     <string name="feature_under_development">Tính năng đang được phát triển</string>
+
+    <string name="cart_clear_dialog_title">No items</string>
+    <string name="cart_clear_dialog_desc">Adding this item will remove the previous restaurant items from your cart. Do you want to continue?</string>
+    <string name="cart_clear_dialog_confirm">Ok</string>
+    <string name="cart_clear_dialog_cancel">Cancel</string>
+    <string name="error_prefix">Error: %1$s</string>
 </resources>
