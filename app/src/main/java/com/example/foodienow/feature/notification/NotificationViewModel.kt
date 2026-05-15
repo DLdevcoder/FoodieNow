@@ -16,12 +16,24 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class NotificationFilter {
+    ALL, UNREAD
+}
+
 data class NotificationUiState(
     val isLoading: Boolean = true,
     val notifications: List<AppNotification> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val filterType: NotificationFilter = NotificationFilter.ALL
 ) {
     val unreadCount: Int = notifications.count { !it.isRead }
+    
+    val filteredNotifications: List<AppNotification>
+        get() = if (filterType == NotificationFilter.UNREAD) {
+            notifications.filter { !it.isRead }
+        } else {
+            notifications
+        }
 }
 
 @HiltViewModel
@@ -76,6 +88,10 @@ class NotificationViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    fun setFilter(filter: NotificationFilter) {
+        _uiState.update { it.copy(filterType = filter) }
     }
 
     fun markAsRead(id: String) {

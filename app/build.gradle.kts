@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -51,6 +52,10 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:gotrue-kt:$supabaseVersion")
     implementation("io.github.jan-tennert.supabase:storage-kt:${supabaseVersion}")
     implementation("io.github.jan-tennert.supabase:realtime-kt:${supabaseVersion}")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-messaging")
 
     // Ktor & Serialization
     implementation("io.ktor:ktor-client-okhttp:2.3.11")

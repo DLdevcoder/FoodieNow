@@ -52,5 +52,22 @@ class ProfileRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun updateFcmToken(userId: String, token: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest["profiles"].update(
+                {
+                    set("fcm_token", token)
+                }
+            ) {
+                filter {
+                    eq("id", userId)
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
 
