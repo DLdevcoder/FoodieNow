@@ -331,4 +331,22 @@ sẽ xuất hiện tại đây</string>
     <string name="profile_change_password">Đổi mật khẩu</string>
     <string name="profile_logout_btn">Đăng xuất</string>
     <string name="feature_under_development">Tính năng đang được phát triển</string>
+
+    <!-- Localized Notifications -->
+    <string name="notification_title_order_new">Đơn hàng mới!</string>
+    <string name="notification_body_order_new">Bạn có một đơn hàng mới trị giá %1$sđ. Vui lòng kiểm tra!</string>
+    <string name="notification_title_order_preparing">Đã xác nhận đơn hàng</string>
+    <string name="notification_body_order_preparing">Quán đã nhận đơn hàng và đang chuẩn bị.</string>
+    <string name="notification_title_order_delivering">Đơn hàng đang giao!</string>
+    <string name="notification_body_order_delivering">Shipper đang trên đường giao đơn hàng đến bạn. Vui lòng chú ý điện thoại nhé.</string>
+    <string name="notification_title_order_completed">Đơn hàng hoàn thành</string>
+    <string name="notification_body_order_completed">Đơn hàng đã được giao thành công. Cảm ơn bạn đã sử dụng FoodieNow!</string>
+    <string name="notification_title_order_cancelled">Đơn hàng đã hủy</string>
+    <string name="notification_body_order_cancelled">Đơn hàng của bạn đã bị hủy.</string>
+    <string name="notification_title_new_review">Đánh giá mới!</string>
+    <string name="notification_body_new_review">Khách hàng vừa đánh giá %1$s sao cho món %2$s.</string>
+    <string name="notification_title_wallet_transaction">Biến động số dư</string>
+    <string name="notification_body_wallet_transaction">%1$s</string>
+    <string name="notification_title_payment_success">Thanh toán thành công</string>
+    <string name="notification_body_payment_success">Đơn hàng %1$s đã thanh toán. Bạn được cộng %2$s FoodieCoins.</string>
 </resources>

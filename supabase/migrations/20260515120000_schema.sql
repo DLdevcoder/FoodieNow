@@ -1,6 +1,3 @@
-
-
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -12,16 +9,11 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-
 CREATE SCHEMA IF NOT EXISTS "public";
-
 
 ALTER SCHEMA "public" OWNER TO "pg_database_owner";
 
-
 COMMENT ON SCHEMA "public" IS 'standard public schema';
-
-
 
 CREATE OR REPLACE FUNCTION "public"."process_payment"("p_customer_id" "uuid", "p_amount" numeric, "p_method" "text", "p_provider" "text" DEFAULT NULL::"text", "p_transaction_id" "text" DEFAULT NULL::"text", "p_delivery_address" "text" DEFAULT NULL::"text", "p_note" "text" DEFAULT NULL::"text", "p_used_reward_points" integer DEFAULT 0) RETURNS TABLE("order_id" "uuid", "payment_id" "uuid", "earned_points" integer)
     LANGUAGE "plpgsql" SECURITY DEFINER
@@ -120,60 +112,61 @@ begin
 end;
 $$;
 
-
 ALTER FUNCTION "public"."process_payment"("p_customer_id" "uuid", "p_amount" numeric, "p_method" "text", "p_provider" "text", "p_transaction_id" "text", "p_delivery_address" "text", "p_note" "text", "p_used_reward_points" integer) OWNER TO "postgres";
-
 
 CREATE OR REPLACE FUNCTION "public"."set_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
+    SET search_path TO ''
     AS $$
-begin
-    new.updated_at = now();
-    return new;
-end;
+BEGIN
+    NEW.updated_at = timezone('utc'::text, now());
+    RETURN NEW;
+END;
 $$;
-
 
 ALTER FUNCTION "public"."set_updated_at"() OWNER TO "postgres";
 
-
 CREATE OR REPLACE FUNCTION "public"."update_store_rating"() RETURNS "trigger"
     LANGUAGE "plpgsql"
+    SET search_path TO ''
     AS $$
 DECLARE
     v_target_store_id uuid;
 BEGIN
-    -- Tìm store_id dựa vào food_id của review vừa được thêm
-    SELECT store_id INTO v_target_store_id FROM public.foods WHERE id = NEW.food_id;
+    IF TG_OP = 'DELETE' THEN
+        SELECT store_id INTO v_target_store_id FROM public.foods WHERE id = OLD.food_id;
+    ELSE
+        SELECT store_id INTO v_target_store_id FROM public.foods WHERE id = NEW.food_id;
+    END IF;
 
-    -- Cập nhật lại rating và review_count cho store đó
     UPDATE public.stores
     SET 
         rating = (
-            SELECT COALESCE(AVG(r.rating), 0) 
-            FROM public.reviews r 
+            SELECT COALESCE(AVG(r.rating), 0)
+            FROM public.reviews r
             JOIN public.foods f ON r.food_id = f.id 
             WHERE f.store_id = v_target_store_id
         ),
         review_count = (
-            SELECT COUNT(*) 
-            FROM public.reviews r 
+            SELECT COUNT(r.id)
+            FROM public.reviews r
             JOIN public.foods f ON r.food_id = f.id 
             WHERE f.store_id = v_target_store_id
         )
     WHERE id = v_target_store_id;
 
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
     RETURN NEW;
 END;
 $$;
-
 
 ALTER FUNCTION "public"."update_store_rating"() OWNER TO "postgres";
 
 SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
-
 
 CREATE TABLE IF NOT EXISTS "public"."addresses" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -185,9 +178,7 @@ CREATE TABLE IF NOT EXISTS "public"."addresses" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
-
 ALTER TABLE "public"."addresses" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."foods" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -202,9 +193,7 @@ CREATE TABLE IF NOT EXISTS "public"."foods" (
     "sold_count" integer DEFAULT 0
 );
 
-
 ALTER TABLE "public"."foods" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."notifications" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -217,9 +206,7 @@ CREATE TABLE IF NOT EXISTS "public"."notifications" (
     "read_at" timestamp with time zone
 );
 
-
 ALTER TABLE "public"."notifications" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."order_items" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -229,9 +216,7 @@ CREATE TABLE IF NOT EXISTS "public"."order_items" (
     "price_at_time" double precision NOT NULL
 );
 
-
 ALTER TABLE "public"."order_items" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."orders" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -253,9 +238,7 @@ CREATE TABLE IF NOT EXISTS "public"."orders" (
     CONSTRAINT "orders_status_check" CHECK (("status" = ANY (ARRAY['PENDING'::"text", 'PREPARING'::"text", 'DELIVERING'::"text", 'COMPLETED'::"text", 'CANCELLED'::"text"])))
 );
 
-
 ALTER TABLE "public"."orders" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."payment_settings" (
     "user_id" "uuid" NOT NULL,
@@ -264,9 +247,7 @@ CREATE TABLE IF NOT EXISTS "public"."payment_settings" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
-
 ALTER TABLE "public"."payment_settings" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."payments" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -285,9 +266,7 @@ CREATE TABLE IF NOT EXISTS "public"."payments" (
     CONSTRAINT "payments_status_check" CHECK (("status" = ANY (ARRAY['PENDING'::"text", 'SUCCESS'::"text", 'FAILED'::"text"])))
 );
 
-
 ALTER TABLE "public"."payments" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL,
@@ -304,9 +283,7 @@ CREATE TABLE IF NOT EXISTS "public"."profiles" (
     CONSTRAINT "profiles_role_check" CHECK (("role" = ANY (ARRAY['CUSTOMER'::"text", 'MERCHANT'::"text", 'SHIPPER'::"text"])))
 );
 
-
 ALTER TABLE "public"."profiles" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."reviews" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -319,9 +296,7 @@ CREATE TABLE IF NOT EXISTS "public"."reviews" (
     CONSTRAINT "reviews_rating_check" CHECK ((("rating" >= 1) AND ("rating" <= 5)))
 );
 
-
 ALTER TABLE "public"."reviews" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."stores" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -337,24 +312,7 @@ CREATE TABLE IF NOT EXISTS "public"."stores" (
     "review_count" integer DEFAULT 0
 );
 
-
 ALTER TABLE "public"."stores" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."users" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "email" "text" NOT NULL,
-    "full_name" "text" NOT NULL,
-    "role" "text" NOT NULL,
-    "phone" "text",
-    "avatar_url" "text",
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    CONSTRAINT "users_role_check" CHECK (("role" = ANY (ARRAY['CUSTOMER'::"text", 'MERCHANT'::"text", 'SHIPPER'::"text"])))
-);
-
-
-ALTER TABLE "public"."users" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."vouchers" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
@@ -370,9 +328,7 @@ CREATE TABLE IF NOT EXISTS "public"."vouchers" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
-
 ALTER TABLE "public"."vouchers" OWNER TO "postgres";
-
 
 CREATE TABLE IF NOT EXISTS "public"."wallet_transactions" (
     "id" "text" NOT NULL,
@@ -383,572 +339,332 @@ CREATE TABLE IF NOT EXISTS "public"."wallet_transactions" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
-
 ALTER TABLE "public"."wallet_transactions" OWNER TO "postgres";
-
 
 ALTER TABLE ONLY "public"."addresses"
     ADD CONSTRAINT "addresses_pkey" PRIMARY KEY ("id");
 
-
-
 ALTER TABLE ONLY "public"."foods"
     ADD CONSTRAINT "foods_pkey" PRIMARY KEY ("id");
-
-
 
 ALTER TABLE ONLY "public"."notifications"
     ADD CONSTRAINT "notifications_pkey" PRIMARY KEY ("id");
 
-
-
 ALTER TABLE ONLY "public"."order_items"
     ADD CONSTRAINT "order_items_pkey" PRIMARY KEY ("id");
-
-
 
 ALTER TABLE ONLY "public"."orders"
     ADD CONSTRAINT "orders_pkey" PRIMARY KEY ("id");
 
-
-
 ALTER TABLE ONLY "public"."payment_settings"
     ADD CONSTRAINT "payment_settings_pkey" PRIMARY KEY ("user_id");
-
-
 
 ALTER TABLE ONLY "public"."payments"
     ADD CONSTRAINT "payments_pkey" PRIMARY KEY ("id");
 
-
-
 ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("id");
-
-
 
 ALTER TABLE ONLY "public"."reviews"
     ADD CONSTRAINT "reviews_pkey" PRIMARY KEY ("id");
 
-
-
 ALTER TABLE ONLY "public"."stores"
     ADD CONSTRAINT "stores_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."users"
-    ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
-
-
 
 ALTER TABLE ONLY "public"."vouchers"
     ADD CONSTRAINT "vouchers_pkey" PRIMARY KEY ("id");
 
-
-
 ALTER TABLE ONLY "public"."wallet_transactions"
     ADD CONSTRAINT "wallet_transactions_pkey" PRIMARY KEY ("id");
 
-
-
 CREATE UNIQUE INDEX "addresses_one_default_per_user" ON "public"."addresses" USING "btree" ("user_id") WHERE "is_default";
-
-
 
 CREATE INDEX "addresses_user_id_idx" ON "public"."addresses" USING "btree" ("user_id");
 
-
-
 CREATE INDEX "idx_notifications_created_at" ON "public"."notifications" USING "btree" ("created_at" DESC);
-
-
 
 CREATE INDEX "idx_notifications_unread" ON "public"."notifications" USING "btree" ("user_id", "is_read");
 
-
-
 CREATE INDEX "idx_notifications_user" ON "public"."notifications" USING "btree" ("user_id");
-
-
 
 CREATE INDEX "idx_orders_customer" ON "public"."orders" USING "btree" ("customer_id");
 
-
-
 CREATE INDEX "idx_orders_merchant" ON "public"."orders" USING "btree" ("merchant_id");
-
-
 
 CREATE INDEX "idx_payments_customer" ON "public"."payments" USING "btree" ("customer_id");
 
-
-
 CREATE INDEX "idx_payments_order" ON "public"."payments" USING "btree" ("order_id");
-
-
 
 CREATE INDEX "idx_profiles_email" ON "public"."profiles" USING "btree" ("email");
 
-
-
 CREATE INDEX "orders_customer_id_idx" ON "public"."orders" USING "btree" ("customer_id");
-
-
 
 CREATE INDEX "orders_merchant_id_idx" ON "public"."orders" USING "btree" ("merchant_id");
 
-
-
 CREATE INDEX "payments_customer_id_idx" ON "public"."payments" USING "btree" ("customer_id");
-
-
 
 CREATE INDEX "payments_order_id_idx" ON "public"."payments" USING "btree" ("order_id");
 
-
-
 CREATE INDEX "payments_provider_idx" ON "public"."payments" USING "btree" ("provider");
-
-
 
 CREATE INDEX "profiles_email_idx" ON "public"."profiles" USING "btree" ("email");
 
-
-
 CREATE UNIQUE INDEX "vouchers_code_key" ON "public"."vouchers" USING "btree" ("code");
-
-
 
 CREATE INDEX "wallet_transactions_user_created_idx" ON "public"."wallet_transactions" USING "btree" ("user_id", "created_at" DESC);
 
-
-
-CREATE OR REPLACE TRIGGER "orders_set_updated_at" BEFORE UPDATE ON "public"."orders" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
-
-
-
-CREATE OR REPLACE TRIGGER "profiles_set_updated_at" BEFORE UPDATE ON "public"."profiles" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
-
-
-
-CREATE OR REPLACE TRIGGER "send-push-notification" AFTER INSERT ON "public"."notifications" FOR EACH ROW EXECUTE FUNCTION "supabase_functions"."http_request"('https://ruyrncmsawymsrvsluae.supabase.co/functions/v1/push-notification', 'POST', '{"Content-type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1eXJuY21zYXd5bXNydnNsdWFlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjY2NDA4OCwiZXhwIjoyMDkyMjQwMDg4fQ.8TNzNWIJgNIdVdU4paJ1eWO867lC8riYJA-kHDhzZp4"}', '{}', '5000');
-
-
-
-CREATE OR REPLACE TRIGGER "trg_orders_updated_at" BEFORE UPDATE ON "public"."orders" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
-
-
-
-CREATE OR REPLACE TRIGGER "trg_profiles_updated_at" BEFORE UPDATE ON "public"."profiles" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
-
-
-
 CREATE OR REPLACE TRIGGER "trg_update_store_rating" AFTER INSERT OR DELETE OR UPDATE ON "public"."reviews" FOR EACH ROW EXECUTE FUNCTION "public"."update_store_rating"();
-
-
 
 ALTER TABLE ONLY "public"."addresses"
     ADD CONSTRAINT "addresses_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
-
-
 ALTER TABLE ONLY "public"."foods"
     ADD CONSTRAINT "foods_store_id_fkey" FOREIGN KEY ("store_id") REFERENCES "public"."stores"("id") ON DELETE CASCADE;
 
-
-
 ALTER TABLE ONLY "public"."notifications"
-    ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
+    ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."profiles"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."order_items"
     ADD CONSTRAINT "order_items_food_id_fkey" FOREIGN KEY ("food_id") REFERENCES "public"."foods"("id") ON DELETE CASCADE;
 
-
-
 ALTER TABLE ONLY "public"."order_items"
     ADD CONSTRAINT "order_items_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE CASCADE;
 
-
+ALTER TABLE ONLY "public"."orders"
+    ADD CONSTRAINT "orders_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "public"."profiles"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."orders"
-    ADD CONSTRAINT "orders_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
+    ADD CONSTRAINT "orders_merchant_id_fkey" FOREIGN KEY ("merchant_id") REFERENCES "public"."profiles"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."orders"
-    ADD CONSTRAINT "orders_merchant_id_fkey" FOREIGN KEY ("merchant_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."orders"
-    ADD CONSTRAINT "orders_shipper_id_fkey" FOREIGN KEY ("shipper_id") REFERENCES "public"."users"("id") ON DELETE SET NULL;
-
-
+    ADD CONSTRAINT "orders_shipper_id_fkey" FOREIGN KEY ("shipper_id") REFERENCES "public"."profiles"("id") ON DELETE SET NULL;
 
 ALTER TABLE ONLY "public"."payment_settings"
     ADD CONSTRAINT "payment_settings_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
-
-
 ALTER TABLE ONLY "public"."payments"
     ADD CONSTRAINT "payments_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
 
 ALTER TABLE ONLY "public"."payments"
     ADD CONSTRAINT "payments_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE SET NULL;
 
-
-
 ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
-
-
 ALTER TABLE ONLY "public"."reviews"
-    ADD CONSTRAINT "reviews_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
+    ADD CONSTRAINT "reviews_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "public"."profiles"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."reviews"
     ADD CONSTRAINT "reviews_food_id_fkey" FOREIGN KEY ("food_id") REFERENCES "public"."foods"("id") ON DELETE CASCADE;
 
-
-
 ALTER TABLE ONLY "public"."reviews"
     ADD CONSTRAINT "reviews_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE CASCADE;
 
-
-
 ALTER TABLE ONLY "public"."stores"
-    ADD CONSTRAINT "stores_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
+    ADD CONSTRAINT "stores_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."profiles"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."vouchers"
-    ADD CONSTRAINT "vouchers_merchant_id_fkey" FOREIGN KEY ("merchant_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
+    ADD CONSTRAINT "vouchers_merchant_id_fkey" FOREIGN KEY ("merchant_id") REFERENCES "public"."profiles"("id") ON DELETE CASCADE;
 
 ALTER TABLE ONLY "public"."wallet_transactions"
     ADD CONSTRAINT "wallet_transactions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
-
-
 CREATE POLICY "Enable update for authenticated users" ON "public"."orders" FOR UPDATE TO "authenticated" USING (true) WITH CHECK (true);
-
-
 
 ALTER TABLE "public"."addresses" ENABLE ROW LEVEL SECURITY;
 
-
 CREATE POLICY "addresses_delete_own" ON "public"."addresses" FOR DELETE TO "authenticated" USING (("auth"."uid"() = "user_id"));
-
-
 
 CREATE POLICY "addresses_insert_own" ON "public"."addresses" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = "user_id"));
 
-
-
 CREATE POLICY "addresses_select_own" ON "public"."addresses" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "user_id"));
-
-
 
 CREATE POLICY "addresses_update_own" ON "public"."addresses" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
 
-
-
 ALTER TABLE "public"."foods" ENABLE ROW LEVEL SECURITY;
 
+CREATE POLICY "foods_select_all" ON "public"."foods" FOR SELECT USING (true);
+CREATE POLICY "foods_insert_all" ON "public"."foods" FOR INSERT WITH CHECK (true);
+CREATE POLICY "foods_update_all" ON "public"."foods" FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "foods_delete_all" ON "public"."foods" FOR DELETE USING (true);
 
 ALTER TABLE "public"."notifications" ENABLE ROW LEVEL SECURITY;
 
-
 CREATE POLICY "notifications_delete_own" ON "public"."notifications" FOR DELETE TO "authenticated", "anon" USING (true);
-
-
 
 CREATE POLICY "notifications_insert_own" ON "public"."notifications" FOR INSERT TO "authenticated", "anon" WITH CHECK (true);
 
-
-
 CREATE POLICY "notifications_select_own" ON "public"."notifications" FOR SELECT TO "authenticated", "anon" USING (true);
-
-
 
 CREATE POLICY "notifications_update_own" ON "public"."notifications" FOR UPDATE TO "authenticated", "anon" USING (true) WITH CHECK (true);
 
-
-
 ALTER TABLE "public"."order_items" ENABLE ROW LEVEL SECURITY;
 
+CREATE POLICY "order_items_select_all" ON "public"."order_items" FOR SELECT USING (true);
+CREATE POLICY "order_items_insert_all" ON "public"."order_items" FOR INSERT WITH CHECK (true);
+CREATE POLICY "order_items_update_all" ON "public"."order_items" FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "order_items_delete_all" ON "public"."order_items" FOR DELETE USING (true);
 
 ALTER TABLE "public"."orders" ENABLE ROW LEVEL SECURITY;
 
-
 CREATE POLICY "orders_delete_all" ON "public"."orders" FOR DELETE USING (true);
-
-
 
 CREATE POLICY "orders_insert_all" ON "public"."orders" FOR INSERT WITH CHECK (true);
 
-
-
 CREATE POLICY "orders_insert_customer" ON "public"."orders" FOR INSERT TO "authenticated", "anon" WITH CHECK (true);
-
-
 
 CREATE POLICY "orders_select_all" ON "public"."orders" FOR SELECT USING (true);
 
-
-
 CREATE POLICY "orders_select_related" ON "public"."orders" FOR SELECT TO "authenticated", "anon" USING (true);
-
-
 
 CREATE POLICY "orders_update_all" ON "public"."orders" FOR UPDATE USING (true) WITH CHECK (true);
 
-
-
 CREATE POLICY "orders_update_related" ON "public"."orders" FOR UPDATE TO "authenticated", "anon" USING (true);
-
-
 
 ALTER TABLE "public"."payment_settings" ENABLE ROW LEVEL SECURITY;
 
-
 CREATE POLICY "payment_settings_insert_own" ON "public"."payment_settings" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = "user_id"));
-
-
 
 CREATE POLICY "payment_settings_select_own" ON "public"."payment_settings" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "user_id"));
 
-
-
 CREATE POLICY "payment_settings_update_own" ON "public"."payment_settings" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
-
-
 
 ALTER TABLE "public"."payments" ENABLE ROW LEVEL SECURITY;
 
-
 CREATE POLICY "payments_delete_all" ON "public"."payments" FOR DELETE USING (true);
-
-
 
 CREATE POLICY "payments_insert_all" ON "public"."payments" FOR INSERT WITH CHECK (true);
 
-
-
 CREATE POLICY "payments_insert_own" ON "public"."payments" FOR INSERT TO "authenticated", "anon" WITH CHECK (true);
-
-
 
 CREATE POLICY "payments_select_all" ON "public"."payments" FOR SELECT USING (true);
 
-
-
 CREATE POLICY "payments_select_own" ON "public"."payments" FOR SELECT TO "authenticated", "anon" USING (true);
-
-
 
 CREATE POLICY "payments_update_all" ON "public"."payments" FOR UPDATE USING (true) WITH CHECK (true);
 
-
-
 CREATE POLICY "payments_update_own" ON "public"."payments" FOR UPDATE TO "authenticated", "anon" USING (true) WITH CHECK (true);
-
-
 
 ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
 
-
 CREATE POLICY "profiles_delete_all" ON "public"."profiles" FOR DELETE USING (true);
-
-
 
 CREATE POLICY "profiles_insert_all" ON "public"."profiles" FOR INSERT WITH CHECK (true);
 
-
-
 CREATE POLICY "profiles_insert_own" ON "public"."profiles" FOR INSERT TO "authenticated", "anon" WITH CHECK (true);
-
-
 
 CREATE POLICY "profiles_select_all" ON "public"."profiles" FOR SELECT USING (true);
 
-
-
 CREATE POLICY "profiles_select_own" ON "public"."profiles" FOR SELECT TO "authenticated", "anon" USING (true);
-
-
 
 CREATE POLICY "profiles_update_all" ON "public"."profiles" FOR UPDATE USING (true) WITH CHECK (true);
 
-
-
 CREATE POLICY "profiles_update_own" ON "public"."profiles" FOR UPDATE TO "authenticated", "anon" USING (true) WITH CHECK (true);
-
-
 
 ALTER TABLE "public"."reviews" ENABLE ROW LEVEL SECURITY;
 
+CREATE POLICY "reviews_select_all" ON "public"."reviews" FOR SELECT USING (true);
+CREATE POLICY "reviews_insert_all" ON "public"."reviews" FOR INSERT WITH CHECK (true);
+CREATE POLICY "reviews_update_all" ON "public"."reviews" FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "reviews_delete_all" ON "public"."reviews" FOR DELETE USING (true);
 
 ALTER TABLE "public"."stores" ENABLE ROW LEVEL SECURITY;
 
-
-ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
-
+CREATE POLICY "stores_select_all" ON "public"."stores" FOR SELECT USING (true);
+CREATE POLICY "stores_insert_all" ON "public"."stores" FOR INSERT WITH CHECK (true);
+CREATE POLICY "stores_update_all" ON "public"."stores" FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "stores_delete_all" ON "public"."stores" FOR DELETE USING (true);
 
 ALTER TABLE "public"."vouchers" ENABLE ROW LEVEL SECURITY;
 
-
 CREATE POLICY "vouchers_select_active" ON "public"."vouchers" FOR SELECT TO "authenticated", "anon" USING (("is_active" AND (("expires_at" IS NULL) OR ("expires_at" > "now"()))));
-
-
 
 ALTER TABLE "public"."wallet_transactions" ENABLE ROW LEVEL SECURITY;
 
-
 CREATE POLICY "wallet_transactions_insert_own" ON "public"."wallet_transactions" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = "user_id"));
 
-
-
 CREATE POLICY "wallet_transactions_select_own" ON "public"."wallet_transactions" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "user_id"));
-
-
 
 GRANT USAGE ON SCHEMA "public" TO "postgres";
 GRANT USAGE ON SCHEMA "public" TO "anon";
 GRANT USAGE ON SCHEMA "public" TO "authenticated";
 GRANT USAGE ON SCHEMA "public" TO "service_role";
 
-
-
-GRANT ALL ON FUNCTION "public"."process_payment"("p_customer_id" "uuid", "p_amount" numeric, "p_method" "text", "p_provider" "text", "p_transaction_id" "text", "p_delivery_address" "text", "p_note" "text", "p_used_reward_points" integer) TO "anon";
-GRANT ALL ON FUNCTION "public"."process_payment"("p_customer_id" "uuid", "p_amount" numeric, "p_method" "text", "p_provider" "text", "p_transaction_id" "text", "p_delivery_address" "text", "p_note" "text", "p_used_reward_points" integer) TO "authenticated";
+REVOKE ALL ON FUNCTION "public"."process_payment"("p_customer_id" "uuid", "p_amount" numeric, "p_method" "text", "p_provider" "text", "p_transaction_id" "text", "p_delivery_address" "text", "p_note" "text", "p_used_reward_points" integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION "public"."process_payment"("p_customer_id" "uuid", "p_amount" numeric, "p_method" "text", "p_provider" "text", "p_transaction_id" "text", "p_delivery_address" "text", "p_note" "text", "p_used_reward_points" integer) FROM "anon";
+REVOKE ALL ON FUNCTION "public"."process_payment"("p_customer_id" "uuid", "p_amount" numeric, "p_method" "text", "p_provider" "text", "p_transaction_id" "text", "p_delivery_address" "text", "p_note" "text", "p_used_reward_points" integer) FROM "authenticated";
 GRANT ALL ON FUNCTION "public"."process_payment"("p_customer_id" "uuid", "p_amount" numeric, "p_method" "text", "p_provider" "text", "p_transaction_id" "text", "p_delivery_address" "text", "p_note" "text", "p_used_reward_points" integer) TO "service_role";
-
-
 
 GRANT ALL ON FUNCTION "public"."set_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."set_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_updated_at"() TO "service_role";
 
-
-
 GRANT ALL ON FUNCTION "public"."update_store_rating"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_store_rating"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_store_rating"() TO "service_role";
-
-
 
 GRANT ALL ON TABLE "public"."addresses" TO "anon";
 GRANT ALL ON TABLE "public"."addresses" TO "authenticated";
 GRANT ALL ON TABLE "public"."addresses" TO "service_role";
 
-
-
 GRANT ALL ON TABLE "public"."foods" TO "anon";
 GRANT ALL ON TABLE "public"."foods" TO "authenticated";
 GRANT ALL ON TABLE "public"."foods" TO "service_role";
-
-
 
 GRANT ALL ON TABLE "public"."notifications" TO "anon";
 GRANT ALL ON TABLE "public"."notifications" TO "authenticated";
 GRANT ALL ON TABLE "public"."notifications" TO "service_role";
 
-
-
 GRANT ALL ON TABLE "public"."order_items" TO "anon";
 GRANT ALL ON TABLE "public"."order_items" TO "authenticated";
 GRANT ALL ON TABLE "public"."order_items" TO "service_role";
-
-
 
 GRANT ALL ON TABLE "public"."orders" TO "anon";
 GRANT ALL ON TABLE "public"."orders" TO "authenticated";
 GRANT ALL ON TABLE "public"."orders" TO "service_role";
 
-
-
 GRANT ALL ON TABLE "public"."payment_settings" TO "anon";
 GRANT ALL ON TABLE "public"."payment_settings" TO "authenticated";
 GRANT ALL ON TABLE "public"."payment_settings" TO "service_role";
-
-
 
 GRANT ALL ON TABLE "public"."payments" TO "anon";
 GRANT ALL ON TABLE "public"."payments" TO "authenticated";
 GRANT ALL ON TABLE "public"."payments" TO "service_role";
 
-
-
 GRANT ALL ON TABLE "public"."profiles" TO "anon";
 GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
 GRANT ALL ON TABLE "public"."profiles" TO "service_role";
-
-
 
 GRANT ALL ON TABLE "public"."reviews" TO "anon";
 GRANT ALL ON TABLE "public"."reviews" TO "authenticated";
 GRANT ALL ON TABLE "public"."reviews" TO "service_role";
 
-
-
 GRANT ALL ON TABLE "public"."stores" TO "anon";
 GRANT ALL ON TABLE "public"."stores" TO "authenticated";
 GRANT ALL ON TABLE "public"."stores" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."users" TO "anon";
-GRANT ALL ON TABLE "public"."users" TO "authenticated";
-GRANT ALL ON TABLE "public"."users" TO "service_role";
-
-
 
 GRANT ALL ON TABLE "public"."vouchers" TO "anon";
 GRANT ALL ON TABLE "public"."vouchers" TO "authenticated";
 GRANT ALL ON TABLE "public"."vouchers" TO "service_role";
 
-
-
 GRANT ALL ON TABLE "public"."wallet_transactions" TO "anon";
 GRANT ALL ON TABLE "public"."wallet_transactions" TO "authenticated";
 GRANT ALL ON TABLE "public"."wallet_transactions" TO "service_role";
-
-
 
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "postgres";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "service_role";
 
-
-
-
-
-
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "postgres";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "service_role";
 
-
-
-
-
-
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "postgres";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
 
 DO $$
 BEGIN
@@ -956,13 +672,19 @@ BEGIN
         SELECT 1 FROM pg_publication_tables 
         WHERE pubname = 'supabase_realtime' AND tablename = 'orders'
     ) THEN
-        EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE orders';
+        EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE "public"."orders"';
     END IF;
     
     IF NOT EXISTS (
         SELECT 1 FROM pg_publication_tables 
         WHERE pubname = 'supabase_realtime' AND tablename = 'notifications'
     ) THEN
-        EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE notifications';
+        EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE "public"."notifications"';
     END IF;
 END $$;
+
+CREATE OR REPLACE TRIGGER "trg_orders_updated_at" BEFORE UPDATE ON "public"."orders" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
+
+CREATE OR REPLACE TRIGGER "trg_profiles_updated_at" BEFORE UPDATE ON "public"."profiles" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
+
+CREATE OR REPLACE TRIGGER "send-push-notification" AFTER INSERT ON "public"."notifications" FOR EACH ROW EXECUTE FUNCTION "supabase_functions"."http_request"('https://ruyrncmsawymsrvsluae.supabase.co/functions/v1/push-notification', 'POST', '{"Content-type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1eXJuY21zYXd5bXNydnNsdWFlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjY2NDA4OCwiZXhwIjoyMDkyMjQwMDg4fQ.8TNzNWIJgNIdVdU4paJ1eWO867lC8riYJA-kHDhzZp4"}', '{}', '5000');

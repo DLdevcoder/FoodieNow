@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Moped
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -107,40 +108,37 @@ fun NotificationScreen(
                 }
                 
                 // Filter Tabs
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                val tabs = listOf(
+                    NotificationFilter.ALL to "Tất cả",
+                    NotificationFilter.UNREAD to "Chưa đọc"
+                )
+                val selectedTabIndex = tabs.indexOfFirst { it.first == uiState.filterType }.coerceAtLeast(0)
+
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.Indicator(
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    divider = { HorizontalDivider(color = Color.LightGray) }
                 ) {
-                    FilterChip(
-                        selected = uiState.filterType == NotificationFilter.ALL,
-                        onClick = { viewModel.setFilter(NotificationFilter.ALL) },
-                        label = { Text("Tất cả") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.onPrimary,
-                            selectedLabelColor = MaterialTheme.colorScheme.primary
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            borderColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f),
-                            selected = uiState.filterType == NotificationFilter.ALL,
-                            enabled = true
+                    tabs.forEachIndexed { index, (filter, title) ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { viewModel.setFilter(filter) },
+                            text = {
+                                Text(
+                                    text = title,
+                                    color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else Color.Gray,
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                            }
                         )
-                    )
-                    FilterChip(
-                        selected = uiState.filterType == NotificationFilter.UNREAD,
-                        onClick = { viewModel.setFilter(NotificationFilter.UNREAD) },
-                        label = { Text("Chưa đọc") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.onPrimary,
-                            selectedLabelColor = MaterialTheme.colorScheme.primary
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            borderColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f),
-                            selected = uiState.filterType == NotificationFilter.UNREAD,
-                            enabled = true
-                        )
-                    )
+                    }
                 }
             }
         },
@@ -332,6 +330,8 @@ private fun NotificationCardContent(
     notification: AppNotification,
     onCardClick: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val (localizedTitle, localizedMessage) = NotificationLocalizationHelper.getLocalizedNotification(context, notification)
     val isUnread = !notification.isRead
     val (iconBg, icon) = resolveNotificationStyle(notification)
 
@@ -382,7 +382,7 @@ private fun NotificationCardContent(
                     verticalAlignment = Alignment.Top
                 ) {
                     Text(
-                        notification.title,
+                        localizedTitle,
                         fontSize = 16.sp,
                         fontWeight = if (isUnread) FontWeight.Bold else FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -406,7 +406,7 @@ private fun NotificationCardContent(
 
                 // Message
                 Text(
-                    notification.message,
+                    localizedMessage,
                     fontSize = 14.sp,
                     color = if (isUnread) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
@@ -432,36 +432,43 @@ private fun NotificationCardContent(
  * Determine icon and color based on notification content.
  */
 private fun resolveNotificationStyle(notification: AppNotification): Pair<Color, ImageVector> {
-    val title = notification.title.lowercase()
-    val message = notification.message.lowercase()
+    val titleKey = notification.title
 
     return when {
-        // Cần hành động ngay
-        listOf("hết món", "không liên lạc", "không rõ", "thay đổi giá", "thất bại").any { title.contains(it) || message.contains(it) } ->
+        titleKey == "TXT_ORDER_CANCELLED" ->
             ErrorRed to Icons.Default.WarningAmber
 
-        // Vấn đề phát sinh
-        listOf("trễ", "hủy đơn", "sự cố").any { title.contains(it) || message.contains(it) } ->
-            WarningYellow to Icons.Default.ErrorOutline
-
-        // Thanh toán & Hoàn tiền
-        listOf("thanh toán", "hoàn tiền", "phí").any { title.contains(it) || message.contains(it) } ->
+        titleKey == "TXT_PAYMENT_SUCCESS" || titleKey == "TXT_WALLET_TRANSACTION" ->
             Color(0xFF8B5CF6) to Icons.AutoMirrored.Filled.ReceiptLong
 
-        // Khuyến mãi
-        listOf("khuyến mãi", "giảm giá", "voucher", "freeship", "sale").any { title.contains(it) || message.contains(it) } ->
-            SuccessGreen to Icons.Default.LocalOffer
-
-        // Tài xế
-        listOf("tài xế").any { title.contains(it) || message.contains(it) } ->
-            InfoBlue to Icons.Default.Moped
-
-        // Đơn hàng
-        listOf("đã xác nhận", "chuẩn bị", "đã nhận đơn", "đang giao", "thành công", "đơn hàng").any { title.contains(it) || message.contains(it) } ->
+        titleKey == "TXT_ORDER_NEW" || titleKey == "TXT_ORDER_PREPARING" || 
+        titleKey == "TXT_ORDER_DELIVERING" || titleKey == "TXT_ORDER_COMPLETED" ->
             InfoBlue to Icons.Default.ShoppingBag
 
-        else ->
-            InfoBlue to Icons.Default.NotificationsNone
+        titleKey == "TXT_NEW_REVIEW" ->
+            SuccessGreen to Icons.Default.CheckCircleOutline
+
+        else -> {
+            // Fallback for old notifications
+            val title = notification.title.lowercase()
+            val message = notification.message.lowercase()
+            when {
+                listOf("hết món", "không liên lạc", "không rõ", "thay đổi giá", "thất bại").any { title.contains(it) || message.contains(it) } ->
+                    ErrorRed to Icons.Default.WarningAmber
+                listOf("trễ", "hủy đơn", "sự cố").any { title.contains(it) || message.contains(it) } ->
+                    WarningYellow to Icons.Default.ErrorOutline
+                listOf("thanh toán", "hoàn tiền", "phí").any { title.contains(it) || message.contains(it) } ->
+                    Color(0xFF8B5CF6) to Icons.AutoMirrored.Filled.ReceiptLong
+                listOf("khuyến mãi", "giảm giá", "voucher", "freeship", "sale").any { title.contains(it) || message.contains(it) } ->
+                    SuccessGreen to Icons.Default.LocalOffer
+                listOf("tài xế").any { title.contains(it) || message.contains(it) } ->
+                    InfoBlue to Icons.Default.Moped
+                listOf("đã xác nhận", "chuẩn bị", "đã nhận đơn", "đang giao", "thành công", "đơn hàng").any { title.contains(it) || message.contains(it) } ->
+                    InfoBlue to Icons.Default.ShoppingBag
+                else ->
+                    InfoBlue to Icons.Default.NotificationsNone
+            }
+        }
     }
 }
 

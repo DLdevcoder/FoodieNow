@@ -14,6 +14,8 @@ import com.example.foodienow.R
 object NotificationHelper {
     private const val CHANNEL_ID = "foodienow_orders"
     private const val CHANNEL_NAME = "Đơn hàng & Thông báo"
+    private const val GROUP_KEY = "com.example.foodienow.NOTIFICATION_GROUP"
+    private const val SUMMARY_ID = 9999
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -47,10 +49,25 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setGroup(GROUP_KEY)
+            .build()
+
+        val summaryNotification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setContentTitle("FoodieNow")
+            .setContentText("Bạn có thông báo mới")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setStyle(NotificationCompat.InboxStyle()
+                .setSummaryText("Thông báo từ FoodieNow"))
+            .setGroup(GROUP_KEY)
+            .setGroupSummary(true)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
             .build()
 
         try {
-            NotificationManagerCompat.from(context).notify(notificationId, notification)
+            val notificationManager = NotificationManagerCompat.from(context)
+            notificationManager.notify(notificationId, notification)
+            notificationManager.notify(SUMMARY_ID, summaryNotification)
         } catch (_: SecurityException) {
         }
     }

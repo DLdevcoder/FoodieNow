@@ -12,14 +12,20 @@ class FoodieFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        val title = message.data["title"] ?: message.notification?.title ?: "FoodieNow"
-        val body = message.data["body"] ?: message.notification?.body ?: ""
+        val rawTitle = message.data["title"] ?: message.notification?.title ?: "FoodieNow"
+        val rawBody = message.data["body"] ?: message.notification?.body ?: ""
 
-        if (body.isNotBlank()) {
+        if (rawBody.isNotBlank()) {
+            val (localizedTitle, localizedBody) = com.example.foodienow.feature.notification.NotificationLocalizationHelper.getLocalizedTitleAndBody(
+                context = this,
+                titleKey = rawTitle,
+                messagePayload = rawBody
+            )
+
             NotificationHelper.showNotification(
                 context = this,
-                title = title,
-                message = body
+                title = localizedTitle,
+                message = localizedBody
             )
         }
     }
