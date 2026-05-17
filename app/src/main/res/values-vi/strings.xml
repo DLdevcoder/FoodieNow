@@ -337,4 +337,26 @@ sẽ xuất hiện tại đây</string>
     <string name="cart_clear_dialog_confirm">Ok</string>
     <string name="cart_clear_dialog_cancel">Cancel</string>
     <string name="error_prefix">Error: %1$s</string>
+
+    <string name="merchant_food_title_add">Thêm món ăn</string>
+    <string name="merchant_food_title_edit">Chỉnh sửa món</string>
+    <string name="merchant_food_image_desc">Ảnh món ăn</string>
+    <string name="merchant_food_select_image">Bấm để chọn ảnh món ăn</string>
+    <string name="merchant_food_name_label">Tên món ăn</string>
+    <string name="merchant_food_price_label">Giá bán (VNĐ)</string>
+    <string name="merchant_food_category_label">Loại món ăn (Tag)</string>
+    <string name="merchant_food_custom_category_label">Nhập loại món ăn của bạn</string>
+    <string name="merchant_food_description_label">Mô tả món ăn</string>
+    <string name="merchant_food_save_button">LƯU MÓN ĂN</string>
+
+    <string name="category_rice">Cơm</string>
+    <string name="category_pho">Phở</string>
+    <string name="category_noodles">Bún</string>
+    <string name="category_drinks">Đồ uống</string>
+    <string name="category_snacks">Đồ ăn vặt</string>
+    <string name="category_other">Khác</string>
+
+    <string name="error_empty_food_fields">Vui lòng nhập đầy đủ tên và giá.</string>
+    <string name="error_empty_category">Vui lòng chọn hoặc nhập loại món ăn.</string>
+    <string name="error_save_food_failed">Có lỗi xảy ra khi lưu món ăn.</string>
 </resources>

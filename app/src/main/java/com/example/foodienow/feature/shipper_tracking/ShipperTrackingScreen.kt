@@ -5,17 +5,19 @@ import android.content.pm.PackageManager
 import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.location.*
@@ -31,6 +33,7 @@ fun ShipperTrackingScreen(
 ) {
     val context = LocalContext.current
     val order by viewModel.currentOrder.collectAsState()
+    val routePoints by viewModel.routePoints.collectAsState()
 
     var hasLocationPermission by remember {
         mutableStateOf(
@@ -41,92 +44,78 @@ fun ShipperTrackingScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
     }
 
     val cameraPositionState = rememberCameraPositionState()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+    // Tùy chỉnh UI bản đồ (Tắt nút của Google)
+    val mapUiSettings = remember {
+        MapUiSettings(
+            mapToolbarEnabled = false,
+            zoomControlsEnabled = false,
+            compassEnabled = false,
+            myLocationButtonEnabled = false
+        )
+    }
+
     DisposableEffect(hasLocationPermission) {
         var locationCallback: LocationCallback? = null
 
         if (hasLocationPermission) {
-            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
-                .setMinUpdateDistanceMeters(5f)
-                .build()
+            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L).build()
 
             locationCallback = object : LocationCallback() {
                 override fun onLocationResult(result: LocationResult) {
                     result.lastLocation?.let { location ->
                         viewModel.updateShipperLocation(location.latitude, location.longitude)
-
                         if (cameraPositionState.position.target.latitude == 0.0) {
                             cameraPositionState.position = CameraPosition.fromLatLngZoom(
-                                LatLng(location.latitude, location.longitude), 15f
+                                LatLng(location.latitude, location.longitude), 16f
                             )
                         }
                     }
                 }
             }
-
             try {
-                fusedLocationClient.requestLocationUpdates(
-                    locationRequest,
-                    locationCallback,
-                    Looper.getMainLooper()
-                )
-            } catch (e: SecurityException) { e.printStackTrace() }
+                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+            } catch (e: SecurityException) { }
         } else {
-            permissionLauncher.launch(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-            )
+            permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
         }
-
-        onDispose {
-            locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
-        }
+        onDispose { locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) } }
     }
 
-    // Bọc toàn bộ UI bằng Scaffold để có TopBar
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Theo dõi & Dẫn đường", fontWeight = FontWeight.Bold) },
+                title = { Text("Đang giao hàng", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại")
-                    }
+                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại") }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = MaterialTheme.colorScheme.surface,
                 )
             )
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues) // Apply padding của Scaffold để không đè lên TopBar
-        ) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             if (!hasLocationPermission) {
-                Text(
-                    text = "Vui lòng cấp quyền vị trí để theo dõi đơn hàng",
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                Text("Vui lòng cấp quyền vị trí", modifier = Modifier.align(Alignment.Center))
             } else {
                 GoogleMap(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState,
+                    uiSettings = mapUiSettings,
                     properties = MapProperties(isMyLocationEnabled = true)
                 ) {
-                    if (order?.shipperLat != null && order?.shipperLng != null) {
-                        Marker(
-                            state = MarkerState(position = LatLng(order!!.shipperLat!!, order!!.shipperLng!!)),
-                            title = "Vị trí của bạn",
-                            snippet = "Đang giao hàng"
+                    // Vẽ tuyến đường
+                    if (routePoints.isNotEmpty()) {
+                        Polyline(
+                            points = routePoints,
+                            color = MaterialTheme.colorScheme.primary,
+                            width = 12f
                         )
                     }
 
@@ -140,9 +129,34 @@ fun ShipperTrackingScreen(
                     if (order?.deliveryLat != null && order?.deliveryLng != null) {
                         Marker(
                             state = MarkerState(position = LatLng(order!!.deliveryLat!!, order!!.deliveryLng!!)),
-                            title = "Điểm giao",
-                            snippet = order!!.deliveryAddress
+                            title = "Khách hàng"
                         )
+                    }
+                }
+
+                // Panel thông tin đơn hàng ở cạnh dưới
+                order?.let { currentOrder ->
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        shadowElevation = 8.dp,
+                        color = MaterialTheme.colorScheme.surface
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(text = "Mã đơn: #${currentOrder.id?.take(8)}", fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = "Giao đến: ${currentOrder.deliveryAddress}", style = MaterialTheme.typography.bodyMedium)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { /* TODO: Xử lý hoàn thành đơn */ },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Hoàn thành chuyến đi")
+                            }
+                        }
                     }
                 }
             }

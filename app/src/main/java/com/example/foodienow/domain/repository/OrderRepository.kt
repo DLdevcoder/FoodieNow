@@ -33,4 +33,6 @@ interface OrderRepository {
     suspend fun getOrderItemsByOrderId(orderId: String): List<OrderItemUiModel>
 
     suspend fun updateShipperLocation(orderId: String, lat: Double, lng: Double): Result<Unit>
+
+    suspend fun getOrderById(orderId: String): Order?
 }

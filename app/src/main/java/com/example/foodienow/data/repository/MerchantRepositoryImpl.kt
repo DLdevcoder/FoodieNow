@@ -1,5 +1,6 @@
 package com.example.foodienow.data.repository
 
+import com.example.foodienow.domain.model.Category
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Store
 import com.example.foodienow.domain.repository.MerchantRepository
@@ -42,6 +43,7 @@ class MerchantRepositoryImpl @Inject constructor(
                 set("description", food.description)
                 set("image_url", finalImageUrl)
                 set("is_available", food.isAvailable)
+                set("category", food.categoryId)
             }) {
                 filter {
                     eq("id", food.id)
@@ -114,5 +116,17 @@ class MerchantRepositoryImpl @Inject constructor(
             e.printStackTrace()
             Result.failure(e)
         }
+    }
+
+    override suspend fun getCategories(): List<Category> {
+        return supabaseClient.postgrest["categories"]
+            .select()
+            .decodeList<Category>()
+    }
+
+    override suspend fun createCategory(name: String): Category {
+        return supabaseClient.postgrest["categories"]
+            .insert(Category(name = name)) { select() }
+            .decodeSingle<Category>()
     }
 }

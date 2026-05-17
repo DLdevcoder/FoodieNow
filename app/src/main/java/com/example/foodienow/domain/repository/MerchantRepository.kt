@@ -1,5 +1,6 @@
 package com.example.foodienow.domain.repository
 
+import com.example.foodienow.domain.model.Category
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Store
 import kotlinx.coroutines.flow.Flow
@@ -15,4 +16,7 @@ interface MerchantRepository {
     suspend fun getStoreByOwnerId(ownerId: String): Store?
 
     suspend fun updateStore(store: Store, imageBytes: ByteArray? = null): Result<Unit>
+
+    suspend fun getCategories(): List<Category>
+    suspend fun createCategory(name: String): Category
 }

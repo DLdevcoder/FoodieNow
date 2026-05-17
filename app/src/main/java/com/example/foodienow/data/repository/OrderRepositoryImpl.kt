@@ -249,4 +249,19 @@ class OrderRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun getOrderById(orderId: String): Order? {
+        return try {
+            supabaseClient.postgrest["orders"]
+                .select {
+                    filter {
+                        eq("id", orderId)
+                    }
+                }
+                .decodeSingleOrNull<Order>()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 }
