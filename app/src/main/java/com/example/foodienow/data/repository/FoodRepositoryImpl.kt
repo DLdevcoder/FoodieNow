@@ -1,5 +1,6 @@
 package com.example.foodienow.data.repository
 
+import com.example.foodienow.domain.model.Category
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.repository.CustomerFoodRepository
 import io.github.jan.supabase.SupabaseClient
@@ -69,5 +70,23 @@ class FoodRepositoryImpl @Inject constructor(
         }
         val finalFood = food.copy(imageUrl = finalImageUrl)
         supabaseClient.postgrest["foods"].insert(finalFood)
+    }
+
+    override suspend fun getCategories(): List<Category> {
+        return supabaseClient.postgrest["categories"]
+            .select()
+            .decodeList<Category>()
+    }
+
+    override fun getFoodsByCategory(categoryId: String): Flow<List<Food>> = flow {
+        val response = supabaseClient.postgrest["foods"]
+            .select {
+                filter {
+                    eq("category_id", categoryId)
+                    eq("is_available", true) // Có thể thêm dòng này để chỉ hiện món đang bán
+                }
+            }
+            .decodeList<Food>()
+        emit(response)
     }
 }

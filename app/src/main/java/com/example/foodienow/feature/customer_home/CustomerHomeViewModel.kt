@@ -2,6 +2,7 @@ package com.example.foodienow.feature.customer_home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodienow.domain.model.Category
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.data.repository.MockAddressRepository
 import com.example.foodienow.domain.repository.CustomerFoodRepository
@@ -16,6 +17,7 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = false,
     val recommendedFoods: List<Food> = emptyList(),
+    val categories: List<Category> = emptyList(), // Chứa dữ liệu trả về từ bảng categories
     val searchQuery: String = "",
     val searchResults: List<Food> = emptyList(),
     val address: String = "Chọn địa chỉ giao hàng"
@@ -39,19 +41,26 @@ class CustomerHomeViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             try {
+                // Tải danh sách category từ Supabase
+                val fetchedCategories = foodRepository.getCategories()
+
                 addressRepository.addresses.collect { addresses ->
                     val defaultAddress = addresses.firstOrNull { it.isDefault }?.detail ?: "Chọn địa chỉ giao hàng"
-                    
+
                     foodRepository.getRecommendedFoods().collect { realFoods ->
                         _uiState.update {
-                            it.copy(isLoading = false, recommendedFoods = realFoods, address = defaultAddress)
+                            it.copy(
+                                isLoading = false,
+                                recommendedFoods = realFoods,
+                                categories = fetchedCategories, // Đẩy dữ liệu vào State để UI tự vẽ
+                                address = defaultAddress
+                            )
                         }
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.update { it.copy(isLoading = false) }
-                println("LỖI KẾT NỐI DB: ${e.message}")
             }
         }
     }

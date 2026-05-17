@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,15 +40,15 @@ import com.example.foodienow.feature.food_detail.FoodDetailScreen
 import com.example.foodienow.feature.food_detail.FoodDetailViewModel
 import com.example.foodienow.feature.food_detail.FoodReviewsScreen
 import com.example.foodienow.feature.merchant.AddEditFoodScreen
-import com.example.foodienow.feature.main.MerchantMainScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.order_history.OrderHistoryScreen
 import com.example.foodienow.feature.payment.PaymentScreen
 import com.example.foodienow.feature.profile.ProfileScreen
 import com.example.foodienow.feature.main.CustomerMainScreen
-import com.example.foodienow.feature.customer_home.components.SearchScreen // Import SearchScreen
+import com.example.foodienow.feature.customer_home.components.SearchScreen
 import com.example.foodienow.feature.main.ShipperMainScreen
 import com.example.foodienow.domain.model.Food
+import com.example.foodienow.feature.category_detail.CategoryDetailScreen
 
 @Composable
 fun AppNavigation() {
@@ -113,10 +112,25 @@ fun AppNavigation() {
                 onNavigateToFoodDetail = { food ->
                     navController.navigate("food_detail/${food.id}")
                 },
+                // THÊM DÒNG NÀY ĐỂ XỬ LÝ CLICK CATEGORY:
+                onNavigateToCategory = { categoryId, categoryName ->
+                    navController.navigate("category_detail/$categoryId/$categoryName")
+                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.CustomerHome.route) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable(
+            route = "category_detail/{categoryId}/{categoryName}"
+        ) { backStackEntry ->
+            CategoryDetailScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToFoodDetail = { food ->
+                    navController.navigate("food_detail/${food.id}")
                 }
             )
         }

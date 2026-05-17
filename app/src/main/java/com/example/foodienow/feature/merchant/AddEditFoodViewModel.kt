@@ -24,9 +24,7 @@ class AddEditFoodViewModel @Inject constructor(
     var name by mutableStateOf("")
     var price by mutableStateOf("")
     var description by mutableStateOf("")
-
-    // UI hiển thị danh sách tĩnh để không bị delay
-    val predefinedCategories = listOf("Thịt", "Phở", "Đồ uống", "Bánh mì", "Đồ ăn vặt", "Cơm", "Bún")
+    val predefinedCategories = listOf("Cơm", "Mì", "Đồ uống", "Bánh mì", "Đồ ăn vặt", "Fast food", "Ăn chay", "Món cuốn", "Khác")
     var selectedCategory by mutableStateOf("")
     var isOtherCategory by mutableStateOf(false)
     var customCategoryName by mutableStateOf("")
