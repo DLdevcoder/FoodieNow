@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,10 +26,13 @@ import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Moped
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,39 +65,78 @@ fun NotificationScreen(
 
     Scaffold(
         topBar = {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.primary)
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(
-                        stringResource(R.string.notifications_tab_title),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    if (uiState.unreadCount > 0) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
                         Text(
-                            stringResource(R.string.notification_unread_count, uiState.unreadCount),
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            stringResource(R.string.notifications_tab_title),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
+                        if (uiState.unreadCount > 0) {
+                            Text(
+                                stringResource(R.string.notification_unread_count, uiState.unreadCount),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                    if (uiState.unreadCount > 0) {
+                        IconButton(
+                            onClick = { viewModel.markAllAsRead() },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.DoneAll,
+                                contentDescription = stringResource(R.string.notification_mark_all_read),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
-                if (uiState.unreadCount > 0) {
-                    IconButton(
-                        onClick = { viewModel.markAllAsRead() },
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.DoneAll,
-                            contentDescription = stringResource(R.string.notification_mark_all_read),
-                            tint = MaterialTheme.colorScheme.onPrimary
+                
+                // Filter Tabs
+                val tabs = listOf(
+                    NotificationFilter.ALL to "Tất cả",
+                    NotificationFilter.UNREAD to "Chưa đọc"
+                )
+                val selectedTabIndex = tabs.indexOfFirst { it.first == uiState.filterType }.coerceAtLeast(0)
+
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.Indicator(
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    divider = { HorizontalDivider(color = Color.LightGray) }
+                ) {
+                    tabs.forEachIndexed { index, (filter, title) ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { viewModel.setFilter(filter) },
+                            text = {
+                                Text(
+                                    text = title,
+                                    color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else Color.Gray,
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                            }
                         )
                     }
                 }
@@ -102,8 +145,8 @@ fun NotificationScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { viewModel.sendTestNotification() },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Test Notification")
             }
@@ -150,7 +193,7 @@ fun NotificationScreen(
                 }
             }
 
-            uiState.notifications.isEmpty() -> {
+            uiState.filteredNotifications.isEmpty() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -160,7 +203,9 @@ fun NotificationScreen(
                     EmptyState(
                         icon = Icons.Default.NotificationsNone,
                         title = stringResource(R.string.notification_empty_title),
-                        subtitle = stringResource(R.string.notification_empty_subtitle)
+                        subtitle = if (uiState.filterType == NotificationFilter.UNREAD) 
+                            "Bạn không có thông báo nào chưa đọc" 
+                            else stringResource(R.string.notification_empty_subtitle)
                     )
                 }
             }
@@ -171,51 +216,18 @@ fun NotificationScreen(
                         .fillMaxSize()
                         .padding(padding),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Section header
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                stringResource(R.string.notification_section_recent),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                letterSpacing = 0.5.sp
-                            )
-                            if (uiState.notifications.size > 0) {
-                                Surface(
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = MaterialTheme.colorScheme.primaryContainer
-                                ) {
-                                    Text(
-                                        stringResource(R.string.notification_count_badge, uiState.notifications.size),
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
-                        }
-                    }
-
                     itemsIndexed(
-                        uiState.notifications,
+                        uiState.filteredNotifications,
                         key = { _, it -> it.id ?: it.hashCode() }
                     ) { index, notification ->
                         AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn(tween(300, delayMillis = index * 50)) +
-                                    slideInVertically(tween(300, delayMillis = index * 50)) { it / 4 }
+                            enter = fadeIn(tween(300, delayMillis = index * 30)) +
+                                    slideInVertically(tween(300, delayMillis = index * 30)) { it / 4 }
                         ) {
-                            NotificationCard(
+                            SwipeableNotificationCard(
                                 notification = notification,
                                 onMarkAsRead = { notification.id?.let { viewModel.markAsRead(it) } },
                                 onDelete = { notification.id?.let { viewModel.deleteNotification(it) } }
@@ -223,9 +235,8 @@ fun NotificationScreen(
                         }
                     }
 
-                    // Bottom spacer
                     item {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
@@ -233,27 +244,109 @@ fun NotificationScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NotificationCard(
+private fun SwipeableNotificationCard(
     notification: AppNotification,
     onMarkAsRead: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val currentNotification by rememberUpdatedState(notification)
+    
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { dismissValue ->
+            when (dismissValue) {
+                SwipeToDismissBoxValue.StartToEnd -> {
+                    if (!currentNotification.isRead) {
+                        onMarkAsRead()
+                    }
+                    false // Don't actually dismiss the UI element if just marked as read
+                }
+                SwipeToDismissBoxValue.EndToStart -> {
+                    onDelete()
+                    true // Dismiss UI element
+                }
+                else -> false
+            }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = !notification.isRead, // Only allow swipe right if unread
+        enableDismissFromEndToStart = true, // Always allow swipe left to delete
+        backgroundContent = {
+            val direction = dismissState.dismissDirection
+            val color by animateColorAsState(
+                when (dismissState.targetValue) {
+                    SwipeToDismissBoxValue.StartToEnd -> SuccessGreen
+                    SwipeToDismissBoxValue.EndToStart -> ErrorRed
+                    else -> Color.Transparent
+                }, label = "swipe_bg"
+            )
+            
+            val icon = when (direction) {
+                SwipeToDismissBoxValue.StartToEnd -> Icons.Default.CheckCircleOutline
+                SwipeToDismissBoxValue.EndToStart -> Icons.Default.DeleteOutline
+                else -> Icons.Default.Archive
+            }
+
+            val alignment = when (direction) {
+                SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                else -> Alignment.Center
+            }
+
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 4.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(color)
+                    .padding(horizontal = 24.dp),
+                contentAlignment = alignment
+            ) {
+                if (direction != null) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+        },
+        content = {
+            NotificationCardContent(
+                notification = notification,
+                onCardClick = { if (!notification.isRead) onMarkAsRead() }
+            )
+        }
+    )
+}
+
+@Composable
+private fun NotificationCardContent(
+    notification: AppNotification,
+    onCardClick: () -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val (localizedTitle, localizedMessage) = NotificationLocalizationHelper.getLocalizedNotification(context, notification)
     val isUnread = !notification.isRead
     val (iconBg, icon) = resolveNotificationStyle(notification)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { if (isUnread) onMarkAsRead() },
+            .clickable(onClick = onCardClick),
         colors = CardDefaults.cardColors(
             containerColor = if (isUnread)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
             else
                 MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isUnread) 2.dp else 0.5.dp
+            defaultElevation = 2.dp
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -263,19 +356,12 @@ private fun NotificationCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Icon with gradient background
+            // Icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                iconBg.copy(alpha = 0.15f),
-                                iconBg.copy(alpha = 0.08f)
-                            )
-                        )
-                    ),
+                    .clip(CircleShape)
+                    .background(iconBg.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -286,28 +372,29 @@ private fun NotificationCard(
                 )
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                // Title row with unread dot
+                // Title & Unread indicator
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
                     Text(
-                        notification.title,
-                        fontSize = 15.sp,
-                        fontWeight = if (isUnread) FontWeight.Bold else FontWeight.Medium,
+                        localizedTitle,
+                        fontSize = 16.sp,
+                        fontWeight = if (isUnread) FontWeight.Bold else FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    
                     if (isUnread) {
                         Box(
                             modifier = Modifier
-                                .padding(start = 8.dp)
+                                .padding(top = 6.dp, start = 8.dp)
                                 .size(8.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
@@ -319,61 +406,23 @@ private fun NotificationCard(
 
                 // Message
                 Text(
-                    notification.message,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
+                    localizedMessage,
+                    fontSize = 14.sp,
+                    color = if (isUnread) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    lineHeight = 18.sp
+                    lineHeight = 20.sp
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Footer: timestamp + actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Timestamp
-                    Text(
-                        formatTimestamp(notification.createdAt),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.outline,
-                        fontWeight = FontWeight.Normal
-                    )
-
-                    // Action buttons
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(0.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (isUnread) {
-                            IconButton(
-                                onClick = onMarkAsRead,
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.CheckCircleOutline,
-                                    contentDescription = stringResource(R.string.notification_mark_read),
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                        IconButton(
-                            onClick = onDelete,
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.DeleteOutline,
-                                contentDescription = stringResource(R.string.notification_delete),
-                                tint = MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-                }
+                // Timestamp
+                Text(
+                    formatTimestamp(notification.createdAt),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
@@ -381,39 +430,45 @@ private fun NotificationCard(
 
 /**
  * Determine icon and color based on notification content.
- * Uses design system semantic colors instead of hardcoded hex values.
  */
 private fun resolveNotificationStyle(notification: AppNotification): Pair<Color, ImageVector> {
-    val title = notification.title.lowercase()
-    val message = notification.message.lowercase()
+    val titleKey = notification.title
 
     return when {
-        // 2. Cần hành động ngay (Action required - High priority)
-        listOf("hết món", "không liên lạc được", "không rõ", "thay đổi giá", "thất bại").any { title.contains(it) || message.contains(it) } ->
+        titleKey == "TXT_ORDER_CANCELLED" ->
             ErrorRed to Icons.Default.WarningAmber
 
-        // 3. Vấn đề phát sinh (Issues)
-        listOf("trễ", "hủy đơn", "không tìm được", "sự cố", "thay đổi").any { title.contains(it) || message.contains(it) } ->
-            WarningYellow to Icons.Default.ErrorOutline
-
-        // 4. Thanh toán và hoàn tiền
-        listOf("thanh toán", "hoàn tiền", "phí").any { title.contains(it) || message.contains(it) } ->
+        titleKey == "TXT_PAYMENT_SUCCESS" || titleKey == "TXT_WALLET_TRANSACTION" ->
             Color(0xFF8B5CF6) to Icons.AutoMirrored.Filled.ReceiptLong
 
-        // 6. Ưu đãi và khuyến mãi (Check before Order/Driver to catch promos first)
-        listOf("khuyến mãi", "giảm giá", "ưu đãi", "voucher", "flash sale", "miễn phí").any { title.contains(it) || message.contains(it) } ->
-            SuccessGreen to Icons.Default.LocalOffer
-
-        // 5. Thông báo về tài xế
-        listOf("tài xế").any { title.contains(it) || message.contains(it) } ->
-            InfoBlue to Icons.Default.Moped
-
-        // 1. Trạng thái đơn hàng (Order status)
-        listOf("đã xác nhận", "chuẩn bị", "đã nhận đơn", "đang giao", "thành công", "đơn hàng").any { title.contains(it) || message.contains(it) } ->
+        titleKey == "TXT_ORDER_NEW" || titleKey == "TXT_ORDER_PREPARING" || 
+        titleKey == "TXT_ORDER_DELIVERING" || titleKey == "TXT_ORDER_COMPLETED" ->
             InfoBlue to Icons.Default.ShoppingBag
 
-        else ->
-            InfoBlue to Icons.Default.NotificationsNone
+        titleKey == "TXT_NEW_REVIEW" ->
+            SuccessGreen to Icons.Default.CheckCircleOutline
+
+        else -> {
+            // Fallback for old notifications
+            val title = notification.title.lowercase()
+            val message = notification.message.lowercase()
+            when {
+                listOf("hết món", "không liên lạc", "không rõ", "thay đổi giá", "thất bại").any { title.contains(it) || message.contains(it) } ->
+                    ErrorRed to Icons.Default.WarningAmber
+                listOf("trễ", "hủy đơn", "sự cố").any { title.contains(it) || message.contains(it) } ->
+                    WarningYellow to Icons.Default.ErrorOutline
+                listOf("thanh toán", "hoàn tiền", "phí").any { title.contains(it) || message.contains(it) } ->
+                    Color(0xFF8B5CF6) to Icons.AutoMirrored.Filled.ReceiptLong
+                listOf("khuyến mãi", "giảm giá", "voucher", "freeship", "sale").any { title.contains(it) || message.contains(it) } ->
+                    SuccessGreen to Icons.Default.LocalOffer
+                listOf("tài xế").any { title.contains(it) || message.contains(it) } ->
+                    InfoBlue to Icons.Default.Moped
+                listOf("đã xác nhận", "chuẩn bị", "đã nhận đơn", "đang giao", "thành công", "đơn hàng").any { title.contains(it) || message.contains(it) } ->
+                    InfoBlue to Icons.Default.ShoppingBag
+                else ->
+                    InfoBlue to Icons.Default.NotificationsNone
+            }
+        }
     }
 }
 

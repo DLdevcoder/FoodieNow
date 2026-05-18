@@ -13,6 +13,7 @@ data class Profile(
     val address: String? = null,
     val balance: Long = 0L,
     @SerialName("reward_points") val rewardPoints: Int = 0,
-    @SerialName("updated_at") val updatedAt: String? = null
+    @SerialName("updated_at") val updatedAt: String? = null,
+    @SerialName("fcm_token") val fcmToken: String? = null
 )
 

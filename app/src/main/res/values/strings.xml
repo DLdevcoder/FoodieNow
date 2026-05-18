@@ -356,4 +356,21 @@
     <string name="error_empty_food_fields">Please enter name and price.</string>
     <string name="error_empty_category">Please select or enter a category.</string>
     <string name="error_save_food_failed">An error occurred while saving.</string>
+    <!-- Localized Notifications -->
+    <string name="notification_title_order_new">New Order!</string>
+    <string name="notification_body_order_new">You have a new order of %1$s. Please check!</string>
+    <string name="notification_title_order_preparing">Order Confirmed</string>
+    <string name="notification_body_order_preparing">The restaurant is preparing your order.</string>
+    <string name="notification_title_order_delivering">Order Delivering!</string>
+    <string name="notification_body_order_delivering">Shipper is delivering your order. Keep your phone nearby.</string>
+    <string name="notification_title_order_completed">Order Completed</string>
+    <string name="notification_body_order_completed">Order delivered successfully. Thanks for using FoodieNow!</string>
+    <string name="notification_title_order_cancelled">Order Cancelled</string>
+    <string name="notification_body_order_cancelled">Your order has been cancelled.</string>
+    <string name="notification_title_new_review">New Review!</string>
+    <string name="notification_body_new_review">Customer rated %1$s stars for %2$s.</string>
+    <string name="notification_title_wallet_transaction">Balance Update</string>
+    <string name="notification_body_wallet_transaction">%1$s</string>
+    <string name="notification_title_payment_success">Payment Successful</string>
+    <string name="notification_body_payment_success">Order %1$s paid. You earned %2$s FoodieCoins.</string>
 </resources>

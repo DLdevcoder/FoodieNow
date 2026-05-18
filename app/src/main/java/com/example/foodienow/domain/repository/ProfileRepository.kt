@@ -7,5 +7,7 @@ interface ProfileRepository {
     fun getProfile(userId: String): Flow<Profile?>
 
     suspend fun upsertProfile(profile: Profile): Result<Profile>
+
+    suspend fun updateFcmToken(userId: String, token: String): Result<Unit>
 }
 
