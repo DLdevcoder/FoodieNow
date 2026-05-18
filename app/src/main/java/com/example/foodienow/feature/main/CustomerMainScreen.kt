@@ -88,7 +88,8 @@ fun CustomerMainScreen(
                 0 -> CustomerHomeScreen(
                     onNavigateToFoodDetail = onNavigateToFoodDetail,
                     onNavigateToSearch = { rootNavController.navigate("search_screen") },
-                    onNavigateToCategory = onNavigateToCategory
+                    onNavigateToCategory = onNavigateToCategory,
+                    onNavigateToCart = onNavigateToCart
                 )
                 1 -> OrderHistoryScreen(
                     onBack = { selectedTab = 0 },

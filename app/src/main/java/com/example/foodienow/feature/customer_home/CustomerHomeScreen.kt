@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,7 +40,8 @@ fun CustomerHomeScreen(
     viewModel: CustomerHomeViewModel = hiltViewModel(),
     onNavigateToFoodDetail: (Food) -> Unit,
     onNavigateToSearch: () -> Unit,
-    onNavigateToCategory: (categoryId: String, categoryName: String) -> Unit
+    onNavigateToCategory: (categoryId: String, categoryName: String) -> Unit,
+    onNavigateToCart: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -51,6 +53,7 @@ fun CustomerHomeScreen(
         item {
             HomeTopSection(
                 onNavigateToSearch = onNavigateToSearch,
+                onNavigateToCart = onNavigateToCart, // Truyền xuống TopSection
                 address = uiState.address
             )
         }
@@ -97,10 +100,10 @@ fun CustomerHomeScreen(
         }
     }
 }
-
 @Composable
 private fun HomeTopSection(
     onNavigateToSearch: () -> Unit,
+    onNavigateToCart: () -> Unit,
     address: String
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -156,28 +159,47 @@ private fun HomeTopSection(
             }
         }
         Spacer(modifier = Modifier.height(10.dp))
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp)
-                .clickable { onNavigateToSearch() },
-            shape = RoundedCornerShape(8.dp),
-            color = Color.White
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp)
+                    .clickable { onNavigateToSearch() },
+                shape = RoundedCornerShape(8.dp),
+                color = Color.White
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.home_search_placeholder),
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+            IconButton(
+                onClick = onNavigateToCart,
+                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White),
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(8.dp))
             ) {
                 Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
+                    Icons.Default.ShoppingCart,
+                    contentDescription = "Giỏ hàng",
                     tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.home_search_placeholder),
-                    color = Color.Gray,
-                    fontSize = 14.sp
                 )
             }
         }

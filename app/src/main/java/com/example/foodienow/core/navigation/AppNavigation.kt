@@ -354,7 +354,6 @@ fun AppNavigation() {
                             showClearCartDialog = true
                         } else {
                             cartViewModel.addToCart(food, quantity)
-                            navController.navigate(Screen.Cart.route)
                         }
                     },
                     onNavigateToStore = { /* TODO */ },
