@@ -1,6 +1,5 @@
 package com.example.foodienow.feature.customer_home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,8 +8,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Brush
@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.foodienow.R
+import com.example.foodienow.domain.model.Category
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.feature.customer_home.components.formatPrice
 
@@ -38,7 +39,9 @@ import com.example.foodienow.feature.customer_home.components.formatPrice
 fun CustomerHomeScreen(
     viewModel: CustomerHomeViewModel = hiltViewModel(),
     onNavigateToFoodDetail: (Food) -> Unit,
-    onNavigateToSearch: () -> Unit
+    onNavigateToSearch: () -> Unit,
+    onNavigateToCategory: (categoryId: String, categoryName: String) -> Unit,
+    onNavigateToCart: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -50,12 +53,19 @@ fun CustomerHomeScreen(
         item {
             HomeTopSection(
                 onNavigateToSearch = onNavigateToSearch,
+                onNavigateToCart = onNavigateToCart, // Truyền xuống TopSection
                 address = uiState.address
             )
         }
         item {
             Spacer(modifier = Modifier.height(12.dp))
-            CategoriesSection()
+            CategoriesSection(
+                categories = uiState.categories,
+                isLoading = uiState.isLoading,
+                onCategoryClick = { category ->
+                    category.id?.let { onNavigateToCategory(it, category.name) }
+                }
+            )
         }
         item {
             Spacer(modifier = Modifier.height(12.dp))
@@ -80,20 +90,20 @@ fun CustomerHomeScreen(
         item {
             Spacer(modifier = Modifier.height(12.dp))
             CollectionsSection(
-                foods = uiState.recommendedFoods, 
+                foods = uiState.recommendedFoods,
                 isLoading = uiState.isLoading,
                 onSeeAllClick = onNavigateToSearch
             )
         }
         item {
-            Spacer(modifier = Modifier.height(24.dp)) // Extra space at bottom
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
-
 @Composable
 private fun HomeTopSection(
     onNavigateToSearch: () -> Unit,
+    onNavigateToCart: () -> Unit,
     address: String
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -109,7 +119,7 @@ private fun HomeTopSection(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFE65100), // Dark Orange for better status bar contrast
+                        Color(0xFFE65100),
                         MaterialTheme.colorScheme.primary
                     )
                 )
@@ -149,28 +159,47 @@ private fun HomeTopSection(
             }
         }
         Spacer(modifier = Modifier.height(10.dp))
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp)
-                .clickable { onNavigateToSearch() }, // Khi báº¥m sáº½ nháº£y sang trang tÃ¬m kiáº¿m
-            shape = RoundedCornerShape(8.dp),
-            color = Color.White
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp)
+                    .clickable { onNavigateToSearch() },
+                shape = RoundedCornerShape(8.dp),
+                color = Color.White
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.home_search_placeholder),
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+            IconButton(
+                onClick = onNavigateToCart,
+                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White),
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(8.dp))
             ) {
                 Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
+                    Icons.Default.ShoppingCart,
+                    contentDescription = "Giỏ hàng",
                     tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.home_search_placeholder), // "Báº¡n muá»‘n Äƒn gÃ¬?"
-                    color = Color.Gray,
-                    fontSize = 14.sp
                 )
             }
         }
@@ -178,14 +207,11 @@ private fun HomeTopSection(
 }
 
 @Composable
-private fun CategoriesSection() {
-    val categories = listOf(
-        R.string.home_category_1, R.string.home_category_2,
-        R.string.home_category_3, R.string.home_category_4,
-        R.string.home_category_5, R.string.home_category_6,
-        R.string.home_category_7, R.string.home_category_8
-    )
-
+private fun CategoriesSection(
+    categories: List<Category>,
+    isLoading: Boolean,
+    onCategoryClick: (Category) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -193,18 +219,25 @@ private fun CategoriesSection() {
             .padding(vertical = 16.dp, horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        val rows = categories.chunked(4)
-        rows.forEach { rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                rowItems.forEach { catRes ->
-                    CategoryItem(catRes)
-                }
-                // Fill empty spaces if needed
-                repeat(4 - rowItems.size) {
-                    Spacer(modifier = Modifier.width(58.dp))
+        if (isLoading && categories.isEmpty()) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        } else {
+            // Lấy tối đa 8 category để hiển thị trên 2 dòng
+            val displayCategories = categories.take(8)
+            val rows = displayCategories.chunked(4)
+
+            rows.forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    rowItems.forEach { category ->
+                        CategoryItem(category = category, onClick = onCategoryClick)
+                    }
+                    // Bù khoảng trống để các item không bị giãn nếu dòng cuối không đủ 4 phần tử
+                    repeat(4 - rowItems.size) {
+                        Spacer(modifier = Modifier.width(58.dp))
+                    }
                 }
             }
         }
@@ -212,10 +245,12 @@ private fun CategoriesSection() {
 }
 
 @Composable
-private fun CategoryItem(labelRes: Int) {
+private fun CategoryItem(category: Category, onClick: (Category) -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(58.dp)
+        modifier = Modifier
+            .width(58.dp)
+            .clickable { onClick(category) }
     ) {
         Box(
             modifier = Modifier
@@ -224,16 +259,30 @@ private fun CategoryItem(labelRes: Int) {
                 .background(Color(0xFFF3F4F6)),
             contentAlignment = Alignment.Center
         ) {
-            // Placeholder for category icon
-            Text("🍲", fontSize = 20.sp)
+            if (!category.imageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = category.imageUrl,
+                    contentDescription = category.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    Icons.Default.Fastfood,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
         Spacer(modifier = Modifier.height(3.dp))
         Text(
-            stringResource(labelRes),
+            text = category.name,
             fontSize = 10.sp,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             maxLines = 2,
-            lineHeight = 12.sp
+            lineHeight = 12.sp,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -275,7 +324,7 @@ private fun HorizontalFoodSection(
                     .padding(4.dp)
             )
         }
-        
+
         if (isLoading) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
@@ -381,7 +430,7 @@ private fun CollectionsSection(foods: List<Food>, isLoading: Boolean, onSeeAllCl
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         if (isLoading) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 12.dp),
@@ -404,7 +453,7 @@ private fun CollectionsSection(foods: List<Food>, isLoading: Boolean, onSeeAllCl
                         modifier = Modifier
                             .width(104.dp)
                             .height(136.dp)
-                            .clickable { /* Could navigate to a collection page */ },
+                            .clickable { /* Có thể điều hướng đến trang collection */ },
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {

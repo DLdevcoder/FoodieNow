@@ -15,14 +15,12 @@ data class ReviewWithUserResponse(
     val id: String,
     val rating: Int,
     val comment: String? = null,
-    @SerialName("created_at") val createdAt: String,
-    val users: UserInfoResponse?
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("profiles") val profiles: UserInfoResponse? = null
 )
-
 @Serializable
 data class UserInfoResponse(
-    @SerialName("full_name") val fullName: String,
-    @SerialName("avatar_url") val avatarUrl: String? = null
+    @SerialName("full_name") val fullName: String? = null
 )
 
 class ReviewRepositoryImpl @Inject constructor(
@@ -31,23 +29,22 @@ class ReviewRepositoryImpl @Inject constructor(
 
     override suspend fun getReviewsByFoodId(foodId: String): List<ReviewUiModel> {
         val response = supabase.postgrest["reviews"]
-            .select(columns = Columns.raw("*, users(full_name, avatar_url)")) {
+            .select(columns = Columns.raw("id, rating, comment, created_at, profiles(full_name)")){
                 filter { eq("food_id", foodId) }
             }.decodeList<ReviewWithUserResponse>()
 
         return response.map { item ->
             ReviewUiModel(
                 id = item.id,
-                userName = item.users?.fullName ?: "Người dùng FoodieNow",
-                userAvatarUrl = item.users?.avatarUrl,
+                userName = item.profiles?.fullName ?: "Người dùng",
+                userAvatarUrl = null,
                 rating = item.rating,
                 comment = item.comment ?: "",
-                date = item.createdAt.substringBefore("T")
+                date = item.createdAt?.substringBefore("T") ?: ""
             )
         }
     }
 
-    // Sửa hàm này: Filter theo cả order_id và food_id
     override suspend fun getReviewByOrderAndFood(orderId: String, foodId: String): Review? {
         return try {
             supabase.postgrest["reviews"].select {

@@ -42,6 +42,7 @@ fun CustomerMainScreen(
     rootNavController: NavController,
     onNavigateToCart: () -> Unit,
     onNavigateToFoodDetail: (Food) -> Unit,
+    onNavigateToCategory: (String, String) -> Unit,
     onLogout: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
@@ -86,7 +87,9 @@ fun CustomerMainScreen(
             when (selectedTab) {
                 0 -> CustomerHomeScreen(
                     onNavigateToFoodDetail = onNavigateToFoodDetail,
-                    onNavigateToSearch = { rootNavController.navigate("search_screen") }
+                    onNavigateToSearch = { rootNavController.navigate("search_screen") },
+                    onNavigateToCategory = onNavigateToCategory,
+                    onNavigateToCart = onNavigateToCart
                 )
                 1 -> OrderHistoryScreen(
                     onBack = { selectedTab = 0 },

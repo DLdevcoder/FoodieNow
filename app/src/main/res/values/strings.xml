@@ -329,6 +329,33 @@
     <string name="profile_logout_btn">Log out</string>
     <string name="feature_under_development">Feature under development</string>
 
+    <string name="cart_clear_dialog_title">Tạo giỏ hàng mới?</string>
+    <string name="cart_clear_dialog_desc">Thêm món ăn này sẽ xóa các món của nhà hàng trước đó trong giỏ hàng. Bạn có muốn tiếp tục?</string>
+    <string name="cart_clear_dialog_confirm">Đồng ý</string>
+    <string name="cart_clear_dialog_cancel">Hủy</string>
+    <string name="error_prefix">Lỗi: %1$s</string>
+
+    <string name="merchant_food_title_add">Add food</string>
+    <string name="merchant_food_title_edit">Edit food</string>
+    <string name="merchant_food_image_desc">Food image</string>
+    <string name="merchant_food_select_image">Tap to select food image</string>
+    <string name="merchant_food_name_label">Food name</string>
+    <string name="merchant_food_price_label">Price (VND)</string>
+    <string name="merchant_food_category_label">Category (Tag)</string>
+    <string name="merchant_food_custom_category_label">Enter your custom category</string>
+    <string name="merchant_food_description_label">Description</string>
+    <string name="merchant_food_save_button">SAVE FOOD</string>
+
+    <string name="category_rice">Rice</string>
+    <string name="category_pho">Pho</string>
+    <string name="category_noodles">Noodles</string>
+    <string name="category_drinks">Drinks</string>
+    <string name="category_snacks">Snacks</string>
+    <string name="category_other">Other</string>
+
+    <string name="error_empty_food_fields">Please enter name and price.</string>
+    <string name="error_empty_category">Please select or enter a category.</string>
+    <string name="error_save_food_failed">An error occurred while saving.</string>
     <!-- Localized Notifications -->
     <string name="notification_title_order_new">New Order!</string>
     <string name="notification_body_order_new">You have a new order of %1$s. Please check!</string>

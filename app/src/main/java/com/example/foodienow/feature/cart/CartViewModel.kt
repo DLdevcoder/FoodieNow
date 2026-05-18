@@ -82,4 +82,10 @@ class CartViewModel @Inject constructor(
             }
         }
     }
+
+    fun clearCart() {
+        viewModelScope.launch {
+            cartRepository.clearCart()
+        }
+    }
 }

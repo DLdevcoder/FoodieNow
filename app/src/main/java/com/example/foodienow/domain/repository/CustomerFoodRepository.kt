@@ -1,5 +1,6 @@
 package com.example.foodienow.domain.repository
 
+import com.example.foodienow.domain.model.Category
 import com.example.foodienow.domain.model.Food
 import kotlinx.coroutines.flow.Flow
 
@@ -15,4 +16,6 @@ interface CustomerFoodRepository {
     suspend fun getFoodsByStoreId(storeId: String): List<Food>
 
     suspend fun addFood(food: Food, imageBytes: ByteArray?)
+    suspend fun getCategories(): List<Category>
+    fun getFoodsByCategory(categoryId: String): Flow<List<Food>>
 }
