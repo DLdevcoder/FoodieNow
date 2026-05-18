@@ -198,6 +198,7 @@ fun AppNavigation() {
                 },
                 onNavigateToWallet = { navController.navigate(Screen.Wallet.route) },
                 onNavigateToAddress = { navController.navigate(Screen.Address.route) },
+                onNavigateToPaymentSettings = { navController.navigate(Screen.PaymentSettings.route) },
                 onNavigateToEditProfile = { navController.navigate("edit_profile_screen") },
                 onNavigateToChangePassword = { navController.navigate("change_password_screen") }
             )

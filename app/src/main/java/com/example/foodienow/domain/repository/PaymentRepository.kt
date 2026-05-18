@@ -5,6 +5,11 @@ import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
 import kotlinx.coroutines.flow.Flow
 
+data class PaymentLineItem(
+    val foodId: String,
+    val quantity: Int
+)
+
 data class AtomicPaymentRequest(
     val customerId: String,
     val amount: Long,
@@ -13,13 +18,21 @@ data class AtomicPaymentRequest(
     val transactionId: String?,
     val deliveryAddress: String,
     val note: String?,
-    val usedRewardPoints: Int
+    val usedRewardPoints: Int,
+    val items: List<PaymentLineItem>,
+    val voucherCode: String?,
+    val accessToken: String
 )
 
 data class AtomicPaymentResult(
     val orderId: String,
     val paymentId: String,
-    val earnedPoints: Int
+    val amountCharged: Long,
+    val deliveryFee: Long,
+    val discountAmount: Long,
+    val earnedPoints: Int,
+    val newRewardPoints: Int,
+    val newBalance: Long
 )
 
 interface PaymentRepository {

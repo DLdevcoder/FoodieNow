@@ -73,7 +73,7 @@
     <string name="payment_processing">Processing</string>
     <string name="payment_confirm_button">Confirm payment</string>
     <string name="payment_voucher_title">Discount code</string>
-    <string name="payment_voucher_hint">Enter code (e.g. SAVE20K)</string>
+    <string name="payment_voucher_hint">Enter code (e.g. GIAMGIA20K)</string>
     <string name="payment_voucher_apply">Apply</string>
     <string name="payment_voucher_discount">Voucher discount: -%1$s</string>
     <string name="payment_reward_title">Use FoodieCoins</string>

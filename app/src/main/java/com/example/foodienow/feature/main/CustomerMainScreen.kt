@@ -113,7 +113,8 @@ fun CustomerMainScreen(
                     onNavigateToHelpCentre = { rootNavController.navigate("help_centre_screen") },
                     onNavigateToSettings = { rootNavController.navigate("settings_screen") },
                     onNavigateToEditProfile = { rootNavController.navigate("edit_profile_screen") },
-                    onNavigateToChangePassword = { rootNavController.navigate("change_password_screen") }
+                    onNavigateToChangePassword = { rootNavController.navigate("change_password_screen") },
+                    onNavigateToWallet = { rootNavController.navigate("wallet_screen") }
                 )
             }
         }
