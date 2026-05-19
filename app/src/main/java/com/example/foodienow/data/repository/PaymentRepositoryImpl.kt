@@ -1,16 +1,25 @@
 package com.example.foodienow.data.repository
 
+import com.example.foodienow.data.remote.SupabaseRest
 import com.example.foodienow.domain.model.Payment
 import com.example.foodienow.domain.repository.AtomicPaymentRequest
 import com.example.foodienow.domain.repository.AtomicPaymentResult
 import com.example.foodienow.domain.repository.PaymentRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.rpc
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
+import org.json.JSONArray
+import org.json.JSONObject
+import java.math.BigDecimal
 import javax.inject.Inject
 
 class PaymentRepositoryImpl @Inject constructor(
@@ -30,33 +39,26 @@ class PaymentRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun processPaymentAtomic(request: AtomicPaymentRequest): Result<AtomicPaymentResult> {
-        return try {
-            val response = supabaseClient.postgrest.rpc(
-                function = "process_payment",
-                parameters = ProcessPaymentRpcRequest(
-                    customerId = request.customerId,
-                    amount = request.amount,
-                    method = request.method.name,
-                    provider = request.provider?.name,
-                    transactionId = request.transactionId,
-                    deliveryAddress = request.deliveryAddress,
-                    note = request.note,
-                    usedRewardPoints = request.usedRewardPoints
+    override suspend fun processPaymentAtomic(request: AtomicPaymentRequest): Result<AtomicPaymentResult> =
+        withContext(Dispatchers.IO) {
+            try {
+                val response = SupabaseRest.post(
+                    path = "/rest/v1/rpc/process_payment",
+                    body = PaymentRpcMapper.toRpcBody(request),
+                    accessToken = request.accessToken
                 )
-            ).decodeSingle<ProcessPaymentRpcResponse>()
 
-            Result.success(
-                AtomicPaymentResult(
-                    orderId = response.orderId,
-                    paymentId = response.paymentId,
-                    earnedPoints = response.earnedPoints
-                )
-            )
-        } catch (e: Exception) {
-            Result.failure(e)
+                if (!response.isSuccess) {
+                    return@withContext Result.failure(
+                        Exception(SupabaseRest.parseErrorMessage(response.body))
+                    )
+                }
+
+                Result.success(PaymentRpcMapper.toAtomicPaymentResult(response.body))
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
-    }
 
     override fun getPaymentsByCustomer(customerId: String): Flow<List<Payment>> = flow {
         val payments = supabaseClient.postgrest["payments"]
@@ -70,21 +72,102 @@ class PaymentRepositoryImpl @Inject constructor(
     }
 }
 
-@Serializable
-private data class ProcessPaymentRpcRequest(
-    @SerialName("p_customer_id") val customerId: String,
-    @SerialName("p_amount") val amount: Long,
-    @SerialName("p_method") val method: String,
-    @SerialName("p_provider") val provider: String?,
-    @SerialName("p_transaction_id") val transactionId: String?,
-    @SerialName("p_delivery_address") val deliveryAddress: String,
-    @SerialName("p_note") val note: String?,
-    @SerialName("p_used_reward_points") val usedRewardPoints: Int
+internal object PaymentRpcMapper {
+    private val json = Json { ignoreUnknownKeys = true }
+
+    fun toPayload(request: AtomicPaymentRequest): PaymentRpcPayload {
+        return PaymentRpcPayload(
+            customerId = request.customerId,
+            amount = request.amount,
+            method = request.method.name,
+            provider = request.provider?.name,
+            transactionId = request.transactionId,
+            deliveryAddress = request.deliveryAddress,
+            note = request.note,
+            usedRewardPoints = request.usedRewardPoints,
+            items = request.items.map { item ->
+                PaymentRpcItem(foodId = item.foodId, quantity = item.quantity)
+            },
+            voucherCode = request.voucherCode
+        )
+    }
+
+    fun toRpcBody(request: AtomicPaymentRequest): JSONObject {
+        val payload = toPayload(request)
+        val itemPayload = JSONArray().apply {
+            payload.items.forEach { item ->
+                put(
+                    JSONObject()
+                        .put("food_id", item.foodId)
+                        .put("quantity", item.quantity)
+                )
+            }
+        }
+
+        return JSONObject()
+            .put("p_customer_id", payload.customerId)
+            .put("p_amount", payload.amount)
+            .put("p_method", payload.method)
+            .put("p_provider", payload.provider ?: JSONObject.NULL)
+            .put("p_transaction_id", payload.transactionId ?: JSONObject.NULL)
+            .put("p_delivery_address", payload.deliveryAddress)
+            .put("p_note", payload.note ?: JSONObject.NULL)
+            .put("p_used_reward_points", payload.usedRewardPoints)
+            .put("p_items", itemPayload)
+            .put("p_voucher_code", payload.voucherCode ?: JSONObject.NULL)
+    }
+
+    fun toAtomicPaymentResult(body: String): AtomicPaymentResult {
+        val payload = when (val element = json.parseToJsonElement(body)) {
+            is JsonArray -> {
+                if (element.isEmpty()) {
+                    throw IllegalStateException("Payment RPC returned no result.")
+                }
+                element.first().jsonObject
+            }
+            else -> element.jsonObject
+        }
+
+        return AtomicPaymentResult(
+            orderId = payload.getString("order_id"),
+            paymentId = payload.getString("payment_id"),
+            amountCharged = payload.getLongNumber("amount_charged"),
+            deliveryFee = payload.getLongNumber("delivery_fee"),
+            discountAmount = payload.getLongNumber("discount_amount"),
+            earnedPoints = payload.getIntNumber("earned_points"),
+            newRewardPoints = payload.getIntNumber("new_reward_points"),
+            newBalance = payload.getLongNumber("new_balance")
+        )
+    }
+
+    private fun JsonObject.getString(name: String): String {
+        return getValue(name).jsonPrimitive.content
+    }
+
+    private fun JsonObject.getIntNumber(name: String): Int {
+        return getValue(name).jsonPrimitive.content.toInt()
+    }
+
+    private fun JsonObject.getLongNumber(name: String): Long {
+        val value = getValue(name).jsonPrimitive
+        return value.longOrNull ?: BigDecimal(value.content).toLong()
+    }
+}
+
+internal data class PaymentRpcPayload(
+    val customerId: String,
+    val amount: Long,
+    val method: String,
+    val provider: String?,
+    val transactionId: String?,
+    val deliveryAddress: String,
+    val note: String?,
+    val usedRewardPoints: Int,
+    val items: List<PaymentRpcItem>,
+    val voucherCode: String?
 )
 
-@Serializable
-private data class ProcessPaymentRpcResponse(
-    @SerialName("order_id") val orderId: String,
-    @SerialName("payment_id") val paymentId: String,
-    @SerialName("earned_points") val earnedPoints: Int
+internal data class PaymentRpcItem(
+    val foodId: String,
+    val quantity: Int
 )

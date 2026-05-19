@@ -8,7 +8,7 @@ import com.example.foodienow.data.repository.NotificationRepositoryImpl
 import com.example.foodienow.data.repository.OrderRepositoryImpl
 import com.example.foodienow.data.repository.PaymentRepositoryImpl
 import com.example.foodienow.data.repository.ProfileRepositoryImpl
-import com.example.foodienow.data.repository.MockVoucherRepository
+import com.example.foodienow.data.repository.VoucherRepositoryImpl
 import com.example.foodienow.data.repository.ReviewRepositoryImpl
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.CartRepository
@@ -81,7 +81,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindVoucherRepository(
-        impl: MockVoucherRepository
+        impl: VoucherRepositoryImpl
     ): VoucherRepository
 
     @Binds

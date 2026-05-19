@@ -3,6 +3,8 @@ package com.example.foodienow.data.local
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.foodienow.domain.model.User
@@ -30,6 +32,8 @@ class AuthSessionDataStore @Inject constructor(
             prefs[Keys.EMAIL] = user.email
             prefs[Keys.ROLE] = user.role.name
             prefs[Keys.TOKEN] = user.token
+            prefs[Keys.BALANCE] = user.balance
+            prefs[Keys.REWARD_POINTS] = user.rewardPoints
         }
     }
 
@@ -40,6 +44,8 @@ class AuthSessionDataStore @Inject constructor(
             prefs.remove(Keys.EMAIL)
             prefs.remove(Keys.ROLE)
             prefs.remove(Keys.TOKEN)
+            prefs.remove(Keys.BALANCE)
+            prefs.remove(Keys.REWARD_POINTS)
         }
     }
 
@@ -63,6 +69,8 @@ class AuthSessionDataStore @Inject constructor(
             name = name,
             email = email,
             role = role,
+            balance = this[Keys.BALANCE] ?: 0L,
+            rewardPoints = this[Keys.REWARD_POINTS] ?: 0,
             token = token
         )
     }
@@ -73,6 +81,8 @@ class AuthSessionDataStore @Inject constructor(
         val EMAIL = stringPreferencesKey("email")
         val ROLE = stringPreferencesKey("role")
         val TOKEN = stringPreferencesKey("token")
+        val BALANCE = longPreferencesKey("balance")
+        val REWARD_POINTS = intPreferencesKey("reward_points")
     }
 }
 

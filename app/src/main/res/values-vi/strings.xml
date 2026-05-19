@@ -285,7 +285,7 @@
     <string name="settings_dark_mode">Giao diện tối</string>
     <string name="settings_use_english">Dùng tiếng Anh</string>
     <string name="payment_voucher_title">Mã giảm giá</string>
-    <string name="payment_voucher_hint">Nhập mã (vd: GIAM20K)</string>
+    <string name="payment_voucher_hint">Nhập mã (vd: GIAMGIA20K)</string>
     <string name="payment_voucher_apply">Áp dụng</string>
     <string name="payment_voucher_discount">Giảm giá voucher: -%1$s</string>
     <string name="payment_reward_title">Dùng FoodieCoins</string>
