@@ -72,7 +72,7 @@ fun PaymentScreen(
     var useRewardPoints by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var addressInitialized by remember { mutableStateOf(false) }
-    var paymentMethodInitialized by remember { mutableStateOf(false) }
+    var hasUserSelectedPaymentMethod by remember { mutableStateOf(false) }
     var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
     var selectedProvider by remember { mutableStateOf(WalletProvider.ZALOPAY) }
 
@@ -88,10 +88,15 @@ fun PaymentScreen(
         addressInitialized = true
     }
 
-    if (!paymentMethodInitialized && uiState.paymentSettingsLoaded) {
-        selectedMethod = uiState.defaultPaymentMethod
-        selectedProvider = uiState.defaultWalletProvider
-        paymentMethodInitialized = true
+    LaunchedEffect(
+        uiState.paymentSettingsLoaded,
+        uiState.defaultPaymentMethod,
+        uiState.defaultWalletProvider
+    ) {
+        if (uiState.paymentSettingsLoaded && !hasUserSelectedPaymentMethod) {
+            selectedMethod = uiState.defaultPaymentMethod
+            selectedProvider = uiState.defaultWalletProvider
+        }
     }
 
     val subtotal = cartUiState.cartItems.entries.sumOf { it.key.price * it.value }
@@ -296,7 +301,10 @@ fun PaymentScreen(
                     PaymentMethod.entries.forEach { method ->
                         FilterChip(
                             selected = selectedMethod == method,
-                            onClick = { selectedMethod = method },
+                            onClick = {
+                                selectedMethod = method
+                                hasUserSelectedPaymentMethod = true
+                            },
                             label = {
                                 Text(
                                     text = when (method) {
@@ -333,7 +341,10 @@ fun PaymentScreen(
                         WalletProvider.entries.forEach { provider ->
                             FilterChip(
                                 selected = selectedProvider == provider,
-                                onClick = { selectedProvider = provider },
+                                onClick = {
+                                    selectedProvider = provider
+                                    hasUserSelectedPaymentMethod = true
+                                },
                                 label = {
                                     Text(
                                         text = when (provider) {

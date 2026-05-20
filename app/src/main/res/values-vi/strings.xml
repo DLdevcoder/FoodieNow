@@ -320,6 +320,16 @@ sẽ xuất hiện tại đây</string>
     <string name="notification_mark_read">Đánh dấu đã đọc</string>
     <string name="notification_delete">Xóa</string>
     <string name="notification_mark_all_read">Đánh dấu tất cả đã đọc</string>
+    <string name="notification_filter_all">Tất cả</string>
+    <string name="notification_filter_unread">Chưa đọc</string>
+    <string name="notification_all_caught_up">Bạn đã đọc hết thông báo</string>
+    <string name="notification_unread_label">Chưa đọc</string>
+    <string name="notification_empty_unread_title">Không còn thông báo chưa đọc</string>
+    <string name="notification_empty_unread_subtitle">Các cập nhật mới sẽ xuất hiện ở đây.</string>
+    <string name="notification_time_just_now">Vừa xong</string>
+    <string name="notification_time_minutes_ago">%1$d phút trước</string>
+    <string name="notification_time_hours_ago">%1$d giờ trước</string>
+    <string name="notification_time_days_ago">%1$d ngày trước</string>
 
     <string name="profile_unnamed">Chưa cập nhật tên</string>
     <string name="profile_unnamed_email">Chưa cập nhật email</string>

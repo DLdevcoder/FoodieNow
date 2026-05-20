@@ -29,18 +29,20 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.foodienow.domain.model.PaymentMethod
-import com.example.foodienow.domain.model.WalletProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 
-data class PaymentSettingItem(val id: String, val title: String, val subtitle: String, val icon: ImageVector)
+data class PaymentSettingItem(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,20 +51,62 @@ fun PaymentSettingsScreen(
     viewModel: PaymentSettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsState()
-    
+
     val paymentMethods = listOf(
-        PaymentSettingItem("momo", "Ví MoMo", "Liên kết: 0912***456", Icons.Default.AccountBalanceWallet),
-        PaymentSettingItem("zalopay", "ZaloPay", "Chưa liên kết", Icons.Default.AccountBalanceWallet),
-        PaymentSettingItem("card", "Thẻ Tín dụng / Ghi nợ", "Thêm thẻ mới", Icons.Default.CreditCard),
-        PaymentSettingItem("cod", "Thanh toán tiền mặt", "Thanh toán khi nhận hàng", Icons.Default.Money)
+        PaymentSettingItem(
+            id = "cod",
+            title = "Thanh toán tiền mặt",
+            subtitle = "Thanh toán khi nhận hàng",
+            icon = Icons.Default.Money
+        ),
+        PaymentSettingItem(
+            id = "card",
+            title = "Thẻ tín dụng / ghi nợ",
+            subtitle = "Thêm thẻ mới",
+            icon = Icons.Default.CreditCard
+        ),
+        PaymentSettingItem(
+            id = "foodie_pay",
+            title = "Ví FoodiePay",
+            subtitle = "Dùng số dư FoodiePay",
+            icon = Icons.Default.AccountBalanceWallet
+        ),
+        PaymentSettingItem(
+            id = "momo",
+            title = "Ví MoMo",
+            subtitle = "Ví điện tử mặc định",
+            icon = Icons.Default.AccountBalanceWallet
+        ),
+        PaymentSettingItem(
+            id = "zalopay",
+            title = "ZaloPay",
+            subtitle = "Ví điện tử mặc định",
+            icon = Icons.Default.AccountBalanceWallet
+        ),
+        PaymentSettingItem(
+            id = "vnpay",
+            title = "VNPAY",
+            subtitle = "Ví điện tử mặc định",
+            icon = Icons.Default.AccountBalanceWallet
+        ),
+        PaymentSettingItem(
+            id = "paypal",
+            title = "PayPal",
+            subtitle = "Ví điện tử mặc định",
+            icon = Icons.Default.AccountBalanceWallet
+        ),
+        PaymentSettingItem(
+            id = "google_play",
+            title = "Google Play",
+            subtitle = "Ví điện tử mặc định",
+            icon = Icons.Default.AccountBalanceWallet
+        )
     )
 
-    val defaultMethodId = when {
-        settings.defaultMethod == PaymentMethod.WALLET && settings.defaultProvider == WalletProvider.MOMO -> "momo"
-        settings.defaultMethod == PaymentMethod.WALLET && settings.defaultProvider == WalletProvider.ZALOPAY -> "zalopay"
-        settings.defaultMethod == PaymentMethod.CARD -> "card"
-        else -> "cod"
-    }
+    val defaultMethodId = PaymentSettingsSelectionMapper.toOptionId(
+        method = settings.defaultMethod,
+        provider = settings.defaultProvider
+    )
 
     Scaffold(
         topBar = {
@@ -96,10 +140,11 @@ fun PaymentSettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { viewModel.updateDefaultMethod(method.id) },
                         colors = CardDefaults.cardColors(
-                            containerColor = if (defaultMethodId == method.id) 
-                                MaterialTheme.colorScheme.primaryContainer 
-                            else 
+                            containerColor = if (defaultMethodId == method.id) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
                                 MaterialTheme.colorScheme.surfaceVariant
+                            }
                         )
                     ) {
                         Row(
@@ -115,7 +160,11 @@ fun PaymentSettingsScreen(
                                 Text(text = method.subtitle, style = MaterialTheme.typography.bodyMedium)
                             }
                             if (defaultMethodId == method.id) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = "Mặc định", tint = Color(0xFF10B981))
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = "Mặc định",
+                                    tint = Color(0xFF10B981)
+                                )
                             }
                         }
                     }

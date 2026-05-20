@@ -38,6 +38,8 @@ DECLARE
     v_store_count integer;
     v_store_id uuid;
     v_merchant_id uuid;
+    v_order_id uuid;
+    v_payment_id uuid;
     v_subtotal numeric;
     v_current_points integer;
     v_current_balance numeric;
@@ -201,13 +203,17 @@ BEGIN
     discount_amount := 0;
 
     IF p_voucher_code IS NOT NULL AND btrim(p_voucher_code) <> '' THEN
-        SELECT discount_amount, discount_percent, max_discount, min_order_value
+        SELECT
+            v.discount_amount,
+            v.discount_percent,
+            v.max_discount,
+            v.min_order_value
         INTO v_voucher
-        FROM public.vouchers
-        WHERE upper(code) = upper(btrim(p_voucher_code))
-          AND is_active
-          AND (expires_at IS NULL OR expires_at > now())
-          AND (merchant_id IS NULL OR merchant_id = v_merchant_id)
+        FROM public.vouchers v
+        WHERE upper(v.code) = upper(btrim(p_voucher_code))
+          AND v.is_active
+          AND (v.expires_at IS NULL OR v.expires_at > now())
+          AND (v.merchant_id IS NULL OR v.merchant_id = v_merchant_id)
         LIMIT 1;
 
         IF FOUND AND v_subtotal >= COALESCE(v_voucher.min_order_value, 0) THEN
@@ -286,7 +292,7 @@ BEGIN
         p_delivery_address,
         p_note
     )
-    RETURNING id INTO order_id;
+    RETURNING id INTO v_order_id;
 
     WITH raw_items AS (
         SELECT
@@ -306,7 +312,7 @@ BEGIN
         price_at_time
     )
     SELECT
-        order_id,
+        v_order_id,
         ni.food_id,
         ni.quantity,
         f.price
@@ -326,7 +332,7 @@ BEGIN
     )
     VALUES (
         p_customer_id,
-        order_id,
+        v_order_id,
         amount_charged,
         v_method,
         v_provider,
@@ -335,7 +341,7 @@ BEGIN
         p_delivery_address,
         p_note
     )
-    RETURNING id INTO payment_id;
+    RETURNING id INTO v_payment_id;
 
     UPDATE public.profiles
     SET reward_points = new_reward_points,
@@ -352,9 +358,12 @@ BEGIN
     VALUES (
         p_customer_id,
         'TXT_PAYMENT_SUCCESS',
-        '{"type":"PAYMENT_SUCCESS", "order_id":"' || order_id::text || '", "earned_points":"' || earned_points::text || '"}',
-        '{"type":"PAYMENT_SUCCESS", "order_id":"' || order_id::text || '", "earned_points":"' || earned_points::text || '"}'
+        '{"type":"PAYMENT_SUCCESS", "order_id":"' || v_order_id::text || '", "earned_points":"' || earned_points::text || '"}',
+        '{"type":"PAYMENT_SUCCESS", "order_id":"' || v_order_id::text || '", "earned_points":"' || earned_points::text || '"}'
     );
+
+    order_id := v_order_id;
+    payment_id := v_payment_id;
 
     RETURN NEXT;
 END;

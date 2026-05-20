@@ -13,6 +13,7 @@ import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.CartRepository
 import com.example.foodienow.domain.repository.PaymentLineItem
 import com.example.foodienow.domain.repository.PaymentRepository
+import com.example.foodienow.domain.repository.ProfileRepository
 import com.example.foodienow.domain.repository.VoucherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -52,6 +53,7 @@ class PaymentViewModel @Inject constructor(
     private val walletPaymentGateway: WalletPaymentGateway,
     private val cartRepository: CartRepository,
     private val voucherRepository: VoucherRepository,
+    private val profileRepository: ProfileRepository,
     private val addressRepository: MockAddressRepository,
     private val paymentSettingsRepository: PaymentSettingsRepository
 ) : ViewModel() {
@@ -65,7 +67,23 @@ class PaymentViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             authRepository.getAuthState().collect { user ->
-                _uiState.update { it.copy(rewardPointsAvailable = user?.rewardPoints ?: 0) }
+                if (user == null) {
+                    _uiState.update { it.copy(rewardPointsAvailable = 0) }
+                    return@collect
+                }
+
+                _uiState.update { it.copy(rewardPointsAvailable = user.rewardPoints) }
+
+                val profile = profileRepository.getProfile(user.id).first()
+                if (profile != null &&
+                    (profile.balance != user.balance || profile.rewardPoints != user.rewardPoints)
+                ) {
+                    authRepository.updateSessionFinancials(
+                        balance = profile.balance,
+                        rewardPoints = profile.rewardPoints
+                    )
+                    _uiState.update { it.copy(rewardPointsAvailable = profile.rewardPoints) }
+                }
             }
         }
         viewModelScope.launch {
@@ -167,16 +185,6 @@ class PaymentViewModel @Inject constructor(
                     it.copy(
                         isProcessing = false,
                         errorMessage = "Vui long chon vi dien tu de thanh toan."
-                    )
-                }
-                return@launch
-            }
-
-            if (method == PaymentMethod.FOODIE_PAY && user.balance < amount) {
-                _uiState.update {
-                    it.copy(
-                        isProcessing = false,
-                        errorMessage = "So du FoodiePay khong du. Vui long nap them tien."
                     )
                 }
                 return@launch
