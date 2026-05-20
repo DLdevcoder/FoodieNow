@@ -1,34 +1,61 @@
 package com.example.foodienow.feature.notification
 
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.Moped
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Moped
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,9 +63,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,6 +80,8 @@ import com.example.foodienow.core.designsystem.theme.InfoBlue
 import com.example.foodienow.core.designsystem.theme.SuccessGreen
 import com.example.foodienow.core.designsystem.theme.WarningYellow
 import com.example.foodienow.domain.model.AppNotification
+import java.time.Duration
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,182 +94,308 @@ fun NotificationScreen(
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primary)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(
-                            stringResource(R.string.notifications_tab_title),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onPrimary
+            NotificationHeader(
+                unreadCount = uiState.unreadCount,
+                totalCount = uiState.notifications.size,
+                onMarkAllAsRead = { viewModel.markAllAsRead() }
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            NotificationFilterRow(
+                selectedFilter = uiState.filterType,
+                totalCount = uiState.notifications.size,
+                unreadCount = uiState.unreadCount,
+                onFilterSelected = viewModel::setFilter
+            )
+
+            when {
+                uiState.isLoading -> {
+                    LoadingNotifications(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    )
+                }
+
+                uiState.errorMessage != null -> {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EmptyState(
+                            icon = Icons.Default.NotificationsNone,
+                            title = stringResource(R.string.notification_error_title),
+                            subtitle = uiState.errorMessage,
+                            actionLabel = stringResource(R.string.notification_error_retry),
+                            onAction = { viewModel.loadNotifications() }
                         )
-                        if (uiState.unreadCount > 0) {
-                            Text(
-                                stringResource(R.string.notification_unread_count, uiState.unreadCount),
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                            )
-                        }
-                    }
-                    if (uiState.unreadCount > 0) {
-                        IconButton(
-                            onClick = { viewModel.markAllAsRead() },
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.DoneAll,
-                                contentDescription = stringResource(R.string.notification_mark_all_read),
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
                     }
                 }
-                
-                // Filter Tabs
-                val tabs = listOf(
-                    NotificationFilter.ALL to "Tất cả",
-                    NotificationFilter.UNREAD to "Chưa đọc"
-                )
-                val selectedTabIndex = tabs.indexOfFirst { it.first == uiState.filterType }.coerceAtLeast(0)
 
-                TabRow(
-                    selectedTabIndex = selectedTabIndex,
-                    containerColor = Color.White,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    indicator = { tabPositions ->
-                        TabRowDefaults.Indicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    divider = { HorizontalDivider(color = Color.LightGray) }
-                ) {
-                    tabs.forEachIndexed { index, (filter, title) ->
-                        Tab(
-                            selected = selectedTabIndex == index,
-                            onClick = { viewModel.setFilter(filter) },
-                            text = {
-                                Text(
-                                    text = title,
-                                    color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else Color.Gray,
-                                    fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal
-                                )
+                uiState.filteredNotifications.isEmpty() -> {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EmptyState(
+                            icon = Icons.Default.NotificationsNone,
+                            title = if (uiState.filterType == NotificationFilter.UNREAD) {
+                                stringResource(R.string.notification_empty_unread_title)
+                            } else {
+                                stringResource(R.string.notification_empty_title)
+                            },
+                            subtitle = if (uiState.filterType == NotificationFilter.UNREAD) {
+                                stringResource(R.string.notification_empty_unread_subtitle)
+                            } else {
+                                stringResource(R.string.notification_empty_subtitle)
                             }
                         )
                     }
                 }
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { viewModel.sendTestNotification() },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Test Notification")
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 3.dp
-                        )
-                        Spacer(modifier = Modifier.height(spacing.lg))
-                        Text(
-                            stringResource(R.string.notification_loading),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
 
-            uiState.errorMessage != null -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    EmptyState(
-                        icon = Icons.Default.NotificationsNone,
-                        title = stringResource(R.string.notification_error_title),
-                        subtitle = uiState.errorMessage,
-                        actionLabel = stringResource(R.string.notification_error_retry),
-                        onAction = { viewModel.loadNotifications() }
-                    )
-                }
-            }
-
-            uiState.filteredNotifications.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    EmptyState(
-                        icon = Icons.Default.NotificationsNone,
-                        title = stringResource(R.string.notification_empty_title),
-                        subtitle = if (uiState.filterType == NotificationFilter.UNREAD) 
-                            "Bạn không có thông báo nào chưa đọc" 
-                            else stringResource(R.string.notification_empty_subtitle)
-                    )
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    itemsIndexed(
-                        uiState.filteredNotifications,
-                        key = { _, it -> it.id ?: it.hashCode() }
-                    ) { index, notification ->
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(tween(300, delayMillis = index * 30)) +
-                                    slideInVertically(tween(300, delayMillis = index * 30)) { it / 4 }
-                        ) {
-                            SwipeableNotificationCard(
-                                notification = notification,
-                                onMarkAsRead = { notification.id?.let { viewModel.markAsRead(it) } },
-                                onDelete = { notification.id?.let { viewModel.deleteNotification(it) } }
-                            )
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(
+                            start = spacing.lg,
+                            top = spacing.sm,
+                            end = spacing.lg,
+                            bottom = spacing.lg
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        itemsIndexed(
+                            items = uiState.filteredNotifications,
+                            key = { _, it -> it.id ?: it.hashCode() }
+                        ) { index, notification ->
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn(tween(220, delayMillis = index * 24)) +
+                                    slideInVertically(tween(220, delayMillis = index * 24)) { it / 5 }
+                            ) {
+                                SwipeableNotificationCard(
+                                    notification = notification,
+                                    onMarkAsRead = {
+                                        notification.id?.let { viewModel.markAsRead(it) }
+                                    },
+                                    onDelete = {
+                                        notification.id?.let { viewModel.deleteNotification(it) }
+                                    }
+                                )
+                            }
                         }
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun NotificationHeader(
+    unreadCount: Int,
+    totalCount: Int,
+    onMarkAllAsRead: () -> Unit
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.notifications_tab_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = if (unreadCount > 0) {
+                        stringResource(R.string.notification_unread_count, unreadCount)
+                    } else {
+                        stringResource(R.string.notification_all_caught_up)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            if (unreadCount > 0 && totalCount > 0) {
+                IconButton(
+                    onClick = onMarkAllAsRead,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DoneAll,
+                        contentDescription = stringResource(R.string.notification_mark_all_read),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationFilterRow(
+    selectedFilter: NotificationFilter,
+    totalCount: Int,
+    unreadCount: Int,
+    onFilterSelected: (NotificationFilter) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        NotificationFilterChip(
+            selected = selectedFilter == NotificationFilter.ALL,
+            label = stringResource(R.string.notification_filter_all),
+            count = totalCount,
+            modifier = Modifier.weight(1f),
+            onClick = { onFilterSelected(NotificationFilter.ALL) }
+        )
+        NotificationFilterChip(
+            selected = selectedFilter == NotificationFilter.UNREAD,
+            label = stringResource(R.string.notification_filter_unread),
+            count = unreadCount,
+            modifier = Modifier.weight(1f),
+            onClick = { onFilterSelected(NotificationFilter.UNREAD) }
+        )
+    }
+
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f))
+}
+
+@Composable
+private fun NotificationFilterChip(
+    selected: Boolean,
+    label: String,
+    count: Int,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier.height(40.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        label = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = label,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                CountPill(count = count, selected = selected)
+            }
+        }
+    )
+}
+
+@Composable
+private fun CountPill(count: Int, selected: Boolean) {
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minWidth = 22.dp)
+            .height(20.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                if (selected) {
+                    MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)
+                } else {
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                }
+            )
+            .padding(horizontal = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = if (selected) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun LoadingNotifications(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator(
+            color = MaterialTheme.colorScheme.primary,
+            strokeWidth = 3.dp
+        )
+        Spacer(modifier = Modifier.height(FoodieNowTheme.spacing.lg))
+        Text(
+            text = stringResource(R.string.notification_loading),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 
@@ -252,7 +407,7 @@ private fun SwipeableNotificationCard(
     onDelete: () -> Unit
 ) {
     val currentNotification by rememberUpdatedState(notification)
-    
+
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
             when (dismissValue) {
@@ -260,12 +415,14 @@ private fun SwipeableNotificationCard(
                     if (!currentNotification.isRead) {
                         onMarkAsRead()
                     }
-                    false // Don't actually dismiss the UI element if just marked as read
+                    false
                 }
+
                 SwipeToDismissBoxValue.EndToStart -> {
                     onDelete()
-                    true // Dismiss UI element
+                    true
                 }
+
                 else -> false
             }
         }
@@ -273,22 +430,23 @@ private fun SwipeableNotificationCard(
 
     SwipeToDismissBox(
         state = dismissState,
-        enableDismissFromStartToEnd = !notification.isRead, // Only allow swipe right if unread
-        enableDismissFromEndToStart = true, // Always allow swipe left to delete
+        enableDismissFromStartToEnd = !notification.isRead,
+        enableDismissFromEndToStart = true,
         backgroundContent = {
             val direction = dismissState.dismissDirection
             val color by animateColorAsState(
-                when (dismissState.targetValue) {
+                targetValue = when (dismissState.targetValue) {
                     SwipeToDismissBoxValue.StartToEnd -> SuccessGreen
                     SwipeToDismissBoxValue.EndToStart -> ErrorRed
                     else -> Color.Transparent
-                }, label = "swipe_bg"
+                },
+                label = "notification_swipe_background"
             )
-            
+
             val icon = when (direction) {
                 SwipeToDismissBoxValue.StartToEnd -> Icons.Default.CheckCircleOutline
                 SwipeToDismissBoxValue.EndToStart -> Icons.Default.DeleteOutline
-                else -> Icons.Default.Archive
+                else -> Icons.Default.DeleteOutline
             }
 
             val alignment = when (direction) {
@@ -298,20 +456,20 @@ private fun SwipeableNotificationCard(
             }
 
             Box(
-                Modifier
+                modifier = Modifier
                     .fillMaxSize()
-                    .padding(vertical = 4.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .padding(vertical = 2.dp)
+                    .clip(RoundedCornerShape(8.dp))
                     .background(color)
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 22.dp),
                 contentAlignment = alignment
             ) {
-                if (direction != null) {
+                if (direction != SwipeToDismissBoxValue.Settled) {
                     Icon(
-                        icon,
+                        imageVector = icon,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(26.dp)
                     )
                 }
             }
@@ -330,7 +488,7 @@ private fun NotificationCardContent(
     notification: AppNotification,
     onCardClick: () -> Unit
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val (localizedTitle, localizedMessage) = NotificationLocalizationHelper.getLocalizedNotification(context, notification)
     val isUnread = !notification.isRead
     val (iconBg, icon) = resolveNotificationStyle(notification)
@@ -340,61 +498,66 @@ private fun NotificationCardContent(
             .fillMaxWidth()
             .clickable(onClick = onCardClick),
         colors = CardDefaults.cardColors(
-            containerColor = if (isUnread)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
-            else
+            containerColor = if (isUnread) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+            } else {
                 MaterialTheme.colorScheme.surface
+            }
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (isUnread) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.24f)
+            } else {
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.16f)
+            }
         ),
-        shape = RoundedCornerShape(16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isUnread) 2.dp else 1.dp),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Icon
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(iconBg.copy(alpha = 0.1f)),
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(iconBg.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    icon,
+                    imageVector = icon,
                     contentDescription = null,
                     tint = iconBg,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(23.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                // Title & Unread indicator
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top
                 ) {
                     Text(
-                        localizedTitle,
-                        fontSize = 16.sp,
+                        text = localizedTitle,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = if (isUnread) FontWeight.Bold else FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    
+
                     if (isUnread) {
+                        Spacer(modifier = Modifier.width(8.dp))
                         Box(
                             modifier = Modifier
-                                .padding(top = 6.dp, start = 8.dp)
+                                .padding(top = 6.dp)
                                 .size(8.dp)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
@@ -404,33 +567,57 @@ private fun NotificationCardContent(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Message
                 Text(
-                    localizedMessage,
-                    fontSize = 14.sp,
-                    color = if (isUnread) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3,
+                    text = localizedMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 20.sp
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // Timestamp
-                Text(
-                    formatTimestamp(notification.createdAt),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    fontWeight = FontWeight.Medium
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = formatTimestamp(context, notification.createdAt),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    if (isUnread) {
+                        UnreadPill()
+                    }
+                }
             }
         }
     }
 }
 
-/**
- * Determine icon and color based on notification content.
- */
+@Composable
+private fun UnreadPill() {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.notification_unread_label),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1
+        )
+    }
+}
+
 private fun resolveNotificationStyle(notification: AppNotification): Pair<Color, ImageVector> {
     val titleKey = notification.title
 
@@ -439,32 +626,48 @@ private fun resolveNotificationStyle(notification: AppNotification): Pair<Color,
             ErrorRed to Icons.Default.WarningAmber
 
         titleKey == "TXT_PAYMENT_SUCCESS" || titleKey == "TXT_WALLET_TRANSACTION" ->
-            Color(0xFF8B5CF6) to Icons.AutoMirrored.Filled.ReceiptLong
+            Color(0xFF7C3AED) to Icons.AutoMirrored.Filled.ReceiptLong
 
-        titleKey == "TXT_ORDER_NEW" || titleKey == "TXT_ORDER_PREPARING" || 
-        titleKey == "TXT_ORDER_DELIVERING" || titleKey == "TXT_ORDER_COMPLETED" ->
+        titleKey == "TXT_ORDER_NEW" ||
+            titleKey == "TXT_ORDER_PREPARING" ||
+            titleKey == "TXT_ORDER_DELIVERING" ||
+            titleKey == "TXT_ORDER_COMPLETED" ->
             InfoBlue to Icons.Default.ShoppingBag
 
         titleKey == "TXT_NEW_REVIEW" ->
             SuccessGreen to Icons.Default.CheckCircleOutline
 
         else -> {
-            // Fallback for old notifications
             val title = notification.title.lowercase()
             val message = notification.message.lowercase()
             when {
-                listOf("hết món", "không liên lạc", "không rõ", "thay đổi giá", "thất bại").any { title.contains(it) || message.contains(it) } ->
+                listOf("hết món", "không liên lạc", "không rõ", "thay đổi giá", "thất bại").any {
+                    title.contains(it) || message.contains(it)
+                } ->
                     ErrorRed to Icons.Default.WarningAmber
+
                 listOf("trễ", "hủy đơn", "sự cố").any { title.contains(it) || message.contains(it) } ->
                     WarningYellow to Icons.Default.ErrorOutline
+
                 listOf("thanh toán", "hoàn tiền", "phí").any { title.contains(it) || message.contains(it) } ->
-                    Color(0xFF8B5CF6) to Icons.AutoMirrored.Filled.ReceiptLong
-                listOf("khuyến mãi", "giảm giá", "voucher", "freeship", "sale").any { title.contains(it) || message.contains(it) } ->
+                    Color(0xFF7C3AED) to Icons.AutoMirrored.Filled.ReceiptLong
+
+                listOf("khuyến mãi", "giảm giá", "voucher", "freeship", "sale").any {
+                    title.contains(it) || message.contains(it)
+                } ->
                     SuccessGreen to Icons.Default.LocalOffer
-                listOf("tài xế").any { title.contains(it) || message.contains(it) } ->
+
+                listOf("tài xế", "shipper").any { title.contains(it) || message.contains(it) } ->
                     InfoBlue to Icons.Default.Moped
-                listOf("đã xác nhận", "chuẩn bị", "đã nhận đơn", "đang giao", "thành công", "đơn hàng").any { title.contains(it) || message.contains(it) } ->
+
+                listOf("xác nhận", "chuẩn bị", "đã nhận đơn", "đang giao", "thành công", "đơn hàng").any {
+                    title.contains(it) || message.contains(it)
+                } ->
                     InfoBlue to Icons.Default.ShoppingBag
+
+                listOf("tin tức", "news").any { title.contains(it) || message.contains(it) } ->
+                    WarningYellow to Icons.Default.Campaign
+
                 else ->
                     InfoBlue to Icons.Default.NotificationsNone
             }
@@ -472,17 +675,26 @@ private fun resolveNotificationStyle(notification: AppNotification): Pair<Color,
     }
 }
 
-private fun formatTimestamp(createdAt: String?): String {
+private fun formatTimestamp(context: Context, createdAt: String?): String {
     if (createdAt.isNullOrBlank()) return ""
+
     return try {
-        val instant = java.time.Instant.parse(createdAt)
-        val now = java.time.Instant.now()
-        val duration = java.time.Duration.between(instant, now)
+        val instant = Instant.parse(createdAt)
+        val duration = Duration.between(instant, Instant.now())
+
         when {
-            duration.toMinutes() < 1 -> "Vừa xong"
-            duration.toMinutes() < 60 -> "${duration.toMinutes()} phút trước"
-            duration.toHours() < 24 -> "${duration.toHours()} giờ trước"
-            duration.toDays() < 7 -> "${duration.toDays()} ngày trước"
+            duration.toMinutes() < 1 ->
+                context.getString(R.string.notification_time_just_now)
+
+            duration.toMinutes() < 60 ->
+                context.getString(R.string.notification_time_minutes_ago, duration.toMinutes())
+
+            duration.toHours() < 24 ->
+                context.getString(R.string.notification_time_hours_ago, duration.toHours())
+
+            duration.toDays() < 7 ->
+                context.getString(R.string.notification_time_days_ago, duration.toDays())
+
             else -> createdAt.take(10)
         }
     } catch (_: Exception) {
