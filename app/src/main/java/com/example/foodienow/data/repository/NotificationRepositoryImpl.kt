@@ -29,17 +29,29 @@ class NotificationRepositoryImpl @Inject constructor(
         }
 
         launch {
-            changeFlow.collect {
-                send(fetchNotifications(userId))
+            try {
+                changeFlow.collect {
+                    send(fetchNotifications(userId))
+                }
+            } catch (e: Exception) {
+                // Silently ignore real-time collection errors so the app doesn't crash
             }
         }
 
-        channel.subscribe()
+        try {
+            channel.subscribe()
+        } catch (e: Exception) {
+            // Network or websocket error, ignore to prevent crash
+        }
 
         awaitClose {
             launch {
-                channel.unsubscribe()
-                supabaseClient.realtime.removeChannel(channel)
+                try {
+                    channel.unsubscribe()
+                    supabaseClient.realtime.removeChannel(channel)
+                } catch (e: Exception) {
+                    // Ignore cleanup errors
+                }
             }
         }
     }

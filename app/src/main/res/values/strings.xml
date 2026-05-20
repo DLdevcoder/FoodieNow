@@ -73,7 +73,7 @@
     <string name="payment_processing">Processing</string>
     <string name="payment_confirm_button">Confirm payment</string>
     <string name="payment_voucher_title">Discount code</string>
-    <string name="payment_voucher_hint">Enter code (e.g. SAVE20K)</string>
+    <string name="payment_voucher_hint">Enter code (e.g. GIAMGIA20K)</string>
     <string name="payment_voucher_apply">Apply</string>
     <string name="payment_voucher_discount">Voucher discount: -%1$s</string>
     <string name="payment_reward_title">Use FoodieCoins</string>
@@ -140,6 +140,16 @@
     <string name="notification_mark_read">Mark as read</string>
     <string name="notification_delete">Delete</string>
     <string name="notification_mark_all_read">Mark all as read</string>
+    <string name="notification_filter_all">All</string>
+    <string name="notification_filter_unread">Unread</string>
+    <string name="notification_all_caught_up">All caught up</string>
+    <string name="notification_unread_label">Unread</string>
+    <string name="notification_empty_unread_title">No unread notifications</string>
+    <string name="notification_empty_unread_subtitle">You have read all recent updates.</string>
+    <string name="notification_time_just_now">Just now</string>
+    <string name="notification_time_minutes_ago">%1$d min ago</string>
+    <string name="notification_time_hours_ago">%1$d hr ago</string>
+    <string name="notification_time_days_ago">%1$d d ago</string>
 
     <string name="notifications_title">Notifications</string>
     <string name="notifications_unread_count">Unread: %1$d</string>
@@ -356,4 +366,21 @@
     <string name="error_empty_food_fields">Please enter name and price.</string>
     <string name="error_empty_category">Please select or enter a category.</string>
     <string name="error_save_food_failed">An error occurred while saving.</string>
+    <!-- Localized Notifications -->
+    <string name="notification_title_order_new">New Order!</string>
+    <string name="notification_body_order_new">You have a new order of %1$s. Please check!</string>
+    <string name="notification_title_order_preparing">Order Confirmed</string>
+    <string name="notification_body_order_preparing">The restaurant is preparing your order.</string>
+    <string name="notification_title_order_delivering">Order Delivering!</string>
+    <string name="notification_body_order_delivering">Shipper is delivering your order. Keep your phone nearby.</string>
+    <string name="notification_title_order_completed">Order Completed</string>
+    <string name="notification_body_order_completed">Order delivered successfully. Thanks for using FoodieNow!</string>
+    <string name="notification_title_order_cancelled">Order Cancelled</string>
+    <string name="notification_body_order_cancelled">Your order has been cancelled.</string>
+    <string name="notification_title_new_review">New Review!</string>
+    <string name="notification_body_new_review">Customer rated %1$s stars for %2$s.</string>
+    <string name="notification_title_wallet_transaction">Balance Update</string>
+    <string name="notification_body_wallet_transaction">%1$s</string>
+    <string name="notification_title_payment_success">Payment Successful</string>
+    <string name="notification_body_payment_success">Order %1$s paid. You earned %2$s FoodieCoins.</string>
 </resources>

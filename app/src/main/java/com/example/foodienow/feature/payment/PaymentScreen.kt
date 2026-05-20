@@ -52,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
+import com.example.foodienow.domain.payment.PaymentTotalsCalculator
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -66,11 +67,12 @@ fun PaymentScreen(
     var deliveryAddress by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var voucherCodeText by remember { mutableStateOf("") }
+    var appliedVoucherCode by remember { mutableStateOf<String?>(null) }
     var discountAmount by remember { mutableStateOf(0L) }
     var useRewardPoints by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var addressInitialized by remember { mutableStateOf(false) }
-    var paymentMethodInitialized by remember { mutableStateOf(false) }
+    var hasUserSelectedPaymentMethod by remember { mutableStateOf(false) }
     var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
     var selectedProvider by remember { mutableStateOf(WalletProvider.ZALOPAY) }
 
@@ -86,18 +88,30 @@ fun PaymentScreen(
         addressInitialized = true
     }
 
-    if (!paymentMethodInitialized) {
-        selectedMethod = uiState.defaultPaymentMethod
-        selectedProvider = uiState.defaultWalletProvider
-        paymentMethodInitialized = true
+    LaunchedEffect(
+        uiState.paymentSettingsLoaded,
+        uiState.defaultPaymentMethod,
+        uiState.defaultWalletProvider
+    ) {
+        if (uiState.paymentSettingsLoaded && !hasUserSelectedPaymentMethod) {
+            selectedMethod = uiState.defaultPaymentMethod
+            selectedProvider = uiState.defaultWalletProvider
+        }
     }
 
     val subtotal = cartUiState.cartItems.entries.sumOf { it.key.price * it.value }
-    val deliveryFee = if (subtotal > 100000L) 0L else 15_000L
-    val pointsDiscount = if (useRewardPoints) uiState.rewardPointsAvailable.toLong() else 0L
-    val totalAmount = maxOf(0L, subtotal + deliveryFee - discountAmount - pointsDiscount)
+    val cartStoreId = cartUiState.cartItems.keys.firstOrNull()?.storeId
+    val totals = PaymentTotalsCalculator.calculate(
+        subtotal = subtotal,
+        voucherDiscount = discountAmount,
+        rewardPointsAvailable = uiState.rewardPointsAvailable,
+        useRewardPoints = useRewardPoints
+    )
+    val deliveryFee = totals.deliveryFee
+    val pointsDiscount = totals.pointsDiscount
+    val totalAmount = totals.amountCharged
 
-    val canPay = deliveryAddress.isNotBlank() && !uiState.isProcessing && totalAmount > 0
+    val canPay = deliveryAddress.isNotBlank() && !uiState.isProcessing && cartUiState.cartItems.isNotEmpty()
 
     LaunchedEffect(deliveryAddress, note, selectedMethod) {
         viewModel.clearMessage()
@@ -174,9 +188,9 @@ fun PaymentScreen(
                     }
                     Text(stringResource(R.string.payment_subtotal, formatter.format(subtotal)))
                     Text(stringResource(R.string.payment_delivery_fee, formatter.format(deliveryFee)))
-                    if (discountAmount > 0) {
+                    if (totals.discountAmount > 0) {
                         Text(
-                            stringResource(R.string.payment_voucher_discount, formatter.format(discountAmount)),
+                            stringResource(R.string.payment_voucher_discount, formatter.format(totals.discountAmount)),
                             color = com.example.foodienow.core.designsystem.theme.SuccessGreen
                         )
                     }
@@ -211,13 +225,28 @@ fun PaymentScreen(
                 ) {
                     OutlinedTextField(
                         value = voucherCodeText,
-                        onValueChange = { voucherCodeText = it },
+                        onValueChange = {
+                            voucherCodeText = it
+                            appliedVoucherCode = null
+                            discountAmount = 0L
+                        },
                         modifier = Modifier.weight(1f),
                         label = { Text(stringResource(R.string.payment_voucher_hint)) },
                         singleLine = true
                     )
                     Button(
-                        onClick = { scope.launch { discountAmount = viewModel.applyVoucher(voucherCodeText) } }
+                        onClick = {
+                            scope.launch {
+                                val code = voucherCodeText.trim()
+                                val discount = viewModel.applyVoucher(
+                                    code = voucherCodeText,
+                                    storeId = cartStoreId,
+                                    subtotal = subtotal
+                                )
+                                discountAmount = discount
+                                appliedVoucherCode = code.takeIf { discount > 0L }
+                            }
+                        }
                     ) {
                         Text(stringResource(R.string.payment_voucher_apply))
                     }
@@ -272,7 +301,10 @@ fun PaymentScreen(
                     PaymentMethod.entries.forEach { method ->
                         FilterChip(
                             selected = selectedMethod == method,
-                            onClick = { selectedMethod = method },
+                            onClick = {
+                                selectedMethod = method
+                                hasUserSelectedPaymentMethod = true
+                            },
                             label = {
                                 Text(
                                     text = when (method) {
@@ -309,7 +341,10 @@ fun PaymentScreen(
                         WalletProvider.entries.forEach { provider ->
                             FilterChip(
                                 selected = selectedProvider == provider,
-                                onClick = { selectedProvider = provider },
+                                onClick = {
+                                    selectedProvider = provider
+                                    hasUserSelectedPaymentMethod = true
+                                },
                                 label = {
                                     Text(
                                         text = when (provider) {
@@ -422,7 +457,8 @@ fun PaymentScreen(
                             deliveryAddress = deliveryAddress,
                             note = note,
                             amount = totalAmount,
-                            usedRewardPoints = if (useRewardPoints) uiState.rewardPointsAvailable else 0
+                            usedRewardPoints = pointsDiscount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                            voucherCode = appliedVoucherCode
                         )
                     }
                 ) {

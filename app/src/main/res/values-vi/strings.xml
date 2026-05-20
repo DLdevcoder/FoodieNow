@@ -285,7 +285,7 @@
     <string name="settings_dark_mode">Giao diện tối</string>
     <string name="settings_use_english">Dùng tiếng Anh</string>
     <string name="payment_voucher_title">Mã giảm giá</string>
-    <string name="payment_voucher_hint">Nhập mã (vd: GIAM20K)</string>
+    <string name="payment_voucher_hint">Nhập mã (vd: GIAMGIA20K)</string>
     <string name="payment_voucher_apply">Áp dụng</string>
     <string name="payment_voucher_discount">Giảm giá voucher: -%1$s</string>
     <string name="payment_reward_title">Dùng FoodieCoins</string>
@@ -320,6 +320,16 @@ sẽ xuất hiện tại đây</string>
     <string name="notification_mark_read">Đánh dấu đã đọc</string>
     <string name="notification_delete">Xóa</string>
     <string name="notification_mark_all_read">Đánh dấu tất cả đã đọc</string>
+    <string name="notification_filter_all">Tất cả</string>
+    <string name="notification_filter_unread">Chưa đọc</string>
+    <string name="notification_all_caught_up">Bạn đã đọc hết thông báo</string>
+    <string name="notification_unread_label">Chưa đọc</string>
+    <string name="notification_empty_unread_title">Không còn thông báo chưa đọc</string>
+    <string name="notification_empty_unread_subtitle">Các cập nhật mới sẽ xuất hiện ở đây.</string>
+    <string name="notification_time_just_now">Vừa xong</string>
+    <string name="notification_time_minutes_ago">%1$d phút trước</string>
+    <string name="notification_time_hours_ago">%1$d giờ trước</string>
+    <string name="notification_time_days_ago">%1$d ngày trước</string>
 
     <string name="profile_unnamed">Chưa cập nhật tên</string>
     <string name="profile_unnamed_email">Chưa cập nhật email</string>
@@ -359,4 +369,21 @@ sẽ xuất hiện tại đây</string>
     <string name="error_empty_food_fields">Vui lòng nhập đầy đủ tên và giá.</string>
     <string name="error_empty_category">Vui lòng chọn hoặc nhập loại món ăn.</string>
     <string name="error_save_food_failed">Có lỗi xảy ra khi lưu món ăn.</string>
+    <!-- Localized Notifications -->
+    <string name="notification_title_order_new">Đơn hàng mới!</string>
+    <string name="notification_body_order_new">Bạn có một đơn hàng mới trị giá %1$sđ. Vui lòng kiểm tra!</string>
+    <string name="notification_title_order_preparing">Đã xác nhận đơn hàng</string>
+    <string name="notification_body_order_preparing">Quán đã nhận đơn hàng và đang chuẩn bị.</string>
+    <string name="notification_title_order_delivering">Đơn hàng đang giao!</string>
+    <string name="notification_body_order_delivering">Shipper đang trên đường giao đơn hàng đến bạn. Vui lòng chú ý điện thoại nhé.</string>
+    <string name="notification_title_order_completed">Đơn hàng hoàn thành</string>
+    <string name="notification_body_order_completed">Đơn hàng đã được giao thành công. Cảm ơn bạn đã sử dụng FoodieNow!</string>
+    <string name="notification_title_order_cancelled">Đơn hàng đã hủy</string>
+    <string name="notification_body_order_cancelled">Đơn hàng của bạn đã bị hủy.</string>
+    <string name="notification_title_new_review">Đánh giá mới!</string>
+    <string name="notification_body_new_review">Khách hàng vừa đánh giá %1$s sao cho món %2$s.</string>
+    <string name="notification_title_wallet_transaction">Biến động số dư</string>
+    <string name="notification_body_wallet_transaction">%1$s</string>
+    <string name="notification_title_payment_success">Thanh toán thành công</string>
+    <string name="notification_body_payment_success">Đơn hàng %1$s đã thanh toán. Bạn được cộng %2$s FoodieCoins.</string>
 </resources>

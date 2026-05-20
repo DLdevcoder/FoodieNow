@@ -29,9 +29,9 @@ interface AuthRepository {
     // Cộng hoặc trừ điểm thưởng
     suspend fun updateRewardPoints(points: Int): Result<User>
 
+    // Cap nhat so du va diem trong phien sau khi server da xu ly giao dich
+    suspend fun updateSessionFinancials(balance: Long, rewardPoints: Int): Result<User>
+
     // Đổi mật khẩu
     suspend fun changePassword(newPass: String): Result<Unit>
-
-    // Lấy id người dùng
-    suspend fun resolveStoredSession(): User?
 }

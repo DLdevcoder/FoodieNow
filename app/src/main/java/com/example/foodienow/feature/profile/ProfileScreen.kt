@@ -147,6 +147,13 @@ fun ProfileScreen(
                             )
                             HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = Color(0xFFF3F4F6), thickness = 1.dp)
                             MenuItem(
+                                icon = Icons.Default.Payment,
+                                iconColor = Color(0xFF3B82F6), // Blue
+                                title = stringResource(R.string.me_payment),
+                                onClick = onNavigateToPaymentSettings
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = Color(0xFFF3F4F6), thickness = 1.dp)
+                            MenuItem(
                                 icon = Icons.Default.PersonAdd,
                                 iconColor = MaterialTheme.colorScheme.primary,
                                 title = stringResource(R.string.me_invite),

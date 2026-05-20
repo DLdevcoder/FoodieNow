@@ -3,18 +3,17 @@ package com.example.foodienow.feature.payment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodienow.data.repository.MockAddressRepository
-import com.example.foodienow.data.repository.MockPaymentSettingsRepository
-import com.example.foodienow.data.repository.MockWalletTransactionRepository
+import com.example.foodienow.data.repository.PaymentSettingsRepository
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
-import com.example.foodienow.domain.model.WalletTransaction
-import com.example.foodienow.domain.model.WalletTransactionType
 import com.example.foodienow.domain.payment.WalletChargeResult
 import com.example.foodienow.domain.payment.WalletPaymentGateway
 import com.example.foodienow.domain.repository.AtomicPaymentRequest
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.CartRepository
+import com.example.foodienow.domain.repository.PaymentLineItem
 import com.example.foodienow.domain.repository.PaymentRepository
+import com.example.foodienow.domain.repository.ProfileRepository
 import com.example.foodienow.domain.repository.VoucherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,7 +25,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.Instant
 import javax.inject.Inject
 
 data class PaymentUiState(
@@ -35,6 +33,7 @@ data class PaymentUiState(
     val defaultAddress: String = "",
     val defaultPaymentMethod: PaymentMethod = PaymentMethod.COD,
     val defaultWalletProvider: WalletProvider = WalletProvider.ZALOPAY,
+    val paymentSettingsLoaded: Boolean = false,
     val infoMessage: String? = null,
     val errorMessage: String? = null
 )
@@ -54,9 +53,9 @@ class PaymentViewModel @Inject constructor(
     private val walletPaymentGateway: WalletPaymentGateway,
     private val cartRepository: CartRepository,
     private val voucherRepository: VoucherRepository,
-    private val walletTransactionRepository: MockWalletTransactionRepository,
+    private val profileRepository: ProfileRepository,
     private val addressRepository: MockAddressRepository,
-    private val paymentSettingsRepository: MockPaymentSettingsRepository
+    private val paymentSettingsRepository: PaymentSettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PaymentUiState())
@@ -68,7 +67,23 @@ class PaymentViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             authRepository.getAuthState().collect { user ->
-                _uiState.update { it.copy(rewardPointsAvailable = user?.rewardPoints ?: 0) }
+                if (user == null) {
+                    _uiState.update { it.copy(rewardPointsAvailable = 0) }
+                    return@collect
+                }
+
+                _uiState.update { it.copy(rewardPointsAvailable = user.rewardPoints) }
+
+                val profile = profileRepository.getProfile(user.id).first()
+                if (profile != null &&
+                    (profile.balance != user.balance || profile.rewardPoints != user.rewardPoints)
+                ) {
+                    authRepository.updateSessionFinancials(
+                        balance = profile.balance,
+                        rewardPoints = profile.rewardPoints
+                    )
+                    _uiState.update { it.copy(rewardPointsAvailable = profile.rewardPoints) }
+                }
             }
         }
         viewModelScope.launch {
@@ -82,15 +97,36 @@ class PaymentViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         defaultPaymentMethod = settings.defaultMethod,
-                        defaultWalletProvider = settings.defaultProvider
+                        defaultWalletProvider = settings.defaultProvider,
+                        paymentSettingsLoaded = settings.isLoaded
                     )
                 }
             }
         }
+        viewModelScope.launch {
+            paymentSettingsRepository.refreshSettings()
+                .onFailure {
+                    _uiState.update { state -> state.copy(paymentSettingsLoaded = true) }
+                }
+        }
     }
 
-    suspend fun applyVoucher(code: String): Long {
-        return voucherRepository.getDiscount(code)
+    suspend fun applyVoucher(code: String, storeId: String?, subtotal: Long): Long {
+        if (storeId.isNullOrBlank() || code.isBlank()) return 0L
+
+        return voucherRepository.quoteDiscount(code, storeId, subtotal)
+            .fold(
+                onSuccess = { it.discountAmount },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            errorMessage = error.message ?: "Khong ap dung duoc ma giam gia.",
+                            infoMessage = null
+                        )
+                    }
+                    0L
+                }
+            )
     }
 
     fun submitPayment(
@@ -99,7 +135,8 @@ class PaymentViewModel @Inject constructor(
         deliveryAddress: String,
         note: String,
         amount: Long,
-        usedRewardPoints: Int = 0
+        usedRewardPoints: Int = 0,
+        voucherCode: String? = null
     ) {
         if (deliveryAddress.isBlank()) {
             _uiState.update {
@@ -110,6 +147,7 @@ class PaymentViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, infoMessage = null, errorMessage = null) }
+
             val user = authRepository.getAuthState().first()
             if (user == null) {
                 _uiState.update {
@@ -121,21 +159,32 @@ class PaymentViewModel @Inject constructor(
                 return@launch
             }
 
-            if (method == PaymentMethod.WALLET && provider == null) {
+            val cartItems = cartRepository.cartItems.first()
+            if (cartItems.isEmpty()) {
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = "Vui long chon vi dien tu de thanh toan."
+                        errorMessage = "Gio hang dang trong."
                     )
                 }
                 return@launch
             }
 
-            if (method == PaymentMethod.FOODIE_PAY && user.balance < amount) {
+            if (cartItems.keys.map { it.storeId }.distinct().size != 1) {
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = "So du FoodiePay khong du. Vui long nap them tien."
+                        errorMessage = "Chi co the thanh toan mon trong cung mot cua hang."
+                    )
+                }
+                return@launch
+            }
+
+            if (method == PaymentMethod.WALLET && provider == null && amount > 0L) {
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorMessage = "Vui long chon vi dien tu de thanh toan."
                     )
                 }
                 return@launch
@@ -167,10 +216,19 @@ class PaymentViewModel @Inject constructor(
                             transactionId = charge?.transactionId,
                             deliveryAddress = deliveryAddress,
                             note = note.ifBlank { null },
-                            usedRewardPoints = usedRewardPoints
+                            usedRewardPoints = usedRewardPoints,
+                            items = cartItems.map { (food, quantity) ->
+                                PaymentLineItem(foodId = food.id, quantity = quantity)
+                            },
+                            voucherCode = voucherCode?.trim()?.takeIf { it.isNotBlank() },
+                            accessToken = user.token
                         )
                     )
                         .onSuccess { result ->
+                            authRepository.updateSessionFinancials(
+                                balance = result.newBalance,
+                                rewardPoints = result.newRewardPoints
+                            )
                             _uiState.update {
                                 it.copy(
                                     isProcessing = false,
@@ -181,13 +239,12 @@ class PaymentViewModel @Inject constructor(
                             _paymentEvent.emit(
                                 PaymentEvent.PaymentSuccess(
                                     orderId = result.orderId,
-                                    amount = amount,
+                                    amount = result.amountCharged,
                                     methodLabel = method.toDisplayLabel(provider)
                                 )
                             )
                         }
                         .onFailure { error ->
-                            refundFoodiePayIfNeeded(method, amount)
                             _uiState.update {
                                 it.copy(
                                     isProcessing = false,
@@ -211,7 +268,7 @@ class PaymentViewModel @Inject constructor(
         customerId: String
     ): Result<WalletChargeResult?> {
         return when {
-            method == PaymentMethod.WALLET && provider != null -> {
+            method == PaymentMethod.WALLET && provider != null && amount > 0L -> {
                 walletPaymentGateway.charge(
                     provider = provider,
                     amount = amount,
@@ -219,38 +276,8 @@ class PaymentViewModel @Inject constructor(
                     customerId = customerId
                 ).map { it }
             }
-            method == PaymentMethod.FOODIE_PAY -> {
-                val transactionId = "FPAY-${System.currentTimeMillis()}"
-                authRepository.updateBalance(-amount).map {
-                    walletTransactionRepository.addTransaction(
-                        WalletTransaction(
-                            id = transactionId,
-                            type = WalletTransactionType.PAYMENT,
-                            amount = amount,
-                            description = "Thanh toan don hang",
-                            createdAt = Instant.now().toString()
-                        )
-                    )
-                    WalletChargeResult(transactionId = transactionId, message = "FoodiePay success")
-                }
-            }
             else -> Result.success(null)
         }
-    }
-
-    private suspend fun refundFoodiePayIfNeeded(method: PaymentMethod, amount: Long) {
-        if (method != PaymentMethod.FOODIE_PAY) return
-
-        authRepository.updateBalance(amount)
-        walletTransactionRepository.addTransaction(
-            WalletTransaction(
-                id = "REFUND-${System.currentTimeMillis()}",
-                type = WalletTransactionType.TOP_UP,
-                amount = amount,
-                description = "Hoan tien don hang thanh toan loi",
-                createdAt = Instant.now().toString()
-            )
-        )
     }
 
     private fun PaymentMethod.toDisplayLabel(provider: WalletProvider?): String {

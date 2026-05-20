@@ -189,6 +189,23 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateSessionFinancials(balance: Long, rewardPoints: Int): Result<User> =
+        withContext(Dispatchers.IO) {
+            try {
+                val currentUser = authSessionDataStore.sessionFlow.firstOrNull()
+                    ?: return@withContext Result.failure(Exception("No user logged in"))
+
+                val updatedUser = currentUser.copy(
+                    balance = balance,
+                    rewardPoints = rewardPoints
+                )
+                authSessionDataStore.saveSession(updatedUser)
+                Result.success(updatedUser)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
     override suspend fun changePassword(newPass: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val currentUser = authSessionDataStore.sessionFlow.firstOrNull()
