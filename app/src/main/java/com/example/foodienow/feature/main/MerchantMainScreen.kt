@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Notifications
@@ -37,6 +38,7 @@ fun MerchantMainScreen(
     viewModel: MerchantViewModel = hiltViewModel(),
     onNavigateToAddFood: (String) -> Unit,
     onNavigateToEditFood: (String) -> Unit,
+    onNavigateToChatList: () -> Unit,
     onLogout: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
@@ -56,6 +58,17 @@ fun MerchantMainScreen(
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
+                    },
+                    actions = {
+                        if (selectedTab == 0) {
+                            IconButton(onClick = onNavigateToChatList) {
+                                Icon(
+                                    Icons.Default.ChatBubbleOutline,
+                                    contentDescription = "Tin nhắn",
+                                    tint = Color.White
+                                )
+                            }
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary,

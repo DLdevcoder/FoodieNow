@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,7 +41,8 @@ fun FoodDetailScreen(
     onBackClick: () -> Unit,
     onAddToCart: (Food, Int) -> Unit,
     onNavigateToStore: (String) -> Unit,
-    onNavigateToAllReviews: () -> Unit
+    onNavigateToAllReviews: () -> Unit,
+    onNavigateToChat: (storeId: String, receiverId: String, storeName: String) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -182,7 +185,10 @@ fun FoodDetailScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         AsyncImage(
                             model = store.imageUrl,
                             contentDescription = null,
@@ -208,6 +214,21 @@ fun FoodDetailScreen(
                                 text = stringResource(R.string.food_detail_store_hint),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                onNavigateToChat(store.id, store.ownerId, store.name)
+                            },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Chat,
+                                contentDescription = "Chat với cửa hàng",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
