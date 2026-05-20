@@ -116,6 +116,9 @@ fun AppNavigation() {
                 onNavigateToCategory = { categoryId, categoryName ->
                     navController.navigate("category_detail/$categoryId/$categoryName")
                 },
+                onNavigateToChatList = {
+                    navController.navigate("chat_list")
+                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.CustomerHome.route) { inclusive = true }
@@ -359,6 +362,9 @@ fun AppNavigation() {
                     onNavigateToStore = { /* TODO */ },
                     onNavigateToAllReviews = {
                         navController.navigate("food_reviews/${uiState.food!!.id}")
+                    },
+                    onNavigateToChat = { storeId, receiverId, storeName ->
+                        navController.navigate("chat/$storeId/$receiverId?title=$storeName")
                     }
                 )
             }
@@ -374,6 +380,21 @@ fun AppNavigation() {
             FoodReviewsScreen(
                 reviews = uiState.reviews,
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "chat/{storeId}/{receiverId}?title={title}",
+            arguments = listOf(
+                navArgument("storeId") { type = NavType.StringType },
+                navArgument("receiverId") { type = NavType.StringType },
+                navArgument("title") { type = NavType.StringType; defaultValue = "Chat" }
+            )
+        ) { backStackEntry ->
+            val title = backStackEntry.arguments?.getString("title") ?: "Chat"
+            com.example.foodienow.feature.chat.ChatScreen(
+                title = title,
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -450,10 +471,22 @@ fun AppNavigation() {
                 onNavigateToEditFood = { foodId ->
                     navController.navigate("add_edit_food/$foodId")
                 },
+                onNavigateToChatList = {
+                    navController.navigate("chat_list")
+                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable(route = "chat_list") {
+            com.example.foodienow.feature.chat.ChatListScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToChatDetail = { storeId, receiverId, title ->
+                    navController.navigate("chat/$storeId/$receiverId?title=$title")
                 }
             )
         }

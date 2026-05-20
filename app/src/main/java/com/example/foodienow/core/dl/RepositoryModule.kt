@@ -3,6 +3,7 @@ package com.example.foodienow.core.dl
 import com.example.foodienow.data.repository.FoodRepositoryImpl
 import com.example.foodienow.data.repository.AuthRepositoryImpl
 import com.example.foodienow.data.repository.CartRepositoryImpl
+import com.example.foodienow.data.repository.ChatRepositoryImpl
 import com.example.foodienow.data.repository.MerchantRepositoryImpl
 import com.example.foodienow.data.repository.NotificationRepositoryImpl
 import com.example.foodienow.data.repository.OrderRepositoryImpl
@@ -12,6 +13,7 @@ import com.example.foodienow.data.repository.MockVoucherRepository
 import com.example.foodienow.data.repository.ReviewRepositoryImpl
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.CartRepository
+import com.example.foodienow.domain.repository.ChatRepository
 import com.example.foodienow.domain.repository.CustomerFoodRepository
 import com.example.foodienow.domain.repository.MerchantRepository
 import com.example.foodienow.domain.repository.NotificationRepository
@@ -89,4 +91,10 @@ abstract class RepositoryModule {
     abstract fun bindCartRepository(
         cartRepositoryImpl: CartRepositoryImpl
     ): CartRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindChatRepository(
+        impl: ChatRepositoryImpl
+    ): ChatRepository
 }

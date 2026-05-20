@@ -335,5 +335,9 @@ class AuthRepositoryImpl @Inject constructor(
         private const val SUPABASE_URL = "https://ruyrncmsawymsrvsluae.supabase.co"
         private const val SUPABASE_KEY = "sb_publishable_vhz-9WFDhqe8ieYKif16dQ_CC5RAcLP"
     }
+
+    override suspend fun resolveStoredSession(): User? {
+        return authSessionDataStore.sessionFlow.firstOrNull()
+    }
 }
 

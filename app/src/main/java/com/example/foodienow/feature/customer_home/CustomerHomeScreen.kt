@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
@@ -41,7 +42,8 @@ fun CustomerHomeScreen(
     onNavigateToFoodDetail: (Food) -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToCategory: (categoryId: String, categoryName: String) -> Unit,
-    onNavigateToCart: () -> Unit
+    onNavigateToCart: () -> Unit,
+    onNavigateToChatList: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -53,7 +55,8 @@ fun CustomerHomeScreen(
         item {
             HomeTopSection(
                 onNavigateToSearch = onNavigateToSearch,
-                onNavigateToCart = onNavigateToCart, // Truyền xuống TopSection
+                onNavigateToCart = onNavigateToCart,
+                onNavigateToChatList = onNavigateToChatList,
                 address = uiState.address
             )
         }
@@ -104,6 +107,7 @@ fun CustomerHomeScreen(
 private fun HomeTopSection(
     onNavigateToSearch: () -> Unit,
     onNavigateToCart: () -> Unit,
+    onNavigateToChatList: () -> Unit,
     address: String
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -199,6 +203,19 @@ private fun HomeTopSection(
                 Icon(
                     Icons.Default.ShoppingCart,
                     contentDescription = "Giỏ hàng",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            IconButton(
+                onClick = onNavigateToChatList,
+                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White),
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ChatBubbleOutline,
+                    contentDescription = "Danh sách tin nhắn",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
