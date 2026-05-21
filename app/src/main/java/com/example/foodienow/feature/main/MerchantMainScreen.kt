@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,6 +45,10 @@ fun MerchantMainScreen(
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadUnreadMessageCount()
+    }
+
     Scaffold(
         topBar = {
             if (selectedTab in 0..2) {
@@ -61,12 +66,30 @@ fun MerchantMainScreen(
                     },
                     actions = {
                         if (selectedTab == 0) {
-                            IconButton(onClick = onNavigateToChatList) {
-                                Icon(
-                                    Icons.Default.ChatBubbleOutline,
-                                    contentDescription = "Tin nhắn",
-                                    tint = Color.White
-                                )
+                            IconButton(
+                                onClick = onNavigateToChatList
+                            ) {
+                                BadgedBox(
+                                    badge = {
+                                        if (uiState.unreadMessageCount > 0) {
+                                            Badge(
+                                                containerColor = MaterialTheme.colorScheme.error,
+                                                contentColor = Color.White
+                                            ) {
+                                                Text(
+                                                    text = if (uiState.unreadMessageCount > 99) "99+"
+                                                    else uiState.unreadMessageCount.toString()
+                                                )
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ChatBubbleOutline,
+                                        contentDescription = "Tin nhắn",
+                                        tint = Color.White
+                                    )
+                                }
                             }
                         }
                     },

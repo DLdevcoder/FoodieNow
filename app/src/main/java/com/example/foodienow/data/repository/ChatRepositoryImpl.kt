@@ -77,4 +77,37 @@ class ChatRepositoryImpl @Inject constructor(
             emptyList()
         }
     }
+
+    override suspend fun markMessagesAsRead(storeId: String, partnerId: String, currentUserId: String) {
+        try {
+            supabase.postgrest["messages"].update(
+                mapOf("is_read" to true)
+            ) {
+                filter {
+                    eq("store_id", storeId)
+                    eq("sender_id", partnerId) // Tin nhắn từ người kia gửi
+                    eq("receiver_id", currentUserId) // Mình là người nhận
+                    eq("is_read", false)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override suspend fun getTotalUnreadCount(userId: String): Int {
+        return try {
+            val result = supabase.postgrest["messages"].select(head = true) {
+                filter {
+                    eq("receiver_id", userId)
+                    eq("is_read", false)
+                }
+                count(io.github.jan.supabase.postgrest.query.Count.EXACT)
+            }
+            result.countOrNull()?.toInt() ?: 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            0
+        }
+    }
 }

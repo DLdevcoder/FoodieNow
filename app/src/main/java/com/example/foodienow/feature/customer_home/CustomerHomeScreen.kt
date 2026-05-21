@@ -239,7 +239,6 @@ private fun CategoriesSection(
         if (isLoading && categories.isEmpty()) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
-            // Lấy tối đa 8 category để hiển thị trên 2 dòng
             val displayCategories = categories.take(8)
             val rows = displayCategories.chunked(4)
 
@@ -251,7 +250,6 @@ private fun CategoriesSection(
                     rowItems.forEach { category ->
                         CategoryItem(category = category, onClick = onCategoryClick)
                     }
-                    // Bù khoảng trống để các item không bị giãn nếu dòng cuối không đủ 4 phần tử
                     repeat(4 - rowItems.size) {
                         Spacer(modifier = Modifier.width(58.dp))
                     }
