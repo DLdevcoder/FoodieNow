@@ -6,6 +6,9 @@ import com.example.foodienow.domain.model.Category
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.data.repository.MockAddressRepository
 import com.example.foodienow.domain.repository.CustomerFoodRepository
+// THÊM: Import Repository cần thiết cho tính năng Chat
+import com.example.foodienow.domain.repository.AuthRepository
+import com.example.foodienow.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,16 +20,21 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = false,
     val recommendedFoods: List<Food> = emptyList(),
-    val categories: List<Category> = emptyList(), // Chứa dữ liệu trả về từ bảng categories
+    val categories: List<Category> = emptyList(),
     val searchQuery: String = "",
     val searchResults: List<Food> = emptyList(),
-    val address: String = "Chọn địa chỉ giao hàng"
+    val address: String = "Chọn địa chỉ giao hàng",
+    // THÊM: Thuộc tính lưu số lượng tin nhắn chưa đọc
+    val unreadMessageCount: Int = 0
 )
 
 @HiltViewModel
 class CustomerHomeViewModel @Inject constructor(
     private val foodRepository: CustomerFoodRepository,
-    private val addressRepository: MockAddressRepository
+    private val addressRepository: MockAddressRepository,
+    // THÊM: Inject ChatRepository và AuthRepository
+    private val chatRepository: ChatRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -34,6 +42,7 @@ class CustomerHomeViewModel @Inject constructor(
 
     init {
         loadRealData()
+        loadUnreadMessageCount()
     }
 
     private fun loadRealData() {
@@ -41,7 +50,6 @@ class CustomerHomeViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             try {
-                // Tải danh sách category từ Supabase
                 val fetchedCategories = foodRepository.getCategories()
 
                 addressRepository.addresses.collect { addresses ->
@@ -52,7 +60,7 @@ class CustomerHomeViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 recommendedFoods = realFoods,
-                                categories = fetchedCategories, // Đẩy dữ liệu vào State để UI tự vẽ
+                                categories = fetchedCategories,
                                 address = defaultAddress
                             )
                         }
@@ -61,6 +69,20 @@ class CustomerHomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    // tải số lượng tin nhắn chưa đọc từ Supabase
+    fun loadUnreadMessageCount() {
+        viewModelScope.launch {
+            try {
+                val user = authRepository.resolveStoredSession()
+                val currentUserId = user?.id ?: return@launch
+                val count = chatRepository.getTotalUnreadCount(currentUserId)
+                _uiState.update { it.copy(unreadMessageCount = count) }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

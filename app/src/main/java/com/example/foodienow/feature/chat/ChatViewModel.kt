@@ -46,6 +46,12 @@ class ChatViewModel @Inject constructor(
 
                 _uiState.update { it.copy(currentUserId = currentUserId) }
 
+                chatRepository.markMessagesAsRead(
+                    storeId = storeId,
+                    partnerId = receiverId,
+                    currentUserId = currentUserId
+                )
+
                 // Tải lịch sử chat
                 val history = chatRepository.getChatHistory(storeId, currentUserId, receiverId)
                 _uiState.update { it.copy(messages = history, isLoading = false) }
@@ -87,8 +93,8 @@ class ChatViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            val tempMessage = newMessage.copy(id = "temp_${System.currentTimeMillis()}")
-            _uiState.update { it.copy(messages = it.messages + tempMessage) }
+//            val tempMessage = newMessage.copy(id = "temp_${System.currentTimeMillis()}")
+//            _uiState.update { it.copy(messages = it.messages + tempMessage) }
 
             chatRepository.sendMessage(newMessage)
         }

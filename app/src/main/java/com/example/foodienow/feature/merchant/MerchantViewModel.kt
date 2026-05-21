@@ -6,6 +6,7 @@ import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Store
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.MerchantRepository
+import com.example.foodienow.domain.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,13 +20,15 @@ data class MerchantUiState(
     val isLoading: Boolean = false,
     val store: Store? = null,
     val menu: List<Food> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val unreadMessageCount: Int = 0
 )
 
 @HiltViewModel
 class MerchantViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val merchantRepository: MerchantRepository
+    private val merchantRepository: MerchantRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MerchantUiState())
@@ -33,13 +36,13 @@ class MerchantViewModel @Inject constructor(
 
     init {
         loadMerchantData()
+        loadUnreadMessageCount()
     }
 
     private fun loadMerchantData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Lấy giá trị user hiện tại từ Flow
                 val currentUser = authRepository.getAuthState().firstOrNull()
 
                 if (currentUser != null) {
@@ -66,6 +69,19 @@ class MerchantViewModel @Inject constructor(
         }
     }
 
+    fun loadUnreadMessageCount() {
+        viewModelScope.launch {
+            try {
+                val user = authRepository.resolveStoredSession()
+                val currentUserId = user?.id ?: return@launch
+                val count = chatRepository.getTotalUnreadCount(currentUserId)
+                _uiState.update { it.copy(unreadMessageCount = count) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun toggleFoodAvailability(food: Food) {
         viewModelScope.launch {
             _uiState.update { currentState ->
@@ -87,6 +103,7 @@ class MerchantViewModel @Inject constructor(
             }
         }
     }
+
     fun updateStoreInfo(
         newName: String,
         newAddress: String,
