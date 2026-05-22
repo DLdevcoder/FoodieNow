@@ -151,8 +151,8 @@ class PaymentViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isProcessing = true, infoMessage = null, errorMessage = null) }
 
-            val user = authRepository.getAuthState().first()
-            if (user == null) {
+            val sessionUser = authRepository.getAuthState().first()
+            if (sessionUser == null) {
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
@@ -161,6 +161,9 @@ class PaymentViewModel @Inject constructor(
                 }
                 return@launch
             }
+
+            val refreshResult = authRepository.refreshSession()
+            val user = refreshResult.getOrNull() ?: sessionUser
 
             val cartItems = cartRepository.cartItems.first()
             if (cartItems.isEmpty()) {
@@ -264,12 +267,39 @@ class PaymentViewModel @Inject constructor(
         _uiState.update { it.copy(infoMessage = null, errorMessage = null) }
     }
 
-    fun loadAvailableVouchers(storeId: String) {
+    fun calculateVoucherDiscount(voucher: Voucher, subtotal: Long): Long {
+        if (subtotal < voucher.minOrderValue) return 0L
+        val rawDiscount = if (voucher.discountAmount > 0L) {
+            voucher.discountAmount
+        } else {
+            kotlin.math.floor(subtotal * voucher.discountPercent / 100.0).toLong()
+        }
+        val cappedDiscount = if (voucher.maxDiscount > 0L) {
+            kotlin.math.min(rawDiscount, voucher.maxDiscount)
+        } else {
+            rawDiscount
+        }
+        return cappedDiscount.coerceIn(0L, subtotal)
+    }
+
+    fun loadAvailableVouchers(storeId: String, subtotal: Long) {
         if (storeId.isBlank()) return
         viewModelScope.launch {
             voucherRepository.getVouchersByStore(storeId)
                 .onSuccess { vouchers ->
                     _uiState.update { it.copy(availableVouchers = vouchers) }
+                    var bestVoucher: Voucher? = null
+                    var maxDiscount = 0L
+                    for (voucher in vouchers) {
+                        if (subtotal >= voucher.minOrderValue) {
+                            val discount = calculateVoucherDiscount(voucher, subtotal)
+                            if (discount > maxDiscount) {
+                                maxDiscount = discount
+                                bestVoucher = voucher
+                            }
+                        }
+                    }
+                    _uiState.update { it.copy(selectedVoucher = bestVoucher) }
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(errorMessage = error.message) }

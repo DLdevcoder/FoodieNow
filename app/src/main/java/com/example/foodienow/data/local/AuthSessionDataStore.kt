@@ -32,6 +32,7 @@ class AuthSessionDataStore @Inject constructor(
             prefs[Keys.EMAIL] = user.email
             prefs[Keys.ROLE] = user.role.name
             prefs[Keys.TOKEN] = user.token
+            prefs[Keys.REFRESH_TOKEN] = user.refreshToken
             prefs[Keys.BALANCE] = user.balance
             prefs[Keys.REWARD_POINTS] = user.rewardPoints
         }
@@ -44,6 +45,7 @@ class AuthSessionDataStore @Inject constructor(
             prefs.remove(Keys.EMAIL)
             prefs.remove(Keys.ROLE)
             prefs.remove(Keys.TOKEN)
+            prefs.remove(Keys.REFRESH_TOKEN)
             prefs.remove(Keys.BALANCE)
             prefs.remove(Keys.REWARD_POINTS)
         }
@@ -53,6 +55,7 @@ class AuthSessionDataStore @Inject constructor(
         val id = this[Keys.USER_ID].orEmpty()
         val email = this[Keys.EMAIL].orEmpty()
         val token = this[Keys.TOKEN].orEmpty()
+        val refreshToken = this[Keys.REFRESH_TOKEN].orEmpty()
 
         if (id.isBlank() || email.isBlank() || token.isBlank()) {
             return null
@@ -71,7 +74,8 @@ class AuthSessionDataStore @Inject constructor(
             role = role,
             balance = this[Keys.BALANCE] ?: 0L,
             rewardPoints = this[Keys.REWARD_POINTS] ?: 0,
-            token = token
+            token = token,
+            refreshToken = refreshToken
         )
     }
 
@@ -81,6 +85,7 @@ class AuthSessionDataStore @Inject constructor(
         val EMAIL = stringPreferencesKey("email")
         val ROLE = stringPreferencesKey("role")
         val TOKEN = stringPreferencesKey("token")
+        val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
         val BALANCE = longPreferencesKey("balance")
         val REWARD_POINTS = intPreferencesKey("reward_points")
     }

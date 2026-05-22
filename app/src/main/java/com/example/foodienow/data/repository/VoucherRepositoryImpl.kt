@@ -63,7 +63,7 @@ class VoucherRepositoryImpl @Inject constructor() : VoucherRepository {
             val ownerId = fetchStoreOwnerId(storeId) ?: return@runCatching emptyList()
 
             val response = SupabaseRest.get(
-                "/rest/v1/vouchers?select=id,merchant_id,code,discount_percent,max_discount,min_order_value,discount_amount,is_active,expires_at,created_at" +
+                "/rest/v1/vouchers?select=id,merchant_id,code,discount_percent,max_discount,min_order_value,discount_amount,is_active,expires_at,created_at,max_usages_per_user,total_usages_limit,starts_at" +
                     "&is_active=eq.true" +
                     "&or=(merchant_id.eq.${SupabaseRest.encodeQueryValue(ownerId)},merchant_id.is.null)"
             )
@@ -80,12 +80,20 @@ class VoucherRepositoryImpl @Inject constructor() : VoucherRepository {
                 val expiresAtStr = obj.optString("expires_at", "")
 
                 if (expiresAtStr.isNotBlank()) {
-                    runCatching {
+                    val isExpired = runCatching {
                         val expiresAt = java.time.Instant.parse(expiresAtStr)
-                        if (expiresAt.isBefore(java.time.Instant.now())) {
-                            return@runCatching
-                        }
-                    }
+                        expiresAt.isBefore(java.time.Instant.now())
+                    }.getOrDefault(false)
+                    if (isExpired) continue
+                }
+
+                val startsAtStr = obj.optString("starts_at", "")
+                if (startsAtStr.isNotBlank()) {
+                    val hasNotStarted = runCatching {
+                        val startsAt = java.time.Instant.parse(startsAtStr)
+                        startsAt.isAfter(java.time.Instant.now())
+                    }.getOrDefault(false)
+                    if (hasNotStarted) continue
                 }
 
                 list.add(
@@ -99,7 +107,10 @@ class VoucherRepositoryImpl @Inject constructor() : VoucherRepository {
                         discountAmount = obj.optLong("discount_amount", 0L),
                         isActive = obj.optBoolean("is_active", true),
                         expiresAt = expiresAtStr.takeIf { it.isNotBlank() },
-                        createdAt = obj.optString("created_at").takeIf { it.isNotBlank() }
+                        createdAt = obj.optString("created_at").takeIf { it.isNotBlank() },
+                        maxUsagesPerUser = if (obj.isNull("max_usages_per_user")) null else obj.getInt("max_usages_per_user"),
+                        totalUsagesLimit = if (obj.isNull("total_usages_limit")) null else obj.getInt("total_usages_limit"),
+                        startsAt = startsAtStr.takeIf { it.isNotBlank() }
                     )
                 )
             }

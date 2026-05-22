@@ -35,4 +35,5 @@ interface AuthRepository {
     // Đổi mật khẩu
     suspend fun changePassword(newPass: String): Result<Unit>
     suspend fun resolveStoredSession(): User?
+    suspend fun refreshSession(): Result<User>
 }

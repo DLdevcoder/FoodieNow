@@ -39,6 +39,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
 
             val token = response.body.optString("access_token")
+            val refreshToken = response.body.optString("refresh_token")
             val userJson = response.body.optJSONObject("user") ?: JSONObject()
             val isEmailConfirmed = userJson.optString("email_confirmed_at").isNotBlank()
             if (!isEmailConfirmed) {
@@ -47,8 +48,8 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             }
 
-            val baseUser = userJson.toDomainUser(token)
-            val resolvedUser = loadProfile(baseUser.id)?.toUser(baseUser.token) ?: baseUser
+            val baseUser = userJson.toDomainUser(token, refreshToken)
+            val resolvedUser = loadProfile(baseUser.id)?.toUser(baseUser.token, refreshToken) ?: baseUser
             authSessionDataStore.saveSession(resolvedUser)
             Result.success(resolvedUser)
         } catch (e: Exception) {
@@ -74,7 +75,8 @@ class AuthRepositoryImpl @Inject constructor(
 
             val userJson = response.body.optJSONObject("user") ?: JSONObject()
             val token = response.body.optString("access_token")
-            val newUser = userJson.toDomainUser(token)
+            val refreshToken = response.body.optString("refresh_token")
+            val newUser = userJson.toDomainUser(token, refreshToken)
 
             // Keep app-level account profile in database so profile data is not only local state.
             upsertProfile(
@@ -310,7 +312,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun JSONObject.toDomainUser(token: String): User {
+    private fun JSONObject.toDomainUser(token: String, refreshToken: String = ""): User {
         val metadata = optJSONObject("user_metadata") ?: JSONObject()
         val role = metadata.optString("role")
             .toUserRoleOrDefault()
@@ -320,7 +322,8 @@ class AuthRepositoryImpl @Inject constructor(
             name = metadata.optString("name").ifBlank { optString("email").substringBefore("@") },
             email = optString("email"),
             role = role,
-            token = token
+            token = token,
+            refreshToken = refreshToken
         )
     }
 
@@ -329,7 +332,7 @@ class AuthRepositoryImpl @Inject constructor(
             .getOrDefault(UserRole.CUSTOMER)
     }
 
-    private fun Profile.toUser(token: String): User {
+    private fun Profile.toUser(token: String, refreshToken: String = ""): User {
         return User(
             id = id,
             name = fullName,
@@ -337,7 +340,8 @@ class AuthRepositoryImpl @Inject constructor(
             role = role,
             balance = balance,
             rewardPoints = rewardPoints,
-            token = token
+            token = token,
+            refreshToken = refreshToken
         )
     }
 
@@ -353,8 +357,60 @@ class AuthRepositoryImpl @Inject constructor(
         private const val SUPABASE_KEY = "sb_publishable_vhz-9WFDhqe8ieYKif16dQ_CC5RAcLP"
     }
 
+    private fun isJwtExpired(token: String): Boolean {
+        if (token.isBlank()) return true
+        val parts = token.split(".")
+        if (parts.size < 2) return true
+        return try {
+            val payload = parts[1]
+            val decodedBytes = java.util.Base64.getUrlDecoder().decode(payload)
+            val json = JSONObject(String(decodedBytes))
+            val exp = json.optLong("exp", 0L)
+            val currentTimeSeconds = System.currentTimeMillis() / 1000
+            currentTimeSeconds >= (exp - 60)
+        } catch (e: Exception) {
+            true
+        }
+    }
+
     override suspend fun resolveStoredSession(): User? {
-        return authSessionDataStore.sessionFlow.firstOrNull()
+        val user = authSessionDataStore.sessionFlow.firstOrNull() ?: return null
+        if (isJwtExpired(user.token)) {
+            return refreshSession().getOrNull()
+        }
+        return user
+    }
+
+    override suspend fun refreshSession(): Result<User> = withContext(Dispatchers.IO) {
+        try {
+            val currentUser = authSessionDataStore.sessionFlow.firstOrNull()
+                ?: return@withContext Result.failure(Exception("No user logged in"))
+
+            if (currentUser.refreshToken.isBlank()) {
+                return@withContext Result.failure(Exception("No refresh token available"))
+            }
+
+            val response = postRequest(
+                endpoint = "/auth/v1/token?grant_type=refresh_token",
+                body = JSONObject().put("refresh_token", currentUser.refreshToken)
+            )
+
+            if (!response.isSuccess) {
+                return@withContext Result.failure(Exception(parseErrorMessage(response.body)))
+            }
+
+            val newToken = response.body.optString("access_token")
+            val newRefreshToken = response.body.optString("refresh_token")
+            val userJson = response.body.optJSONObject("user") ?: JSONObject()
+
+            val baseUser = userJson.toDomainUser(newToken, newRefreshToken)
+            val resolvedUser = loadProfile(baseUser.id)?.toUser(baseUser.token, newRefreshToken) ?: baseUser
+
+            authSessionDataStore.saveSession(resolvedUser)
+            Result.success(resolvedUser)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
 

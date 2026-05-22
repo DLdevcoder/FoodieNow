@@ -3,6 +3,9 @@
 package com.example.foodienow.feature.payment
 
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Discount
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -105,7 +109,21 @@ fun PaymentScreen(
     val cartStoreId = cartUiState.cartItems.keys.firstOrNull()?.storeId
 
     LaunchedEffect(cartStoreId) {
-        cartStoreId?.let { viewModel.loadAvailableVouchers(it) }
+        cartStoreId?.let { viewModel.loadAvailableVouchers(it, subtotal) }
+    }
+
+    LaunchedEffect(uiState.selectedVoucher) {
+        val selected = uiState.selectedVoucher
+        if (selected != null) {
+            voucherCodeText = selected.code
+            val discount = viewModel.applyVoucher(
+                code = selected.code,
+                storeId = cartStoreId,
+                subtotal = subtotal
+            )
+            discountAmount = discount
+            appliedVoucherCode = selected.code.takeIf { discount > 0L }
+        }
     }
     val totals = PaymentTotalsCalculator.calculate(
         subtotal = subtotal,
@@ -259,6 +277,61 @@ fun PaymentScreen(
                             }
                         ) {
                             Text(stringResource(R.string.payment_voucher_apply))
+                        }
+                    }
+
+                    val potentialBestVoucher = uiState.availableVouchers
+                        .filter { it.minOrderValue > subtotal && it.minOrderValue - subtotal <= 30000 }
+                        .maxByOrNull { voucher ->
+                            val raw = if (voucher.discountAmount > 0L) {
+                                voucher.discountAmount
+                            } else {
+                                kotlin.math.floor(voucher.minOrderValue * voucher.discountPercent / 100.0).toLong()
+                            }
+                            if (voucher.maxDiscount > 0L) kotlin.math.min(raw, voucher.maxDiscount) else raw
+                        }
+
+                    potentialBestVoucher?.let { voucher ->
+                        val needed = voucher.minOrderValue - subtotal
+                        val raw = if (voucher.discountAmount > 0L) {
+                            voucher.discountAmount
+                        } else {
+                            kotlin.math.floor(voucher.minOrderValue * voucher.discountPercent / 100.0).toLong()
+                        }
+                        val potentialDiscount = if (voucher.maxDiscount > 0L) kotlin.math.min(raw, voucher.maxDiscount) else raw
+
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                )
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Discount,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "Mua thêm ${formatter.format(needed)} để áp dụng mã ${voucher.code} (giảm ${formatter.format(potentialDiscount)})!",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
 
@@ -497,6 +570,7 @@ fun PaymentScreen(
     }
 
     if (showVoucherPickerDialog) {
+        val context = androidx.compose.ui.platform.LocalContext.current
         AlertDialog(
             onDismissRequest = { showVoucherPickerDialog = false },
             title = { Text(text = "Chọn Voucher", fontWeight = FontWeight.Bold) },
@@ -508,6 +582,7 @@ fun PaymentScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     uiState.availableVouchers.forEach { voucher ->
+                        val isEligible = subtotal >= voucher.minOrderValue
                         val title = if (voucher.discountPercent > 0) {
                             "Giảm ${voucher.discountPercent}%"
                         } else {
@@ -517,6 +592,9 @@ fun PaymentScreen(
                             append("Đơn tối thiểu ${formatter.format(voucher.minOrderValue)}")
                             if (voucher.maxDiscount > 0) {
                                 append(". Giảm tối đa ${formatter.format(voucher.maxDiscount)}")
+                            }
+                            if (!isEligible) {
+                                append("\n⚠️ Chưa đủ điều kiện (Thiếu ${formatter.format(voucher.minOrderValue - subtotal)})")
                             }
                         }
                         val expiry = voucher.expiresAt?.let {
@@ -528,25 +606,40 @@ fun PaymentScreen(
                             }.getOrNull()
                         }
 
-                        VoucherCard(
-                            title = "${voucher.code} - $title",
-                            description = desc,
-                            expiryText = expiry,
-                            onClick = {
-                                showVoucherPickerDialog = false
-                                voucherCodeText = voucher.code
-                                viewModel.selectVoucher(voucher)
-                                scope.launch {
-                                    val discount = viewModel.applyVoucher(
-                                        code = voucher.code,
-                                        storeId = cartStoreId,
-                                        subtotal = subtotal
-                                    )
-                                    discountAmount = discount
-                                    appliedVoucherCode = voucher.code.takeIf { discount > 0L }
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(if (isEligible) 1f else 0.5f)
+                        ) {
+                            VoucherCard(
+                                title = "${voucher.code} - $title",
+                                description = desc,
+                                expiryText = expiry,
+                                onClick = {
+                                    if (isEligible) {
+                                        showVoucherPickerDialog = false
+                                        voucherCodeText = voucher.code
+                                        viewModel.selectVoucher(voucher)
+                                        scope.launch {
+                                            val discount = viewModel.applyVoucher(
+                                                code = voucher.code,
+                                                storeId = cartStoreId,
+                                                subtotal = subtotal
+                                            )
+                                            discountAmount = discount
+                                            appliedVoucherCode = voucher.code.takeIf { discount > 0L }
+                                        }
+                                    } else {
+                                        val missing = voucher.minOrderValue - subtotal
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            "Chưa đủ điều kiện áp dụng voucher này (Thiếu ${formatter.format(missing)})",
+                                            android.widget.Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             },

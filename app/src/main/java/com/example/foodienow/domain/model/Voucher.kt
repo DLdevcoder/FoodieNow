@@ -14,5 +14,8 @@ data class Voucher(
     @SerialName("discount_amount") val discountAmount: Long,
     @SerialName("is_active") val isActive: Boolean,
     @SerialName("expires_at") val expiresAt: String? = null,
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("max_usages_per_user") val maxUsagesPerUser: Int? = null,
+    @SerialName("total_usages_limit") val totalUsagesLimit: Int? = null,
+    @SerialName("starts_at") val startsAt: String? = null
 )

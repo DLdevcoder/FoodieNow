@@ -93,4 +93,64 @@ class PaymentRpcMapperTest {
         assertEquals(1_550, result.newRewardPoints)
         assertEquals(945_000L, result.newBalance)
     }
+
+    @Test
+    fun toRpcBody_mapsJsonCorrectly() {
+        val json = PaymentRpcMapper.toRpcBody(
+            AtomicPaymentRequest(
+                customerId = "customer-123",
+                amount = 90_000L,
+                method = PaymentMethod.WALLET,
+                provider = WalletProvider.ZALOPAY,
+                transactionId = "ZP-123",
+                deliveryAddress = "Hanoi, Vietnam",
+                note = "Giao gio hanh chinh",
+                usedRewardPoints = 500,
+                items = listOf(PaymentLineItem(foodId = "food-1", quantity = 3)),
+                voucherCode = "VOUCHER10",
+                accessToken = "token-123"
+            )
+        )
+
+        assertEquals("customer-123", json.getString("p_customer_id"))
+        assertEquals(90_000L, json.getLong("p_amount"))
+        assertEquals("WALLET", json.getString("p_method"))
+        assertEquals("ZALOPAY", json.getString("p_provider"))
+        assertEquals("ZP-123", json.getString("p_transaction_id"))
+        assertEquals("Hanoi, Vietnam", json.getString("p_delivery_address"))
+        assertEquals("Giao gio hanh chinh", json.getString("p_note"))
+        assertEquals(500, json.getInt("p_used_reward_points"))
+        assertEquals("VOUCHER10", json.getString("p_voucher_code"))
+
+        val items = json.getJSONArray("p_items")
+        assertEquals(1, items.length())
+        val item = items.getJSONObject(0)
+        assertEquals("food-1", item.getString("food_id"))
+        assertEquals(3, item.getInt("quantity"))
+    }
+
+    @Test
+    fun toRpcBody_handlesNullsWithJsonObjectNull() {
+        val json = PaymentRpcMapper.toRpcBody(
+            AtomicPaymentRequest(
+                customerId = "customer-123",
+                amount = 0L,
+                method = PaymentMethod.COD,
+                provider = null,
+                transactionId = null,
+                deliveryAddress = "Hanoi, Vietnam",
+                note = null,
+                usedRewardPoints = 0,
+                items = listOf(PaymentLineItem(foodId = "food-1", quantity = 1)),
+                voucherCode = null,
+                accessToken = "token-123"
+            )
+        )
+
+        assertTrue(json.isNull("p_provider"))
+        assertTrue(json.isNull("p_transaction_id"))
+        assertTrue(json.isNull("p_note"))
+        assertTrue(json.isNull("p_voucher_code"))
+    }
 }
+
