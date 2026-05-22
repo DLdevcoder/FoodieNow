@@ -1,11 +1,13 @@
 package com.example.foodienow.feature.shipper_tracking
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodienow.BuildConfig
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.repository.OrderRepository
-import com.google.android.gms.maps.model.LatLng
+import org.maplibre.android.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -19,10 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
-import com.example.foodienow.BuildConfig
-import android.util.Log
 
-// --- Các lớp dữ liệu để Parse JSON từ Google Directions API ---
 @Serializable
 data class DirectionsResponse(
     val routes: List<RouteItem> = emptyList()
@@ -38,7 +37,6 @@ data class OverviewPolyline(
     val points: String
 )
 
-// Hàm giải mã chuỗi Polyline của Google thành danh sách tọa độ LatLng
 fun decodePolyline(encoded: String): List<LatLng> {
     val poly = ArrayList<LatLng>()
     var index = 0
@@ -85,14 +83,17 @@ class ShipperTrackingViewModel @Inject constructor(
     private val _currentOrder = MutableStateFlow<Order?>(null)
     val currentOrder: StateFlow<Order?> = _currentOrder.asStateFlow()
 
-    private val _routePoints = MutableStateFlow<List<LatLng>>(emptyList())
-    val routePoints: StateFlow<List<LatLng>> = _routePoints.asStateFlow()
+    // SỬA ĐỔI: Tách thành 2 list tọa độ độc lập
+    private val _routeToStore = MutableStateFlow<List<LatLng>>(emptyList())
+    val routeToStore: StateFlow<List<LatLng>> = _routeToStore.asStateFlow()
+
+    private val _routeToCustomer = MutableStateFlow<List<LatLng>>(emptyList())
+    val routeToCustomer: StateFlow<List<LatLng>> = _routeToCustomer.asStateFlow()
 
     private val httpClient = HttpClient(OkHttp)
     private val json = Json { ignoreUnknownKeys = true }
 
-    // Lấy API Key an toàn từ BuildConfig
-    private val googleApiKey = BuildConfig.MAPS_API_KEY
+    private val goongApiKey = BuildConfig.GOONG_API_KEY
 
     init {
         loadOrder()
@@ -101,21 +102,18 @@ class ShipperTrackingViewModel @Inject constructor(
     private fun loadOrder() {
         viewModelScope.launch {
             try {
-                // Lấy dữ liệu thật từ Repository
                 val order = orderRepository.getOrderById(orderId)
                 _currentOrder.value = order
 
-                // Vẽ tuyến đường từ vị trí Shipper (hoặc Merchant) đến điểm giao
-                val startLat = order?.shipperLat ?: order?.merchantLat
-                val startLng = order?.shipperLng ?: order?.merchantLng
+                val storeLat = order?.merchantLat
+                val storeLng = order?.merchantLng
+                val custLat = order?.deliveryLat
+                val custLng = order?.deliveryLng
+                val shipperLat = order?.shipperLat
+                val shipperLng = order?.shipperLng
 
-                if (startLat != null && startLng != null &&
-                    order?.deliveryLat != null && order.deliveryLng != null) {
-
-                    fetchRoute(
-                        origin = "$startLat,$startLng",
-                        destination = "${order.deliveryLat},${order.deliveryLng}"
-                    )
+                if (storeLat != null && storeLng != null && custLat != null && custLng != null) {
+                    fetchFullRoute(shipperLat, shipperLng, storeLat, storeLng, custLat, custLng)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -126,10 +124,7 @@ class ShipperTrackingViewModel @Inject constructor(
     fun updateShipperLocation(lat: Double, lng: Double) {
         viewModelScope.launch {
             try {
-                // Cập nhật tọa độ lên Supabase
                 orderRepository.updateShipperLocation(orderId, lat, lng)
-
-                // Cập nhật state cục bộ để UI phản hồi ngay lập tức
                 _currentOrder.update {
                     it?.copy(shipperLat = lat, shipperLng = lng)
                 }
@@ -139,26 +134,37 @@ class ShipperTrackingViewModel @Inject constructor(
         }
     }
 
-    private fun fetchRoute(origin: String, destination: String) {
+    private suspend fun getRoutePolyline(origin: String, destination: String): List<LatLng> {
+        val url = "https://rsapi.goong.io/Direction?origin=$origin&destination=$destination&vehicle=bike&api_key=$goongApiKey"
+        val response: String = httpClient.get(url).body()
+        val directions = json.decodeFromString<DirectionsResponse>(response)
+
+        return if (directions.routes.isNotEmpty()) {
+            decodePolyline(directions.routes[0].overview_polyline.points)
+        } else {
+            emptyList()
+        }
+    }
+
+    private fun fetchFullRoute(
+        shipperLat: Double?, shipperLng: Double?,
+        storeLat: Double, storeLng: Double,
+        custLat: Double, custLng: Double
+    ) {
         viewModelScope.launch {
-            if (googleApiKey.isBlank()) return@launch
-            Log.d("DirectionsAPI", "Key đang dùng là: $googleApiKey")
+            if (goongApiKey.isBlank()) return@launch
+
             try {
-                val url = "https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$googleApiKey"
-                val response: String = httpClient.get(url).body()
-
-                // IN KẾT QUẢ RA LOGCAT ĐỂ XEM GOOGLE TRẢ LỜI GÌ
-                Log.d("DirectionsAPI", "Kết quả từ Google: $response")
-
-                val directions = json.decodeFromString<DirectionsResponse>(response)
-
-                if (directions.routes.isNotEmpty()) {
-                    val encodedPolyline = directions.routes[0].overview_polyline.points
-                    _routePoints.value = decodePolyline(encodedPolyline)
-                } else {
-                    Log.e("DirectionsAPI", "Danh sách tuyến đường rỗng!")
+                // Chặng 1: Từ Shipper đến Cửa hàng
+                if (shipperLat != null && shipperLng != null) {
+                    _routeToStore.value = getRoutePolyline("$shipperLat,$shipperLng", "$storeLat,$storeLng")
                 }
+
+                // Chặng 2: Từ Cửa hàng đến Khách hàng
+                _routeToCustomer.value = getRoutePolyline("$storeLat,$storeLng", "$custLat,$custLng")
+
             } catch (e: Exception) {
+                Log.e("GoongAPI", "Lỗi tìm đường: ${e.message}")
                 e.printStackTrace()
             }
         }
