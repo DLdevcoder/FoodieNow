@@ -18,7 +18,9 @@ val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
-val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY") ?: ""
+
+val goongApiKey: String = localProperties.getProperty("GOONG_API_KEY") ?: ""
+val goongMaptilesKey: String = localProperties.getProperty("GOONG_MAPTILES_KEY") ?: ""
 
 android {
     namespace = "com.example.foodienow"
@@ -31,8 +33,9 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
-        buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+
+        buildConfigField("String", "GOONG_API_KEY", "\"$goongApiKey\"")
+        buildConfigField("String", "GOONG_MAPTILES_KEY", "\"$goongMaptilesKey\"")
     }
 
     buildTypes {
@@ -100,13 +103,12 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    // Google Maps
-    implementation("com.google.maps.android:maps-compose:4.3.3")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
-    // Lấy vị trí GPS (Fused Location)
+    // MapLibre OpenSource SDK
+    implementation("org.maplibre.gl:android-sdk:11.0.0")
+
+    // Lấy vị trí GPS
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
-    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
