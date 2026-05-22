@@ -1,6 +1,7 @@
 package com.example.foodienow.data.repository
 
 import com.example.foodienow.data.remote.SupabaseRest
+import com.example.foodienow.domain.model.Voucher
 import com.example.foodienow.domain.repository.VoucherQuote
 import com.example.foodienow.domain.repository.VoucherRepository
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,59 @@ class VoucherRepositoryImpl @Inject constructor() : VoucherRepository {
         }
     }
 
+    override suspend fun getVouchersByStore(storeId: String): Result<List<Voucher>> = withContext(Dispatchers.IO) {
+        if (storeId.isBlank()) {
+            return@withContext Result.success(emptyList())
+        }
+
+        runCatching {
+            val ownerId = fetchStoreOwnerId(storeId) ?: return@runCatching emptyList()
+
+            val response = SupabaseRest.get(
+                "/rest/v1/vouchers?select=id,merchant_id,code,discount_percent,max_discount,min_order_value,discount_amount,is_active,expires_at,created_at" +
+                    "&is_active=eq.true" +
+                    "&or=(merchant_id.eq.${SupabaseRest.encodeQueryValue(ownerId)},merchant_id.is.null)"
+            )
+
+            if (!response.isSuccess) {
+                throw Exception(SupabaseRest.parseErrorMessage(response.body))
+            }
+
+            val list = mutableListOf<Voucher>()
+            val array = JSONArray(response.body)
+
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                val expiresAtStr = obj.optString("expires_at", "")
+
+                if (expiresAtStr.isNotBlank()) {
+                    runCatching {
+                        val expiresAt = java.time.Instant.parse(expiresAtStr)
+                        if (expiresAt.isBefore(java.time.Instant.now())) {
+                            return@runCatching
+                        }
+                    }
+                }
+
+                list.add(
+                    Voucher(
+                        id = obj.getString("id"),
+                        merchantId = obj.optString("merchant_id").takeIf { it.isNotBlank() },
+                        code = obj.getString("code"),
+                        discountPercent = obj.optInt("discount_percent", 0),
+                        maxDiscount = obj.optLong("max_discount", 0L),
+                        minOrderValue = obj.optLong("min_order_value", 0L),
+                        discountAmount = obj.optLong("discount_amount", 0L),
+                        isActive = obj.optBoolean("is_active", true),
+                        expiresAt = expiresAtStr.takeIf { it.isNotBlank() },
+                        createdAt = obj.optString("created_at").takeIf { it.isNotBlank() }
+                    )
+                )
+            }
+            list
+        }
+    }
+
     private fun fetchStoreOwnerId(storeId: String): String? {
         val response = SupabaseRest.get(
             "/rest/v1/stores?select=owner_id&id=eq.${SupabaseRest.encodeQueryValue(storeId)}"
@@ -70,7 +124,7 @@ class VoucherRepositoryImpl @Inject constructor() : VoucherRepository {
             "/rest/v1/vouchers" +
                 "?select=code,discount_percent,max_discount,min_order_value,discount_amount" +
                 "&code=eq.${SupabaseRest.encodeQueryValue(code)}" +
-                "&merchant_id=eq.${SupabaseRest.encodeQueryValue(merchantId)}"
+                "&or=(merchant_id.eq.${SupabaseRest.encodeQueryValue(merchantId)},merchant_id.is.null)"
         )
         if (!response.isSuccess) return null
 

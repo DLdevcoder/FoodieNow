@@ -6,6 +6,7 @@ import com.example.foodienow.data.repository.MockAddressRepository
 import com.example.foodienow.data.repository.PaymentSettingsRepository
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
+import com.example.foodienow.domain.model.Voucher
 import com.example.foodienow.domain.payment.WalletChargeResult
 import com.example.foodienow.domain.payment.WalletPaymentGateway
 import com.example.foodienow.domain.repository.AtomicPaymentRequest
@@ -34,6 +35,8 @@ data class PaymentUiState(
     val defaultPaymentMethod: PaymentMethod = PaymentMethod.COD,
     val defaultWalletProvider: WalletProvider = WalletProvider.ZALOPAY,
     val paymentSettingsLoaded: Boolean = false,
+    val availableVouchers: List<Voucher> = emptyList(),
+    val selectedVoucher: Voucher? = null,
     val infoMessage: String? = null,
     val errorMessage: String? = null
 )
@@ -259,6 +262,23 @@ class PaymentViewModel @Inject constructor(
 
     fun clearMessage() {
         _uiState.update { it.copy(infoMessage = null, errorMessage = null) }
+    }
+
+    fun loadAvailableVouchers(storeId: String) {
+        if (storeId.isBlank()) return
+        viewModelScope.launch {
+            voucherRepository.getVouchersByStore(storeId)
+                .onSuccess { vouchers ->
+                    _uiState.update { it.copy(availableVouchers = vouchers) }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(errorMessage = error.message) }
+                }
+        }
+    }
+
+    fun selectVoucher(voucher: Voucher?) {
+        _uiState.update { it.copy(selectedVoucher = voucher) }
     }
 
     private suspend fun prepareClientSideCharge(

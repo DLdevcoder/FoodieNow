@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
+import com.example.foodienow.core.designsystem.components.VoucherCard
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.domain.payment.PaymentTotalsCalculator
@@ -71,6 +72,7 @@ fun PaymentScreen(
     var discountAmount by remember { mutableStateOf(0L) }
     var useRewardPoints by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var showVoucherPickerDialog by remember { mutableStateOf(false) }
     var addressInitialized by remember { mutableStateOf(false) }
     var hasUserSelectedPaymentMethod by remember { mutableStateOf(false) }
     var selectedMethod by remember { mutableStateOf(PaymentMethod.COD) }
@@ -101,6 +103,10 @@ fun PaymentScreen(
 
     val subtotal = cartUiState.cartItems.entries.sumOf { it.key.price * it.value }
     val cartStoreId = cartUiState.cartItems.keys.firstOrNull()?.storeId
+
+    LaunchedEffect(cartStoreId) {
+        cartStoreId?.let { viewModel.loadAvailableVouchers(it) }
+    }
     val totals = PaymentTotalsCalculator.calculate(
         subtotal = subtotal,
         voucherDiscount = discountAmount,
@@ -218,37 +224,54 @@ fun PaymentScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Row(
+                Column(
                     modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
-                        value = voucherCodeText,
-                        onValueChange = {
-                            voucherCodeText = it
-                            appliedVoucherCode = null
-                            discountAmount = 0L
-                        },
-                        modifier = Modifier.weight(1f),
-                        label = { Text(stringResource(R.string.payment_voucher_hint)) },
-                        singleLine = true
-                    )
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                val code = voucherCodeText.trim()
-                                val discount = viewModel.applyVoucher(
-                                    code = voucherCodeText,
-                                    storeId = cartStoreId,
-                                    subtotal = subtotal
-                                )
-                                discountAmount = discount
-                                appliedVoucherCode = code.takeIf { discount > 0L }
-                            }
-                        }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(stringResource(R.string.payment_voucher_apply))
+                        OutlinedTextField(
+                            value = voucherCodeText,
+                            onValueChange = {
+                                voucherCodeText = it
+                                appliedVoucherCode = null
+                                discountAmount = 0L
+                                viewModel.selectVoucher(null)
+                            },
+                            modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.payment_voucher_hint)) },
+                            singleLine = true
+                        )
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    val code = voucherCodeText.trim()
+                                    val discount = viewModel.applyVoucher(
+                                        code = voucherCodeText,
+                                        storeId = cartStoreId,
+                                        subtotal = subtotal
+                                    )
+                                    discountAmount = discount
+                                    appliedVoucherCode = code.takeIf { discount > 0L }
+                                }
+                            }
+                        ) {
+                            Text(stringResource(R.string.payment_voucher_apply))
+                        }
+                    }
+
+                    if (uiState.availableVouchers.isNotEmpty()) {
+                        TextButton(
+                            onClick = { showVoucherPickerDialog = true },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text(
+                                text = "Chọn từ voucher khả dụng (${uiState.availableVouchers.size})",
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
             }
@@ -468,6 +491,69 @@ fun PaymentScreen(
             dismissButton = {
                 TextButton(onClick = { showConfirmDialog = false }) {
                     Text(stringResource(R.string.payment_confirm_dialog_cancel))
+                }
+            }
+        )
+    }
+
+    if (showVoucherPickerDialog) {
+        AlertDialog(
+            onDismissRequest = { showVoucherPickerDialog = false },
+            title = { Text(text = "Chọn Voucher", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    uiState.availableVouchers.forEach { voucher ->
+                        val title = if (voucher.discountPercent > 0) {
+                            "Giảm ${voucher.discountPercent}%"
+                        } else {
+                            "Giảm ${formatter.format(voucher.discountAmount)}"
+                        }
+                        val desc = buildString {
+                            append("Đơn tối thiểu ${formatter.format(voucher.minOrderValue)}")
+                            if (voucher.maxDiscount > 0) {
+                                append(". Giảm tối đa ${formatter.format(voucher.maxDiscount)}")
+                            }
+                        }
+                        val expiry = voucher.expiresAt?.let {
+                            runCatching {
+                                val instant = java.time.Instant.parse(it)
+                                val zoned = instant.atZone(java.time.ZoneId.systemDefault())
+                                val dtf = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                                "Hạn dùng: ${dtf.format(zoned)}"
+                            }.getOrNull()
+                        }
+
+                        VoucherCard(
+                            title = "${voucher.code} - $title",
+                            description = desc,
+                            expiryText = expiry,
+                            onClick = {
+                                showVoucherPickerDialog = false
+                                voucherCodeText = voucher.code
+                                viewModel.selectVoucher(voucher)
+                                scope.launch {
+                                    val discount = viewModel.applyVoucher(
+                                        code = voucher.code,
+                                        storeId = cartStoreId,
+                                        subtotal = subtotal
+                                    )
+                                    discountAmount = discount
+                                    appliedVoucherCode = voucher.code.takeIf { discount > 0L }
+                                }
+                            }
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showVoucherPickerDialog = false }) {
+                    Text(text = "Đóng")
                 }
             }
         )
