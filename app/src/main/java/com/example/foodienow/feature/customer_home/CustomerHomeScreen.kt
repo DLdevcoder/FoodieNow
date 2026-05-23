@@ -40,6 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -88,35 +89,32 @@ fun CustomerHomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(FoodieCream),
-            contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            item {
-                HomeTopSection(
-                    address = uiState.address,
-                    unreadMessageCount = uiState.unreadMessageCount,
-                    onNavigateToSearch = onNavigateToSearch,
-                    onNavigateToCart = onNavigateToCart,
-                    onNavigateToChatList = onNavigateToChatList
-                )
-            }
+    // Bổ sung LaunchedEffect để update lại số đếm khi quay lại trang chủ
+    LaunchedEffect(Unit) {
+        viewModel.loadUnreadMessageCount()
+    }
 
-            if (uiState.errorMessage != null && uiState.recommendedFoods.isEmpty()) {
-                item {
-                    FoodieErrorState(
-                        title = "Chưa tải được thực đơn",
-                        subtitle = uiState.errorMessage.orEmpty(),
-                        actionLabel = "Thử lại",
-                        onAction = viewModel::refresh
-                    )
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+    ) {
+        item {
+            HomeTopSection(
+                onNavigateToSearch = onNavigateToSearch,
+                onNavigateToCart = onNavigateToCart,
+                onNavigateToChatList = onNavigateToChatList,
+                address = uiState.address,
+                unreadMessageCount = uiState.unreadMessageCount // Truyền số đếm xuống UI
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(12.dp))
+            CategoriesSection(
+                categories = uiState.categories,
+                isLoading = uiState.isLoading,
+                onCategoryClick = { category ->
+                    category.id?.let { onNavigateToCategory(it, category.name) }
                 }
             } else {
                 item {
@@ -183,13 +181,16 @@ fun CustomerHomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopSection(
     address: String,
     unreadMessageCount: Int,
     onNavigateToSearch: () -> Unit,
     onNavigateToCart: () -> Unit,
-    onNavigateToChatList: () -> Unit
+    onNavigateToChatList: () -> Unit,
+    address: String,
+    unreadMessageCount: Int // Thêm parameter này
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (currentHour) {
@@ -396,6 +397,48 @@ private fun PromoBanner(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                }
+            }
+            IconButton(
+                onClick = onNavigateToCart,
+                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White),
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
+                Icon(
+                    Icons.Default.ShoppingCart,
+                    contentDescription = "Giỏ hàng",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            IconButton(
+                onClick = onNavigateToChatList,
+                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White),
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
+                // Thêm BadgedBox vào đây để hiển thị số lượng tin nhắn chưa đọc
+                BadgedBox(
+                    badge = {
+                        if (unreadMessageCount > 0) {
+                            Badge(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = Color.White
+                            ) {
+                                Text(
+                                    text = if (unreadMessageCount > 99) "99+" else unreadMessageCount.toString()
+                                )
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline,
+                        contentDescription = "Danh sách tin nhắn",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }

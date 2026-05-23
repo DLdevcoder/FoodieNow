@@ -1,5 +1,6 @@
 package com.example.foodienow.feature.shipper
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodienow.domain.model.Order
@@ -47,7 +48,7 @@ class ShipperViewModel @Inject constructor(
                 if (shipperId != null) {
                     _uiState.update { it.copy(currentShipperId = shipperId) }
 
-                    // Lắng nghe đơn chờ nhận
+                    // Lắng nghe đơn chờ nhận (Ở Repository cần lọc status = PREPARING)
                     launch {
                         orderRepository.getAvailableDeliveries().collect { orders ->
                             _uiState.update { state ->
@@ -56,7 +57,7 @@ class ShipperViewModel @Inject constructor(
                         }
                     }
 
-                    // Lắng nghe đơn đang giao
+                    // Lắng nghe đơn đang giao (Repository cần lấy các đơn có status = DRIVER_ASSIGNED hoặc DELIVERING)
                     launch {
                         orderRepository.getShipperActiveOrder(shipperId).collect { order ->
                             _uiState.update { state ->
@@ -69,6 +70,7 @@ class ShipperViewModel @Inject constructor(
                         }
                     }
 
+                    // Lắng nghe lịch sử đơn hàng
                     launch {
                         orderRepository.getShipperCompletedOrders(shipperId).collect { orders ->
                             _uiState.update { state ->
@@ -90,10 +92,28 @@ class ShipperViewModel @Inject constructor(
     fun acceptOrder(orderId: String) {
         val shipperId = _uiState.value.currentShipperId ?: return
         viewModelScope.launch {
+            // 1. Gắn shipper_id vào đơn hàng
             val result = orderRepository.acceptOrder(orderId, shipperId)
-            if (result.isFailure) {
-                android.util.Log.e("ShipperApp", "Lỗi nhận đơn: ", result.exceptionOrNull())
+
+            if (result.isSuccess) {
+                // 2. Chuyển trạng thái sang DRIVER_ASSIGNED (Tài xế đang đến lấy)
+                val statusResult = orderRepository.updateOrderStatus(orderId, OrderStatus.DRIVER_ASSIGNED)
+                if (statusResult.isFailure) {
+                    Log.e("ShipperApp", "Lỗi cập nhật trạng thái sau khi nhận đơn: ", statusResult.exceptionOrNull())
+                }
+            } else {
+                Log.e("ShipperApp", "Lỗi nhận đơn: ", result.exceptionOrNull())
                 _uiState.update { it.copy(error = "Không thể nhận đơn. Vui lòng thử lại.") }
+            }
+        }
+    }
+
+    fun markAsDelivering(orderId: String) {
+        viewModelScope.launch {
+            val result = orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
+            if (result.isFailure) {
+                Log.e("ShipperApp", "Lỗi chuyển trạng thái đang giao: ", result.exceptionOrNull())
+                _uiState.update { it.copy(error = "Lỗi cập nhật trạng thái. Vui lòng thử lại.") }
             }
         }
     }
@@ -102,8 +122,8 @@ class ShipperViewModel @Inject constructor(
         viewModelScope.launch {
             val result = orderRepository.updateOrderStatus(orderId, OrderStatus.COMPLETED)
             if (result.isFailure) {
-                android.util.Log.e("ShipperApp", "Lỗi hoàn tất đơn: ", result.exceptionOrNull())
-                _uiState.update { it.copy(error = "Không thể cập nhật trạng thái. Vui lòng thử lại.") }
+                Log.e("ShipperApp", "Lỗi hoàn tất đơn: ", result.exceptionOrNull())
+                _uiState.update { it.copy(error = "Không thể hoàn thành đơn. Vui lòng thử lại.") }
             }
         }
     }
