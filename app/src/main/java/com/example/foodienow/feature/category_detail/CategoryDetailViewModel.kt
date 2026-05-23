@@ -1,5 +1,6 @@
 package com.example.foodienow.feature.category_detail
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,12 +30,16 @@ class CategoryDetailViewModel @Inject constructor(
 
     // Lấy params từ Navigation route
     private val categoryId: String = savedStateHandle.get<String>("categoryId") ?: ""
-    private val categoryName: String = savedStateHandle.get<String>("categoryName") ?: "Danh mục"
+    private val categoryName: String = savedStateHandle.get<String>("categoryName")?.let(Uri::decode) ?: "Danh mục"
 
     private val _uiState = MutableStateFlow(CategoryDetailUiState(categoryName = categoryName))
     val uiState: StateFlow<CategoryDetailUiState> = _uiState.asStateFlow()
 
     init {
+        loadFoods()
+    }
+
+    fun refresh() {
         loadFoods()
     }
 

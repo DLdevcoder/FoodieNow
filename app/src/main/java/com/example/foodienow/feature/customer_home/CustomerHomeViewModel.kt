@@ -2,13 +2,15 @@ package com.example.foodienow.feature.customer_home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodienow.data.repository.MockAddressRepository
 import com.example.foodienow.domain.model.Category
 import com.example.foodienow.domain.model.Food
-import com.example.foodienow.data.repository.MockAddressRepository
+import com.example.foodienow.domain.model.Store
 import com.example.foodienow.domain.repository.CustomerFoodRepository
 // THÊM: Import Repository cần thiết cho tính năng Chat
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.ChatRepository
+import com.example.foodienow.domain.repository.MerchantRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,10 +22,12 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = false,
     val recommendedFoods: List<Food> = emptyList(),
+    val featuredStores: List<Store> = emptyList(),
     val categories: List<Category> = emptyList(),
     val searchQuery: String = "",
     val searchResults: List<Food> = emptyList(),
     val address: String = "Chọn địa chỉ giao hàng",
+    val errorMessage: String? = null,
     // THÊM: Thuộc tính lưu số lượng tin nhắn chưa đọc
     val unreadMessageCount: Int = 0
 )
@@ -34,7 +38,8 @@ class CustomerHomeViewModel @Inject constructor(
     private val addressRepository: MockAddressRepository,
     // THÊM: Inject ChatRepository và AuthRepository
     private val chatRepository: ChatRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val merchantRepository: MerchantRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -45,9 +50,14 @@ class CustomerHomeViewModel @Inject constructor(
         loadUnreadMessageCount()
     }
 
+    fun refresh() {
+        loadRealData()
+        loadUnreadMessageCount()
+    }
+
     private fun loadRealData() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
                 val fetchedCategories = foodRepository.getCategories()
@@ -56,19 +66,34 @@ class CustomerHomeViewModel @Inject constructor(
                     val defaultAddress = addresses.firstOrNull { it.isDefault }?.detail ?: "Chọn địa chỉ giao hàng"
 
                     foodRepository.getRecommendedFoods().collect { realFoods ->
+                        val featuredStores = realFoods
+                            .map { it.storeId }
+                            .distinct()
+                            .take(6)
+                            .mapNotNull { storeId ->
+                                runCatching { merchantRepository.getStoreById(storeId) }.getOrNull()
+                            }
+
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
                                 recommendedFoods = realFoods,
+                                featuredStores = featuredStores,
                                 categories = fetchedCategories,
-                                address = defaultAddress
+                                address = defaultAddress,
+                                errorMessage = null
                             )
                         }
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Không thể tải dữ liệu lúc này. Vui lòng thử lại sau."
+                    )
+                }
             }
         }
     }

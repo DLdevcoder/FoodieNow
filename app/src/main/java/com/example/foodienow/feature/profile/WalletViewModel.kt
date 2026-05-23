@@ -60,7 +60,7 @@ class WalletViewModel @Inject constructor(
 
     fun topUp(amount: Long, provider: WalletProvider) {
         if (amount <= 0) {
-            _uiState.update { it.copy(errorMessage = "So tien nap khong hop le.", successMessage = null) }
+            _uiState.update { it.copy(errorMessage = "Số tiền nạp không hợp lệ.", successMessage = null) }
             return
         }
 
@@ -69,7 +69,7 @@ class WalletViewModel @Inject constructor(
             
             val user = authRepository.getAuthState().firstOrNull()
             if (user == null) {
-                _uiState.update { it.copy(isProcessing = false, errorMessage = "Vui long dang nhap lai.") }
+                _uiState.update { it.copy(isProcessing = false, errorMessage = "Vui lòng đăng nhập lại.") }
                 return@launch
             }
 
@@ -100,14 +100,14 @@ class WalletViewModel @Inject constructor(
                         it.copy(
                             balance = updatedUser.balance,
                             isProcessing = false,
-                            successMessage = "Nap tien thanh cong tu ${provider.name}."
+                            successMessage = "Nạp tiền thành công từ ${provider.name}."
                         )
                     }
                 }.onFailure { error ->
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
-                            errorMessage = "Nap tien thanh cong nhung loi cap nhat so du: ${error.message}"
+                            errorMessage = "Nạp tiền thành công nhưng lỗi cập nhật số dư: ${error.message}"
                         )
                     }
                 }
@@ -115,7 +115,7 @@ class WalletViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = "Giao dich nap tien that bai: ${error.message}"
+                        errorMessage = "Giao dịch nạp tiền thất bại: ${error.message}"
                     )
                 }
             }

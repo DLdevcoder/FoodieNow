@@ -114,7 +114,7 @@ fun AppNavigation() {
                 },
                 // THÊM DÒNG NÀY ĐỂ XỬ LÝ CLICK CATEGORY:
                 onNavigateToCategory = { categoryId, categoryName ->
-                    navController.navigate("category_detail/$categoryId/$categoryName")
+                    navController.navigate("category_detail/$categoryId/${Uri.encode(categoryName)}")
                 },
                 onNavigateToChatList = {
                     navController.navigate("chat_list")

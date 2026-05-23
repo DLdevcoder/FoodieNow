@@ -105,7 +105,9 @@ fun WalletScreen(
 
             OutlinedTextField(
                 value = topUpAmountText,
-                onValueChange = { topUpAmountText = it },
+                onValueChange = { value ->
+                    topUpAmountText = value.filter { it.isDigit() }
+                },
                 label = { Text("Nhập số tiền cần nạp") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

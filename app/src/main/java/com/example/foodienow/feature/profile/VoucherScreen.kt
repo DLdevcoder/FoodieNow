@@ -1,5 +1,6 @@
 package com.example.foodienow.feature.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +42,7 @@ data class Voucher(val id: String, val title: String, val description: String, v
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VoucherScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
     val vouchers = listOf(
         Voucher("V1", "Giảm 20K", "Áp dụng cho đơn từ 100K", "HSD: 31/12/2026"),
         Voucher("V2", "Miễn phí vận chuyển", "Tối đa 15K", "HSD: 15/11/2026"),
@@ -98,7 +101,11 @@ fun VoucherScreen(onBack: () -> Unit) {
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(text = voucher.expiryDate, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                         }
-                        Button(onClick = { /* Dummy action */ }) {
+                        Button(
+                            onClick = {
+                                Toast.makeText(context, "Đã chọn mã ${voucher.title}", Toast.LENGTH_SHORT).show()
+                            }
+                        ) {
                             Text("Dùng")
                         }
                     }

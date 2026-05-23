@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.Notifications
@@ -19,6 +19,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,32 +51,46 @@ fun CustomerMainScreen(
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-                modifier = Modifier.height(56.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                tonalElevation = 3.dp,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
-                val tabs = listOf(
-                    Triple(Icons.Default.Home, R.string.bottom_nav_home, 0),
-                    Triple(Icons.Default.ListAlt, R.string.bottom_nav_orders, 1),
-                    Triple(Icons.Default.Notifications, R.string.bottom_nav_notifications, 2),
-                    Triple(Icons.Default.Person, R.string.bottom_nav_me, 3)
-                )
-
-                tabs.forEach { (icon, labelRes, index) ->
-                    NavigationBarItem(
-                        icon = { Icon(icon, contentDescription = stringResource(labelRes)) },
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        alwaysShowLabel = false,
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.surface, // No pill background
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.height(72.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
+                ) {
+                    val tabs = listOf(
+                        Triple(Icons.Default.Home, R.string.bottom_nav_home, 0),
+                        Triple(Icons.Default.ListAlt, R.string.bottom_nav_orders, 1),
+                        Triple(Icons.Default.Notifications, R.string.bottom_nav_notifications, 2),
+                        Triple(Icons.Default.Person, R.string.bottom_nav_me, 3)
                     )
+
+                    tabs.forEach { (icon, labelRes, index) ->
+                        val selected = selectedTab == index
+                        NavigationBarItem(
+                            icon = { Icon(icon, contentDescription = stringResource(labelRes)) },
+                            label = {
+                                Text(
+                                    text = stringResource(labelRes),
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                )
+                            },
+                            selected = selected,
+                            onClick = { selectedTab = index },
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
                 }
             }
         }

@@ -27,18 +27,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 data class PointHistory(val id: String, val reason: String, val date: String, val amount: Int)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RewardPointsScreen(onBack: () -> Unit) {
+fun RewardPointsScreen(
+    onBack: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val rewardPoints = uiState.profile?.rewardPoints ?: uiState.user?.rewardPoints ?: 0
+    val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
     val history = listOf(
         PointHistory("1", "Hoàn thành đơn hàng #ORD001", "01/05/2026", +150),
         PointHistory("2", "Đổi mã giảm giá V2", "28/04/2026", -500),
@@ -86,12 +97,12 @@ fun RewardPointsScreen(onBack: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "12,500 Xu",
+                        text = "$rewardPoints Xu",
                         color = Color.White,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(text = "Tương đương 12,500đ", color = Color.White.copy(alpha = 0.8f))
+                    Text(text = "Tương đương ${formatter.format(rewardPoints.toLong())}", color = Color.White.copy(alpha = 0.8f))
                 }
             }
 
