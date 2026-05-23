@@ -7,6 +7,7 @@ import com.example.foodienow.data.repository.PaymentSettingsRepository
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.domain.model.Voucher
+import com.example.foodienow.domain.payment.PaymentMethodCatalog
 import com.example.foodienow.domain.payment.WalletChargeResult
 import com.example.foodienow.domain.payment.WalletPaymentGateway
 import com.example.foodienow.domain.repository.AtomicPaymentRequest
@@ -34,6 +35,7 @@ data class PaymentUiState(
     val defaultAddress: String = "",
     val defaultPaymentMethod: PaymentMethod = PaymentMethod.COD,
     val defaultWalletProvider: WalletProvider = WalletProvider.ZALOPAY,
+    val configuredPaymentOptionIds: Set<String> = PaymentMethodCatalog.alwaysAvailableOptionIds,
     val paymentSettingsLoaded: Boolean = false,
     val availableVouchers: List<Voucher> = emptyList(),
     val selectedVoucher: Voucher? = null,
@@ -47,6 +49,7 @@ sealed class PaymentEvent {
         val amount: Long,
         val methodLabel: String
     ) : PaymentEvent()
+    object SessionExpired : PaymentEvent()
 }
 
 @HiltViewModel
@@ -101,6 +104,8 @@ class PaymentViewModel @Inject constructor(
                     it.copy(
                         defaultPaymentMethod = settings.defaultMethod,
                         defaultWalletProvider = settings.defaultProvider,
+                        configuredPaymentOptionIds = PaymentMethodCatalog.alwaysAvailableOptionIds +
+                            settings.configuredOptionIds,
                         paymentSettingsLoaded = settings.isLoaded
                     )
                 }
@@ -196,6 +201,18 @@ class PaymentViewModel @Inject constructor(
                 return@launch
             }
 
+            val paymentOptionId = PaymentMethodCatalog.optionIdFor(method, provider)
+            val configuredOptionIds = paymentSettingsRepository.settings.value.configuredOptionIds
+            if (!PaymentMethodCatalog.isOptionAvailable(paymentOptionId, configuredOptionIds)) {
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorMessage = "Vui long cai dat thong tin phuong thuc thanh toan truoc."
+                    )
+                }
+                return@launch
+            }
+
             val chargeResult = prepareClientSideCharge(
                 method = method,
                 provider = provider,
@@ -254,6 +271,7 @@ class PaymentViewModel @Inject constructor(
                             val isJwtError = error.message?.contains("JWT", ignoreCase = true) == true
                             if (isJwtError) {
                                 authRepository.logout()
+                                _paymentEvent.emit(PaymentEvent.SessionExpired)
                             }
                             _uiState.update {
                                 it.copy(

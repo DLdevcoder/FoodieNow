@@ -171,6 +171,11 @@ fun AppNavigation() {
                     navController.navigate(Screen.PaymentResult.createRoute(orderId, amount, methodLabel)) {
                         popUpTo(Screen.CustomerHome.route) { inclusive = false }
                     }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }

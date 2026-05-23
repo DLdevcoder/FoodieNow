@@ -629,7 +629,7 @@ BEGIN
       rm.store_id,
       rm.partner_id,
       COALESCE(p.full_name, 'Khách hàng') AS partner_name,
-      NULL::TEXT AS partner_avatar,
+      p.avatar_url AS partner_avatar,
       rm.content AS last_message,
       rm.created_at AS last_message_time,
       (
@@ -654,6 +654,7 @@ CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "role" "text" NOT NULL,
     "phone" "text",
     "address" "text",
+    "avatar_url" "text",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "balance" numeric DEFAULT 0 NOT NULL,
@@ -766,6 +767,7 @@ CREATE TABLE IF NOT EXISTS "public"."payment_settings" (
     "user_id" "uuid" NOT NULL,
     "default_method" "text" DEFAULT 'COD'::"text" NOT NULL,
     "default_provider" "text" DEFAULT 'ZALOPAY'::"text" NOT NULL,
+    "method_infos" jsonb DEFAULT '{}'::jsonb NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 

@@ -113,6 +113,26 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun verifyRegistrationCode(email: String, code: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val response = postRequest(
+                endpoint = "/auth/v1/verify",
+                body = JSONObject()
+                    .put("type", "signup")
+                    .put("email", email)
+                    .put("token", code)
+            )
+
+            if (!response.isSuccess) {
+                return@withContext Result.failure(Exception(parseErrorMessage(response.body)))
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun forgotPassword(email: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val response = postRequest(
@@ -125,6 +145,54 @@ class AuthRepositoryImpl @Inject constructor(
             }
 
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun sendPasswordChangeCode(email: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val response = postRequest(
+                endpoint = "/auth/v1/recover",
+                body = JSONObject().put("email", email)
+            )
+
+            if (!response.isSuccess) {
+                return@withContext Result.failure(Exception(parseErrorMessage(response.body)))
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun verifyPasswordChangeCode(email: String, code: String): Result<User> = withContext(Dispatchers.IO) {
+        try {
+            val response = postRequest(
+                endpoint = "/auth/v1/verify",
+                body = JSONObject()
+                    .put("type", "recovery")
+                    .put("email", email)
+                    .put("token", code)
+            )
+
+            if (!response.isSuccess) {
+                return@withContext Result.failure(Exception(parseErrorMessage(response.body)))
+            }
+
+            val token = response.body.optString("access_token")
+            if (token.isBlank()) {
+                return@withContext Result.failure(Exception("Ma xac nhan khong hop le hoac da het han."))
+            }
+
+            val refreshToken = response.body.optString("refresh_token")
+            val userJson = response.body.optJSONObject("user") ?: JSONObject()
+            val baseUser = userJson.toDomainUser(token, refreshToken)
+            val resolvedUser = loadProfile(baseUser.id)?.toUser(baseUser.token, refreshToken) ?: baseUser
+            authSessionDataStore.saveSession(resolvedUser)
+
+            Result.success(resolvedUser)
         } catch (e: Exception) {
             Result.failure(e)
         }

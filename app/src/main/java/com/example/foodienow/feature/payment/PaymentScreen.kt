@@ -57,6 +57,7 @@ import com.example.foodienow.R
 import com.example.foodienow.core.designsystem.components.VoucherCard
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
+import com.example.foodienow.domain.payment.PaymentMethodCatalog
 import com.example.foodienow.domain.payment.PaymentTotalsCalculator
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -67,6 +68,7 @@ fun PaymentScreen(
     onBack: () -> Unit,
     onNavigateToOrderHistory: () -> Unit,
     onNavigateToPaymentResult: (orderId: String, amount: Long, methodLabel: String) -> Unit = { _, _, _ -> onNavigateToOrderHistory() },
+    onNavigateToLogin: () -> Unit = {},
     viewModel: PaymentViewModel = hiltViewModel()
 ) {
     var deliveryAddress by remember { mutableStateOf("") }
@@ -88,6 +90,23 @@ fun PaymentScreen(
     val cartViewModel: com.example.foodienow.feature.cart.CartViewModel = hiltViewModel()
     val cartUiState by cartViewModel.uiState.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
+    val availableWalletProviders = remember(uiState.configuredPaymentOptionIds) {
+        WalletProvider.entries.filter { provider ->
+            PaymentMethodCatalog.optionIdFor(PaymentMethod.WALLET, provider) in uiState.configuredPaymentOptionIds
+        }
+    }
+    val availablePaymentMethods = remember(uiState.configuredPaymentOptionIds) {
+        PaymentMethod.entries.filter { method ->
+            when (method) {
+                PaymentMethod.COD,
+                PaymentMethod.FOODIE_PAY -> true
+                PaymentMethod.CARD -> PaymentMethodCatalog.CARD_ID in uiState.configuredPaymentOptionIds
+                PaymentMethod.WALLET -> WalletProvider.entries.any { provider ->
+                    PaymentMethodCatalog.optionIdFor(PaymentMethod.WALLET, provider) in uiState.configuredPaymentOptionIds
+                }
+            }
+        }
+    }
 
     if (!addressInitialized && uiState.defaultAddress.isNotBlank()) {
         deliveryAddress = uiState.defaultAddress
@@ -102,6 +121,22 @@ fun PaymentScreen(
         if (uiState.paymentSettingsLoaded && !hasUserSelectedPaymentMethod) {
             selectedMethod = uiState.defaultPaymentMethod
             selectedProvider = uiState.defaultWalletProvider
+        }
+    }
+
+    LaunchedEffect(uiState.configuredPaymentOptionIds, selectedMethod, selectedProvider) {
+        val selectedOptionId = PaymentMethodCatalog.optionIdFor(
+            method = selectedMethod,
+            provider = if (selectedMethod == PaymentMethod.WALLET) selectedProvider else null
+        )
+        if (selectedOptionId !in uiState.configuredPaymentOptionIds) {
+            selectedMethod = uiState.defaultPaymentMethod
+            selectedProvider = uiState.defaultWalletProvider
+        } else if (
+            selectedMethod == PaymentMethod.WALLET &&
+            selectedProvider !in availableWalletProviders
+        ) {
+            selectedProvider = availableWalletProviders.firstOrNull() ?: uiState.defaultWalletProvider
         }
     }
 
@@ -141,11 +176,21 @@ fun PaymentScreen(
         viewModel.clearMessage()
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.paymentEvent.collect { event ->
             when (event) {
                 is PaymentEvent.PaymentSuccess -> {
                     onNavigateToPaymentResult(event.orderId, event.amount, event.methodLabel)
+                }
+                is PaymentEvent.SessionExpired -> {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                    onNavigateToLogin()
                 }
             }
         }
@@ -394,11 +439,14 @@ fun PaymentScreen(
                         .padding(12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    PaymentMethod.entries.forEach { method ->
+                    availablePaymentMethods.forEach { method ->
                         FilterChip(
                             selected = selectedMethod == method,
                             onClick = {
                                 selectedMethod = method
+                                if (method == PaymentMethod.WALLET && selectedProvider !in availableWalletProviders) {
+                                    selectedProvider = availableWalletProviders.firstOrNull() ?: WalletProvider.ZALOPAY
+                                }
                                 hasUserSelectedPaymentMethod = true
                             },
                             label = {
@@ -434,7 +482,7 @@ fun PaymentScreen(
                             .padding(12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        WalletProvider.entries.forEach { provider ->
+                        availableWalletProviders.forEach { provider ->
                             FilterChip(
                                 selected = selectedProvider == provider,
                                 onClick = {

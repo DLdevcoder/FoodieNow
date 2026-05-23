@@ -4,41 +4,41 @@
     <string name="good_morning">Good morning ☀️</string>
     <string name="good_afternoon">Good afternoon ⛅</string>
     <string name="good_evening">Good evening 🌙</string>
-    <string name="auth_checking_session">Checking sign-in session...</string>
-    <string name="auth_login_title">Sign in</string>
-    <string name="auth_login_subtitle">Welcome back, please sign in to continue.</string>
-    <string name="auth_register_title">Sign up</string>
-    <string name="auth_register_subtitle">Create a new account to get started.</string>
+    <string name="auth_checking_session">Đang kiểm tra phiên đăng nhập...</string>
+    <string name="auth_login_title">Đăng nhập</string>
+    <string name="auth_login_subtitle">Chào mừng bạn quay lại FoodieNow.</string>
+    <string name="auth_register_title">Đăng ký</string>
+    <string name="auth_register_subtitle">Tạo tài khoản để bắt đầu đặt món.</string>
     <string name="auth_email_label">Email</string>
-    <string name="auth_password_label">Password</string>
-    <string name="auth_confirm_password_label">Confirm password</string>
-    <string name="auth_role_label">Role</string>
-    <string name="auth_hide_password">Hide password</string>
-    <string name="auth_show_password">Show password</string>
-    <string name="auth_hide_confirm_password">Hide confirm password</string>
-    <string name="auth_show_confirm_password">Show confirm password</string>
-    <string name="auth_login_button">Sign in</string>
-    <string name="auth_create_account_button">Create account</string>
-    <string name="auth_forgot_password_action">Forgot password?</string>
-    <string name="auth_register_action">No account yet? Sign up</string>
-    <string name="auth_back_to_login_action">Already have an account? Back to sign in</string>
-    <string name="auth_back_to_login">Back to sign in</string>
-    <string name="auth_try_again_in_seconds">Try again in %1$ds</string>
-    <string name="auth_error_empty_email_password">Email and password cannot be empty.</string>
-    <string name="auth_error_invalid_email">Invalid email format.</string>
-    <string name="auth_error_password_min_length">Password must be at least 6 characters.</string>
-    <string name="auth_error_password_mismatch">Passwords do not match.</string>
+    <string name="auth_password_label">Mật khẩu</string>
+    <string name="auth_confirm_password_label">Nhập lại mật khẩu</string>
+    <string name="auth_role_label">Loại tài khoản</string>
+    <string name="auth_hide_password">Ẩn mật khẩu</string>
+    <string name="auth_show_password">Hiện mật khẩu</string>
+    <string name="auth_hide_confirm_password">Ẩn mật khẩu xác nhận</string>
+    <string name="auth_show_confirm_password">Hiện mật khẩu xác nhận</string>
+    <string name="auth_login_button">Đăng nhập</string>
+    <string name="auth_create_account_button">Tạo tài khoản</string>
+    <string name="auth_forgot_password_action">Quên mật khẩu?</string>
+    <string name="auth_register_action">Chưa có tài khoản? Đăng ký</string>
+    <string name="auth_back_to_login_action">Đã có tài khoản? Đăng nhập</string>
+    <string name="auth_back_to_login">Quay lại đăng nhập</string>
+    <string name="auth_try_again_in_seconds">Thử lại sau %1$ds</string>
+    <string name="auth_error_empty_email_password">Email và mật khẩu không được để trống.</string>
+    <string name="auth_error_invalid_email">Email chưa đúng định dạng.</string>
+    <string name="auth_error_password_min_length">Mật khẩu tối thiểu 6 ký tự.</string>
+    <string name="auth_error_password_mismatch">Mật khẩu xác nhận không khớp.</string>
 
-    <string name="auth_verify_title">Verify account</string>
-    <string name="auth_verify_subtitle">Confirm your email to unlock full access.</string>
-    <string name="auth_verify_sent_to">We have sent a verification email to:</string>
-    <string name="auth_verify_instruction">After clicking the link in your email, come back and sign in.</string>
-    <string name="auth_verify_resend">Resend verification email</string>
-    <string name="auth_verify_back_to_login">I have verified, back to sign in</string>
+    <string name="auth_verify_title">Xác thực tài khoản</string>
+    <string name="auth_verify_subtitle">Xác nhận email để mở đầy đủ quyền truy cập.</string>
+    <string name="auth_verify_sent_to">FoodieNow đã gửi email xác thực tới:</string>
+    <string name="auth_verify_instruction">Sau khi bấm link trong email, quay lại app để đăng nhập.</string>
+    <string name="auth_verify_resend">Gửi lại email xác thực</string>
+    <string name="auth_verify_back_to_login">Tôi đã xác thực, quay lại đăng nhập</string>
 
-    <string name="auth_forgot_password_title">Recover password</string>
-    <string name="auth_forgot_password_subtitle">Enter your email to receive a reset link.</string>
-    <string name="auth_forgot_password_send">Send recovery email</string>
+    <string name="auth_forgot_password_title">Khôi phục mật khẩu</string>
+    <string name="auth_forgot_password_subtitle">Nhập email để nhận hướng dẫn đặt lại mật khẩu.</string>
+    <string name="auth_forgot_password_send">Gửi email khôi phục</string>
 
     <string name="profile_title">Profile</string>
     <string name="profile_account_information">Account information</string>
@@ -49,7 +49,7 @@
     <string name="profile_phone_label">Phone</string>
     <string name="profile_address_label">Address</string>
     <string name="profile_save_button">Save profile</string>
-    <string name="profile_logout">Sign out</string>
+    <string name="profile_logout">Đăng xuất</string>
 
     <string name="payment_title">Payment</string>
     <string name="payment_order_information">Order information</string>
@@ -180,9 +180,9 @@
     <string name="settings_dark_mode">Dark mode</string>
     <string name="settings_use_english">Use English</string>
 
-    <string name="role_customer">Customer</string>
-    <string name="role_merchant">Merchant</string>
-    <string name="role_shipper">Shipper</string>
+    <string name="role_customer">Khách hàng</string>
+    <string name="role_merchant">Chủ quán</string>
+    <string name="role_shipper">Tài xế</string>
 
     <string name="nav_cart">Cart</string>
     <string name="nav_merchant_home">Merchant Home</string>
@@ -343,7 +343,7 @@
     <string name="profile_vouchers">Vouchers</string>
     <string name="profile_vouchers_count">%1$s vouchers</string>
     <string name="profile_change_password">Change password</string>
-    <string name="profile_logout_btn">Log out</string>
+    <string name="profile_logout_btn">Đăng xuất</string>
     <string name="feature_under_development">Feature under development</string>
 
     <string name="cart_clear_dialog_title">Tạo giỏ hàng mới?</string>

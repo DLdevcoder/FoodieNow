@@ -12,16 +12,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ProfileUiState(
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
+    val isAvatarSaving: Boolean = false,
+    val isLoggingOut: Boolean = false,
     val user: User? = null,
     val profile: Profile? = null,
     val infoMessage: String? = null,
     val errorMessage: String? = null,
+    val closeEditAfterInfo: Boolean = false,
     val isLoggedOut: Boolean = false
 )
 
@@ -103,13 +107,84 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun onAddressChange(value: String) {
-        _uiState.update { state ->
-            state.copy(
-                profile = state.profile?.copy(address = value),
-                infoMessage = null,
-                errorMessage = null
-            )
+    fun uploadAvatar(imageBytes: ByteArray) {
+        val profile = _uiState.value.profile ?: return
+        if (imageBytes.isEmpty()) {
+            _uiState.update {
+                it.copy(
+                    errorMessage = "Ảnh đã chọn không hợp lệ.",
+                    infoMessage = null,
+                    closeEditAfterInfo = false
+                )
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isAvatarSaving = true,
+                    infoMessage = null,
+                    errorMessage = null,
+                    closeEditAfterInfo = false
+                )
+            }
+
+            profileRepository.uploadAvatar(profile, imageBytes)
+                .onSuccess { savedProfile ->
+                    _uiState.update {
+                        it.copy(
+                            isAvatarSaving = false,
+                            profile = savedProfile,
+                            infoMessage = "Đã cập nhật ảnh đại diện.",
+                            closeEditAfterInfo = false
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isAvatarSaving = false,
+                            errorMessage = error.message ?: "Không cập nhật được ảnh đại diện."
+                        )
+                    }
+                }
+        }
+    }
+
+    fun deleteAvatar() {
+        val profile = _uiState.value.profile ?: return
+        if (profile.avatarUrl.isNullOrBlank()) return
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isAvatarSaving = true,
+                    infoMessage = null,
+                    errorMessage = null,
+                    closeEditAfterInfo = false
+                )
+            }
+
+            profileRepository.deleteAvatar(profile)
+                .onSuccess { savedProfile ->
+                    _uiState.update {
+                        it.copy(
+                            isAvatarSaving = false,
+                            profile = savedProfile,
+                            infoMessage = "Đã xóa ảnh đại diện.",
+                            closeEditAfterInfo = false
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isAvatarSaving = false,
+                            errorMessage = error.message ?: "Không xóa được ảnh đại diện."
+                        )
+                    }
+                }
         }
     }
 
@@ -123,14 +198,22 @@ class ProfileViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, infoMessage = null, errorMessage = null) }
+            _uiState.update {
+                it.copy(
+                    isSaving = true,
+                    infoMessage = null,
+                    errorMessage = null,
+                    closeEditAfterInfo = false
+                )
+            }
             profileRepository.upsertProfile(profile)
                 .onSuccess { savedProfile ->
                     _uiState.update {
                         it.copy(
                             isSaving = false,
                             profile = savedProfile,
-                            infoMessage = "Đã lưu thông tin hồ sơ."
+                            infoMessage = "Đã lưu thông tin hồ sơ.",
+                            closeEditAfterInfo = true
                         )
                     }
                 }
@@ -147,10 +230,18 @@ class ProfileViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
-            authRepository.logout()
+            _uiState.update { it.copy(isLoggingOut = true, errorMessage = null, infoMessage = null) }
+            val startedAt = System.currentTimeMillis()
+            val result = authRepository.logout()
+            val remainingMillis = MIN_LOGOUT_SCREEN_MILLIS - (System.currentTimeMillis() - startedAt)
+            if (remainingMillis > 0) {
+                delay(remainingMillis)
+            }
+            result
                 .onSuccess {
                     _uiState.update {
                         it.copy(
+                            isLoggingOut = false,
                             isLoggedOut = true,
                             user = null,
                             profile = null,
@@ -161,14 +252,20 @@ class ProfileViewModel @Inject constructor(
                 }
                 .onFailure { error ->
                     _uiState.update {
-                        it.copy(errorMessage = error.message ?: "Không thể đăng xuất.")
+                        it.copy(
+                            isLoggingOut = false,
+                            errorMessage = error.message ?: "Không thể đăng xuất."
+                        )
                     }
                 }
         }
     }
 
     fun clearMessages() {
-        _uiState.update { it.copy(errorMessage = null, infoMessage = null) }
+        _uiState.update { it.copy(errorMessage = null, infoMessage = null, closeEditAfterInfo = false) }
+    }
+
+    companion object {
+        private const val MIN_LOGOUT_SCREEN_MILLIS = 900L
     }
 }
-

@@ -18,17 +18,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Discount
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -64,7 +66,7 @@ import com.example.foodienow.core.designsystem.components.FoodieCard
 import com.example.foodienow.core.designsystem.components.FoodieEmptyState
 import com.example.foodienow.core.designsystem.components.FoodieErrorState
 import com.example.foodienow.core.designsystem.components.FoodieSearchPill
-import com.example.foodienow.core.designsystem.components.RestaurantCard
+import com.example.foodienow.core.designsystem.components.RatingBadge
 import com.example.foodienow.core.designsystem.components.VoucherBadge
 import com.example.foodienow.core.designsystem.components.shimmerEffect
 import com.example.foodienow.core.designsystem.theme.FoodieCream
@@ -94,36 +96,36 @@ fun CustomerHomeScreen(
         viewModel.loadUnreadMessageCount()
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-    ) {
-        item {
-            HomeTopSection(
-                onNavigateToSearch = onNavigateToSearch,
-                onNavigateToCart = onNavigateToCart,
-                onNavigateToChatList = onNavigateToChatList,
-                address = uiState.address,
-                unreadMessageCount = uiState.unreadMessageCount // Truyền số đếm xuống UI
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.height(12.dp))
-            CategoriesSection(
-                categories = uiState.categories,
-                isLoading = uiState.isLoading,
-                onCategoryClick = { category ->
-                    category.id?.let { onNavigateToCategory(it, category.name) }
-                }
-            } else {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(FoodieCream),
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            item {
+                HomeTopSection(
+                    onNavigateToSearch = onNavigateToSearch,
+                    onNavigateToChatList = onNavigateToChatList,
+                    address = uiState.address,
+                    unreadMessageCount = uiState.unreadMessageCount
+                )
+            }
+
+            if (uiState.errorMessage != null && uiState.recommendedFoods.isEmpty()) {
                 item {
-                    PromoBanner(
-                        imageUrl = uiState.recommendedFoods.firstOrNull()?.imageUrl,
-                        onClick = onNavigateToSearch
+                    FoodieErrorState(
+                        title = "Chưa tải được thực đơn",
+                        subtitle = uiState.errorMessage.orEmpty(),
+                        actionLabel = "Thử lại",
+                        onAction = viewModel::refresh
                     )
                 }
-
+            } else {
                 item {
                     CategoriesSection(
                         categories = uiState.categories,
@@ -181,16 +183,12 @@ fun CustomerHomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopSection(
-    address: String,
-    unreadMessageCount: Int,
     onNavigateToSearch: () -> Unit,
-    onNavigateToCart: () -> Unit,
     onNavigateToChatList: () -> Unit,
     address: String,
-    unreadMessageCount: Int // Thêm parameter này
+    unreadMessageCount: Int
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (currentHour) {
@@ -206,19 +204,20 @@ private fun HomeTopSection(
                 Brush.verticalGradient(
                     listOf(
                         PromoGradientStart,
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.primary,
+                        PromoGradientEnd
                     )
                 )
             )
             .statusBarsPadding()
-            .padding(horizontal = 18.dp, vertical = 16.dp)
+            .padding(start = 18.dp, top = 8.dp, end = 18.dp, bottom = 14.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(0.78f)) {
                 Text(
                     text = "FoodieNow",
                     style = MaterialTheme.typography.headlineSmall,
@@ -233,10 +232,25 @@ private fun HomeTopSection(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            HeaderActionButton(
-                icon = Icons.Default.ShoppingCart,
-                contentDescription = "Giỏ hàng",
-                onClick = onNavigateToCart
+            DeliverySummary(
+                address = address,
+                modifier = Modifier
+                    .weight(1.42f)
+                    .widthIn(min = 156.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FoodieSearchPill(
+                text = stringResource(R.string.home_search_placeholder),
+                onClick = onNavigateToSearch,
+                modifier = Modifier.weight(1f)
             )
             HeaderActionButton(
                 icon = Icons.Default.ChatBubbleOutline,
@@ -245,48 +259,67 @@ private fun HomeTopSection(
                 onClick = onNavigateToChatList
             )
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = Color.White.copy(alpha = 0.16f)
+@Composable
+private fun DeliverySummary(
+    address: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        color = Color.White.copy(alpha = 0.16f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp)
+            Icon(
+                Icons.Default.LocationOn,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(17.dp)
+            )
+            Spacer(modifier = Modifier.width(7.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Giao đến",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.74f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Giao đến",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.74f)
-                    )
-                    Text(
-                        text = address,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Text(
+                    text = address,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(14.dp))
-
-        FoodieSearchPill(
-            text = stringResource(R.string.home_search_placeholder),
-            onClick = onNavigateToSearch,
-            modifier = Modifier.fillMaxWidth()
+@Composable
+private fun SearchCtaButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .height(52.dp)
+            .width(54.dp)
+            .clip(MaterialTheme.shapes.large)
+            .clickable(onClick = onClick)
+        .background(Brush.linearGradient(listOf(Color.White, Color(0xFFFFF1E8)))),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            Icons.Default.Search,
+            contentDescription = "Tìm kiếm",
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(23.dp)
         )
     }
 }
@@ -399,48 +432,6 @@ private fun PromoBanner(
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
                 }
             }
-            IconButton(
-                onClick = onNavigateToCart,
-                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White),
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            ) {
-                Icon(
-                    Icons.Default.ShoppingCart,
-                    contentDescription = "Giỏ hàng",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            IconButton(
-                onClick = onNavigateToChatList,
-                colors = IconButtonDefaults.iconButtonColors(containerColor = Color.White),
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            ) {
-                // Thêm BadgedBox vào đây để hiển thị số lượng tin nhắn chưa đọc
-                BadgedBox(
-                    badge = {
-                        if (unreadMessageCount > 0) {
-                            Badge(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = Color.White
-                            ) {
-                                Text(
-                                    text = if (unreadMessageCount > 99) "99+" else unreadMessageCount.toString()
-                                )
-                            }
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ChatBubbleOutline,
-                        contentDescription = "Danh sách tin nhắn",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
         }
     }
 }
@@ -475,24 +466,33 @@ private fun CategoriesSection(
 
         if (isLoading && categories.isEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(5) {
-                    Box(
-                        modifier = Modifier
-                            .width(118.dp)
-                            .height(44.dp)
-                            .clip(MaterialTheme.shapes.large)
-                            .shimmerEffect()
-                    )
+                items(4) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        repeat(2) {
+                            Box(
+                                modifier = Modifier
+                                    .width(112.dp)
+                                    .height(42.dp)
+                                    .clip(MaterialTheme.shapes.large)
+                                    .shimmerEffect()
+                            )
+                        }
+                    }
                 }
             }
         } else {
+            val categoryColumns = displayCategories.chunked(2)
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(displayCategories) { category ->
-                    CategoryChip(
-                        label = category.name,
-                        imageUrl = category.imageUrl,
-                        onClick = { onCategoryClick(category) }
-                    )
+                items(categoryColumns) { columnCategories ->
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        columnCategories.forEach { category ->
+                            CategoryChip(
+                                label = category.name,
+                                imageUrl = category.imageUrl,
+                                onClick = { onCategoryClick(category) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -515,7 +515,7 @@ private fun HorizontalFoodSection(
 
         when {
             isLoading -> {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(3) { FoodCardSkeleton() }
                 }
             }
@@ -531,12 +531,12 @@ private fun HorizontalFoodSection(
             }
 
             else -> {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(foods.take(10)) { food ->
                         FoodCard(
                             food = food,
                             onClick = onFoodClick,
-                            modifier = Modifier.width(178.dp)
+                            modifier = Modifier.width(150.dp)
                         )
                     }
                 }
@@ -561,22 +561,103 @@ private fun RestaurantsSection(
         Spacer(modifier = Modifier.height(12.dp))
 
         if (isLoading) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                items(2) { RestaurantCardSkeleton() }
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(3) { RestaurantCardSkeleton() }
             }
         } else {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(stores.take(6)) { store ->
-                    RestaurantCard(
+                    CompactRestaurantCard(
                         name = store.name,
                         imageUrl = store.imageUrl,
                         address = store.address,
                         rating = store.rating,
                         reviewCount = store.reviewCount,
                         onClick = onSeeAllClick,
-                        modifier = Modifier.width(258.dp)
+                        modifier = Modifier.width(198.dp)
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompactRestaurantCard(
+    name: String,
+    imageUrl: String?,
+    address: String?,
+    rating: Double?,
+    reviewCount: Int?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FoodieCard(
+        modifier = modifier,
+        onClick = onClick
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Box {
+                FoodImage(
+                    imageUrl = imageUrl,
+                    contentDescription = name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(88.dp)
+                )
+
+                if (rating != null && rating > 0) {
+                    RatingBadge(
+                        rating = rating,
+                        reviewCount = reviewCount,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(6.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (!address.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = address,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.AccessTime,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = "20-30 phút",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -593,21 +674,34 @@ private fun CollectionsSection(onSeeAllClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            VoucherDealCard(
-                title = "FREESHIP đơn từ 50K",
-                subtitle = "Áp dụng cho quán trong bán kính gần bạn",
-                badge = "Giao nhanh",
-                containerBrush = Brush.linearGradient(listOf(Color(0xFF0E8A73), Color(0xFF21B493))),
-                onClick = onSeeAllClick
-            )
-            VoucherDealCard(
-                title = "Combo bữa trưa tiết kiệm",
-                subtitle = "Giảm đến 50% cho món chính kèm nước",
-                badge = "Hot deal",
-                containerBrush = Brush.linearGradient(listOf(PromoGradientStart, PromoGradientEnd)),
-                onClick = onSeeAllClick
-            )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            item {
+                VoucherDealCard(
+                    title = "FREESHIP đơn từ 50K",
+                    subtitle = "Quán gần bạn",
+                    badge = "Giao nhanh",
+                    containerBrush = Brush.linearGradient(listOf(Color(0xFF0E8A73), Color(0xFF21B493))),
+                    onClick = onSeeAllClick
+                )
+            }
+            item {
+                VoucherDealCard(
+                    title = "Combo trưa tiết kiệm",
+                    subtitle = "Giảm đến 50%",
+                    badge = "Hot deal",
+                    containerBrush = Brush.linearGradient(listOf(PromoGradientStart, PromoGradientEnd)),
+                    onClick = onSeeAllClick
+                )
+            }
+            item {
+                VoucherDealCard(
+                    title = "Món ngon dưới 39K",
+                    subtitle = "Ăn nhanh, giá mềm",
+                    badge = "Tiết kiệm",
+                    containerBrush = Brush.linearGradient(listOf(Color(0xFFEF4444), PromoGradientStart)),
+                    onClick = onSeeAllClick
+                )
+            }
         }
     }
 }
@@ -622,12 +716,12 @@ private fun VoucherDealCard(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(112.dp)
+            .width(208.dp)
+            .height(96.dp)
             .clip(MaterialTheme.shapes.large)
             .clickable(onClick = onClick)
             .background(containerBrush)
-            .padding(16.dp)
+            .padding(12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -636,19 +730,19 @@ private fun VoucherDealCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(42.dp)
                     .clip(MaterialTheme.shapes.large)
                     .background(Color.White.copy(alpha = 0.22f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Discount, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.Discount, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
                 VoucherBadge(label = badge, containerColor = Color.White.copy(alpha = 0.2f))
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     maxLines = 1,
@@ -656,13 +750,18 @@ private fun VoucherDealCard(
                 )
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = Color.White.copy(alpha = 0.86f),
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White)
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }
@@ -677,26 +776,26 @@ fun FoodCard(
         modifier = modifier,
         onClick = { onClick(food) }
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
+        Column(modifier = Modifier.padding(8.dp)) {
             Box {
                 FoodImage(
                     imageUrl = food.imageUrl,
                     contentDescription = food.name,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1.18f)
+                        .aspectRatio(1.28f)
                 )
                 if (food.soldCount >= 1000) {
                     VoucherBadge(
                         label = "Bán chạy",
                         modifier = Modifier
                             .align(Alignment.TopStart)
-                            .padding(8.dp)
+                            .padding(6.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = food.name,
@@ -708,7 +807,7 @@ fun FoodCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -718,7 +817,7 @@ fun FoodCard(
                 RatingSummary(rating = food.rating, soldCount = food.soldCount)
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -727,25 +826,25 @@ fun FoodCard(
             ) {
                 Text(
                     text = food.price.formatPrice(),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(34.dp)
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(Brush.linearGradient(listOf(PromoGradientStart, PromoGradientEnd))),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Default.AddShoppingCart,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+                    Icon(
+                        Icons.Default.AddShoppingCart,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
         }
@@ -766,11 +865,11 @@ private fun RatingSummary(rating: Double, soldCount: Int) {
             contentColor = FoodieRating
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(14.dp))
+                Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(13.dp))
                 Text(
                     text = if (rating > 0) String.format("%.1f", rating) else "Mới",
                     style = MaterialTheme.typography.labelSmall,
@@ -856,19 +955,19 @@ private fun SectionHeader(
 private fun FoodCardSkeleton() {
     Column(
         modifier = Modifier
-            .width(178.dp)
+            .width(150.dp)
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surface)
-            .padding(10.dp)
+            .padding(8.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1.18f)
+                .aspectRatio(1.28f)
                 .clip(MaterialTheme.shapes.medium)
                 .shimmerEffect()
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.84f)
@@ -899,31 +998,31 @@ private fun FoodCardSkeleton() {
 private fun RestaurantCardSkeleton() {
     Column(
         modifier = Modifier
-            .width(258.dp)
+            .width(198.dp)
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surface)
-            .padding(10.dp)
+            .padding(8.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(132.dp)
+                .height(88.dp)
                 .clip(MaterialTheme.shapes.medium)
-                .shimmerEffect()
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(18.dp)
-                .clip(MaterialTheme.shapes.small)
                 .shimmerEffect()
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .height(14.dp)
+                .fillMaxWidth(0.7f)
+                .height(16.dp)
+                .clip(MaterialTheme.shapes.small)
+                .shimmerEffect()
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.82f)
+                .height(12.dp)
                 .clip(MaterialTheme.shapes.small)
                 .shimmerEffect()
         )

@@ -20,7 +20,8 @@ data class ReviewWithUserResponse(
 )
 @Serializable
 data class UserInfoResponse(
-    @SerialName("full_name") val fullName: String? = null
+    @SerialName("full_name") val fullName: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null
 )
 
 class ReviewRepositoryImpl @Inject constructor(
@@ -29,7 +30,7 @@ class ReviewRepositoryImpl @Inject constructor(
 
     override suspend fun getReviewsByFoodId(foodId: String): List<ReviewUiModel> {
         val response = supabase.postgrest["reviews"]
-            .select(columns = Columns.raw("id, rating, comment, created_at, profiles(full_name)")){
+            .select(columns = Columns.raw("id, rating, comment, created_at, profiles(full_name, avatar_url)")){
                 filter { eq("food_id", foodId) }
             }.decodeList<ReviewWithUserResponse>()
 
@@ -37,7 +38,7 @@ class ReviewRepositoryImpl @Inject constructor(
             ReviewUiModel(
                 id = item.id,
                 userName = item.profiles?.fullName ?: "Người dùng",
-                userAvatarUrl = null,
+                userAvatarUrl = item.profiles?.avatarUrl,
                 rating = item.rating,
                 comment = item.comment ?: "",
                 date = item.createdAt?.substringBefore("T") ?: ""

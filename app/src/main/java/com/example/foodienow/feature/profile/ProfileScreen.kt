@@ -39,10 +39,12 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -70,6 +73,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import coil3.compose.AsyncImage
 import com.example.foodienow.R
 import com.example.foodienow.core.designsystem.components.FoodieCard
 import com.example.foodienow.core.designsystem.components.FoodieErrorState
@@ -122,6 +126,7 @@ fun ProfileScreen(
     val profile = profileUiState.profile
     val fullName = profile?.fullName ?: stringResource(R.string.profile_unnamed)
     val email = profile?.email ?: stringResource(R.string.profile_unnamed_email)
+    val avatarUrl = profile?.avatarUrl
     val balance = profile?.balance ?: 0L
     val rewardPoints = profile?.rewardPoints ?: 0
     val formatter = remember { NumberFormat.getCurrencyInstance(Locale("vi", "VN")) }
@@ -160,24 +165,28 @@ fun ProfileScreen(
         }
     }
 
-    PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = {
-            isRefreshing = true
-            profileViewModel.loadProfile()
-        },
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(FoodieCream)
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                profileViewModel.loadProfile()
+            },
+            modifier = Modifier.fillMaxSize()
         ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             item {
                 ProfileHeader(
                     fullName = fullName,
                     email = email,
+                    avatarUrl = avatarUrl,
                     role = profile?.role,
                     onNavigateToEditProfile = onNavigateToEditProfile
                 )
@@ -329,6 +338,82 @@ fun ProfileScreen(
                     )
                 }
             }
+            }
+        }
+
+        if (profileUiState.isLoggingOut) {
+            LogoutLoadingScreen()
+        }
+    }
+}
+
+@Composable
+private fun LogoutLoadingScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(PromoGradientStart, MaterialTheme.colorScheme.primary, PromoGradientEnd)
+                )
+            )
+            .clickable(onClick = {}),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(72.dp),
+                shape = CircleShape,
+                color = Color.White.copy(alpha = 0.2f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(42.dp),
+                        strokeWidth = 3.dp
+                    )
+                }
+            }
+            Text(
+                text = "FoodieNow",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+            FoodieCard(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.padding(horizontal = 22.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Đang đăng xuất",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "FoodieNow đang kết thúc phiên đăng nhập và bảo vệ thông tin tài khoản trên thiết bị này.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(CircleShape),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            }
+            }
         }
     }
 }
@@ -345,6 +430,7 @@ private tailrec fun Context.findLifecycleOwner(): LifecycleOwner? {
 private fun ProfileHeader(
     fullName: String,
     email: String,
+    avatarUrl: String?,
     role: UserRole?,
     onNavigateToEditProfile: () -> Unit
 ) {
@@ -396,7 +482,7 @@ private fun ProfileHeader(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ProfileAvatar(fullName = fullName)
+                ProfileAvatar(fullName = fullName, avatarUrl = avatarUrl)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = fullName,
@@ -422,7 +508,7 @@ private fun ProfileHeader(
 }
 
 @Composable
-private fun ProfileAvatar(fullName: String) {
+private fun ProfileAvatar(fullName: String, avatarUrl: String?) {
     val initials = remember(fullName) {
         fullName
             .trim()
@@ -441,12 +527,21 @@ private fun ProfileAvatar(fullName: String) {
             .background(Color.White),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = initials,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary
-        )
+        if (!avatarUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = avatarUrl,
+                contentDescription = "Ảnh đại diện",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Text(
+                text = initials,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 
