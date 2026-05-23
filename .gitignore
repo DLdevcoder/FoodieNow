@@ -22,4 +22,8 @@ captures/
 .DS_Store
 Thumbs.db
 
-supabase/.temp
+supabase/.temp/
+supabase/.branches/
+.env
+.env.local
+.env.*.local

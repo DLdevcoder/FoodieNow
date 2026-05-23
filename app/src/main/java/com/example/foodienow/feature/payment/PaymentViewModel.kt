@@ -251,11 +251,18 @@ class PaymentViewModel @Inject constructor(
                             )
                         }
                         .onFailure { error ->
+                            val isJwtError = error.message?.contains("JWT", ignoreCase = true) == true
+                            if (isJwtError) {
+                                authRepository.logout()
+                            }
                             _uiState.update {
                                 it.copy(
                                     isProcessing = false,
-                                    errorMessage = error.message
-                                        ?: "Thanh toan that bai. Du lieu don hang da duoc rollback."
+                                    errorMessage = if (isJwtError) {
+                                        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+                                    } else {
+                                        error.message ?: "Thanh toan that bai. Du lieu don hang da duoc rollback."
+                                    }
                                 )
                             }
                         }
