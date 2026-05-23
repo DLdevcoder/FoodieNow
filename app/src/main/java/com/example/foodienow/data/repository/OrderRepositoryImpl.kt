@@ -54,10 +54,8 @@ class OrderRepositoryImpl @Inject constructor(
                 .decodeList<Order>()
         }
 
-        // Emit initial data
         send(fetchOrders())
 
-        // Setup realtime channel
         val channelName = "orders_customer_$customerId"
         val channel = supabaseClient.channel(channelName)
         val changes = channel.postgresChangeFlow<PostgresAction>("public") {
@@ -66,7 +64,6 @@ class OrderRepositoryImpl @Inject constructor(
 
         launch {
             changes.collect {
-                // Whenever there's an insert/update/delete, refetch
                 send(fetchOrders())
             }
         }
@@ -119,11 +116,11 @@ class OrderRepositoryImpl @Inject constructor(
                 .select {
                     filter {
                         eq("shipper_id", shipperId)
-                        eq("status", OrderStatus.DELIVERING.name)
+                        isIn("status", listOf(OrderStatus.DRIVER_ASSIGNED.name, OrderStatus.DELIVERING.name))
                     }
                 }
                 .decodeList<Order>()
-                .firstOrNull()
+                .firstOrNull() // Giả định tài xế chỉ xử lý 1 đơn tại 1 thời điểm
         }
 
         send(fetchActive())
@@ -152,7 +149,7 @@ class OrderRepositoryImpl @Inject constructor(
             supabaseClient.postgrest["orders"].update(
                 {
                     set("shipper_id", shipperId)
-                    set("status", OrderStatus.DELIVERING.name)
+                    set("status", OrderStatus.DRIVER_ASSIGNED.name) // Đẩy thẳng lên trạng thái tài xế đang đến
                 }
             ) {
                 filter { eq("id", orderId) }
@@ -186,7 +183,7 @@ class OrderRepositoryImpl @Inject constructor(
                 .select {
                     filter {
                         eq("shipper_id", shipperId)
-                        eq("status", OrderStatus.COMPLETED.name)
+                        isIn("status", listOf(OrderStatus.COMPLETED.name, OrderStatus.CANCELLED.name))
                     }
                 }
                 .decodeList<Order>()

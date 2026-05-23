@@ -29,7 +29,7 @@ import java.util.Locale
 @Composable
 fun ShipperHomeScreen(
     viewModel: ShipperViewModel = hiltViewModel(),
-    onNavigateToTracking: (String) -> Unit, // Callback mở màn hình Bản đồ
+    onNavigateToTracking: (String) -> Unit,
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -94,23 +94,23 @@ fun ShipperHomeScreen(
             0 -> OrderList(
                 orders = uiState.availableOrders,
                 emptyMessageRes = R.string.shipper_empty_available,
-                actionTextRes = R.string.shipper_action_accept,
-                onActionClick = viewModel::acceptOrder,
-                onNavigateToMapClick = { } // Không hiển thị bản đồ ở mục chờ nhận
+                onNavigateToMapClick = { }, // Không mở bản đồ khi chưa nhận đơn
+                viewModel = viewModel,
+                isHistoryTab = false
             )
             1 -> OrderList(
                 orders = uiState.activeOrders,
                 emptyMessageRes = R.string.shipper_empty_active,
-                actionTextRes = R.string.shipper_action_complete,
-                onActionClick = viewModel::completeOrder,
-                onNavigateToMapClick = onNavigateToTracking // Truyền lệnh mở bản đồ
+                onNavigateToMapClick = onNavigateToTracking,
+                viewModel = viewModel,
+                isHistoryTab = false
             )
             2 -> OrderList(
                 orders = uiState.completedOrders,
                 emptyMessageRes = R.string.shipper_empty_completed,
-                actionTextRes = null,
-                onActionClick = {},
-                onNavigateToMapClick = { }
+                onNavigateToMapClick = { },
+                viewModel = viewModel,
+                isHistoryTab = true
             )
         }
     }
@@ -186,9 +186,9 @@ private fun ShipperTopSection(activeOrderCount: Int, onLogout: () -> Unit) {
 private fun OrderList(
     orders: List<Order>,
     emptyMessageRes: Int,
-    actionTextRes: Int?,
-    onActionClick: (String) -> Unit,
-    onNavigateToMapClick: (String) -> Unit
+    onNavigateToMapClick: (String) -> Unit,
+    viewModel: ShipperViewModel,
+    isHistoryTab: Boolean
 ) {
     if (orders.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -204,12 +204,11 @@ private fun OrderList(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(orders, key = { it.id ?: it.hashCode() }) { order ->
-                val actionText = actionTextRes?.let { stringResource(it) }
                 ShipperOrderCard(
                     order = order,
-                    actionText = actionText,
-                    onAction = { order.id?.let { onActionClick(it) } },
-                    onNavigateToMap = { order.id?.let { onNavigateToMapClick(it) } }
+                    onNavigateToMap = { order.id?.let { onNavigateToMapClick(it) } },
+                    viewModel = viewModel,
+                    isHistoryTab = isHistoryTab
                 )
             }
         }
@@ -219,9 +218,9 @@ private fun OrderList(
 @Composable
 private fun ShipperOrderCard(
     order: Order,
-    actionText: String?,
-    onAction: () -> Unit,
-    onNavigateToMap: () -> Unit
+    onNavigateToMap: () -> Unit,
+    viewModel: ShipperViewModel,
+    isHistoryTab: Boolean
 ) {
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
     val formattedPrice = "${formatter.format(order.totalPrice)} VND"
@@ -272,36 +271,63 @@ private fun ShipperOrderCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Hàng chứa các nút hành động
+            // Xử lý hiển thị nút bấm theo logic trạng thái mới
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Nút Bản đồ chỉ hiện khi đơn đang giao
-                if (order.status == OrderStatus.DELIVERING) {
-                    OutlinedButton(
-                        onClick = onNavigateToMap,
-                        modifier = Modifier.padding(end = 8.dp),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Text("Bản đồ")
-                    }
-                }
-
-                if (actionText != null) {
-                    Button(
-                        onClick = onAction,
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Text(actionText)
-                    }
-                } else if (order.status == OrderStatus.COMPLETED) {
+                if (isHistoryTab || order.status == OrderStatus.COMPLETED) {
                     Text(
                         text = "Đã giao thành công",
                         color = Color(0xFF4CAF50),
                         fontWeight = FontWeight.Bold
                     )
+                } else {
+                    when (order.status) {
+                        OrderStatus.PREPARING -> {
+                            // Đơn đang chờ Shipper nhận (Tab Chờ nhận)
+                            Button(
+                                onClick = { order.id?.let { viewModel.acceptOrder(it) } },
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(stringResource(R.string.shipper_action_accept))
+                            }
+                        }
+                        OrderStatus.DRIVER_ASSIGNED -> {
+                            // Shipper đã nhận, đang trên đường đến lấy hàng (Tab Đang giao)
+                            OutlinedButton(
+                                onClick = onNavigateToMap,
+                                modifier = Modifier.padding(end = 8.dp),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text("Xem Bản đồ")
+                            }
+                            Button(
+                                onClick = { order.id?.let { viewModel.markAsDelivering(it) } },
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text("Đã lấy hàng")
+                            }
+                        }
+                        OrderStatus.DELIVERING -> {
+                            // Shipper đã lấy hàng, đang đi giao (Tab Đang giao)
+                            OutlinedButton(
+                                onClick = onNavigateToMap,
+                                modifier = Modifier.padding(end = 8.dp),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text("Xem Bản đồ")
+                            }
+                            Button(
+                                onClick = { order.id?.let { viewModel.completeOrder(it) } },
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text("Hoàn thành")
+                            }
+                        }
+                        else -> {}
+                    }
                 }
             }
         }

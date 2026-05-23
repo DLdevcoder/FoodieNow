@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,6 +48,11 @@ fun CustomerHomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // Bổ sung LaunchedEffect để update lại số đếm khi quay lại trang chủ
+    LaunchedEffect(Unit) {
+        viewModel.loadUnreadMessageCount()
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -57,7 +63,8 @@ fun CustomerHomeScreen(
                 onNavigateToSearch = onNavigateToSearch,
                 onNavigateToCart = onNavigateToCart,
                 onNavigateToChatList = onNavigateToChatList,
-                address = uiState.address
+                address = uiState.address,
+                unreadMessageCount = uiState.unreadMessageCount // Truyền số đếm xuống UI
             )
         }
         item {
@@ -103,12 +110,15 @@ fun CustomerHomeScreen(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopSection(
     onNavigateToSearch: () -> Unit,
     onNavigateToCart: () -> Unit,
     onNavigateToChatList: () -> Unit,
-    address: String
+    address: String,
+    unreadMessageCount: Int // Thêm parameter này
 ) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (currentHour) {
@@ -213,11 +223,27 @@ private fun HomeTopSection(
                     .size(44.dp)
                     .clip(RoundedCornerShape(8.dp))
             ) {
-                Icon(
-                    imageVector = Icons.Default.ChatBubbleOutline,
-                    contentDescription = "Danh sách tin nhắn",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                // Thêm BadgedBox vào đây để hiển thị số lượng tin nhắn chưa đọc
+                BadgedBox(
+                    badge = {
+                        if (unreadMessageCount > 0) {
+                            Badge(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = Color.White
+                            ) {
+                                Text(
+                                    text = if (unreadMessageCount > 99) "99+" else unreadMessageCount.toString()
+                                )
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline,
+                        contentDescription = "Danh sách tin nhắn",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }

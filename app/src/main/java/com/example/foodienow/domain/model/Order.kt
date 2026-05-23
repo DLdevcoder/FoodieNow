@@ -5,11 +5,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class OrderStatus {
-    PENDING,    // Chờ chủ quán xác nhận
-    PREPARING,  // Đang chuẩn bị món, shipper sẽ lấy đơn khi chủ quán chuyển sang trạng thái này
-    DELIVERING, // Shipper đang giao
-    COMPLETED,  // Hoàn thành
-    CANCELLED   // Đã hủy
+    PENDING,          // 1. Khách mới đặt, chờ CHỦ QUÁN xác nhận. (Tài xế KHÔNG thấy đơn này).
+    PREPARING,        // 2. Chủ quán ĐÃ XÁC NHẬN và đang nấu. Hệ thống bắt đầu đẩy đơn ra cho Tài xế.
+    DRIVER_ASSIGNED,  // 3. Tài xế ĐÃ NHẬN ĐƠN và đang trên đường đến quán lấy đồ.
+    DELIVERING,       // 4. Tài xế bấm "Đã lấy hàng" và đang trên đường giao cho khách.
+    COMPLETED,        // 5. Giao hàng thành công.
+    CANCELLED         // 6. Đơn bị hủy (bởi Khách, Chủ quán, hoặc Hệ thống do không tìm được tài xế).
 }
 
 @Serializable
