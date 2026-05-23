@@ -25,9 +25,11 @@ fun MerchantOrdersTab(
     val uiState by viewModel.uiState.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
+    // Tách riêng 6 tab tương ứng với 6 trạng thái
     val tabs = listOf(
         OrderStatus.PENDING to R.string.merchant_orders_status_pending,
         OrderStatus.PREPARING to R.string.merchant_orders_status_preparing,
+        OrderStatus.DRIVER_ASSIGNED to R.string.merchant_orders_status_driver_assigned,
         OrderStatus.DELIVERING to R.string.merchant_orders_status_delivering,
         OrderStatus.COMPLETED to R.string.merchant_orders_status_completed,
         OrderStatus.CANCELLED to R.string.merchant_orders_status_cancelled
@@ -68,8 +70,11 @@ fun MerchantOrdersTab(
             return
         }
 
+        // Lọc đơn hàng theo tab hiện tại
         val currentStatusFilter = tabs[selectedTabIndex].first
-        val filteredOrders = uiState.orders.filter { it.status == currentStatusFilter }
+        val filteredOrders = uiState.orders
+            .filter { it.status == currentStatusFilter }
+            .sortedByDescending { it.createdAt }
 
         if (filteredOrders.isEmpty()) {
             Box(
@@ -91,7 +96,6 @@ fun MerchantOrdersTab(
                     MerchantOrderCard(
                         order = order,
                         onAccept = { order.id?.let { viewModel.updateOrderStatus(it, OrderStatus.PREPARING) } },
-                        onReady = { order.id?.let { viewModel.updateOrderStatus(it, OrderStatus.DELIVERING) } },
                         onCancel = { order.id?.let { viewModel.updateOrderStatus(it, OrderStatus.CANCELLED) } }
                     )
                 }
@@ -104,7 +108,6 @@ fun MerchantOrdersTab(
 private fun MerchantOrderCard(
     order: Order,
     onAccept: () -> Unit,
-    onReady: () -> Unit,
     onCancel: () -> Unit
 ) {
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
@@ -128,6 +131,7 @@ private fun MerchantOrderCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Đảm bảo R.string.activity_history_order_title đã được khai báo ("Đơn #%1$s")
                 Text(
                     text = stringResource(R.string.activity_history_order_title, order.id?.take(8) ?: "N/A"),
                     style = MaterialTheme.typography.titleMedium,
@@ -140,45 +144,49 @@ private fun MerchantOrderCard(
                 )
             }
 
+            // Đảm bảo R.string.merchant_orders_customer_name đã được khai báo ("Khách hàng: %1$s")
             Text(
-                // Do chưa join bảng users nên tạm thời hiển thị ID rút gọn của khách hàng
                 text = stringResource(R.string.merchant_orders_customer_name, order.customerId.take(8)),
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            val statusDisplay = when (order.status) {
+                OrderStatus.PENDING -> stringResource(R.string.merchant_status_display_pending)
+                OrderStatus.PREPARING -> stringResource(R.string.merchant_status_display_preparing)
+                OrderStatus.DRIVER_ASSIGNED -> stringResource(R.string.merchant_status_display_driver_assigned)
+                OrderStatus.DELIVERING -> stringResource(R.string.merchant_status_display_delivering)
+                OrderStatus.COMPLETED -> stringResource(R.string.merchant_status_display_completed)
+                OrderStatus.CANCELLED -> stringResource(R.string.merchant_status_display_cancelled)
+            }
+
             Text(
-                text = stringResource(R.string.activity_history_item_subtitle, order.status.name, formattedPrice),
+                text = "$statusDisplay - $formattedPrice",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold
             )
 
-            if (order.status == OrderStatus.PENDING || order.status == OrderStatus.PREPARING) {
+            if (!order.note.isNullOrBlank()) {
+                Text(
+                    text = "Ghi chú: ${order.note}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            if (order.status == OrderStatus.PENDING) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (order.status == OrderStatus.PENDING) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            OutlinedButton(onClick = onCancel) {
-                                Text(stringResource(R.string.merchant_orders_action_cancel))
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(onClick = onAccept) {
-                                Text(stringResource(R.string.merchant_orders_action_accept))
-                            }
-                        }
-                    } else {
-                        Button(onClick = onReady) {
-                            Text(stringResource(R.string.merchant_orders_action_ready))
-                        }
+                    OutlinedButton(onClick = onCancel) {
+                        Text(stringResource(R.string.merchant_orders_action_cancel))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = onAccept) {
+                        Text(stringResource(R.string.merchant_orders_action_accept))
                     }
                 }
             }

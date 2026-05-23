@@ -214,7 +214,6 @@ fun ShipperTrackingScreen(
                         view.getMapAsync { map ->
                             if (mapLibreMapInstance == null) {
                                 mapLibreMapInstance = map
-                                // Chỉ load style và bật cờ isMapReady, không ẩn bất kỳ layer nào nữa
                                 map.setStyle("https://tiles.goong.io/assets/goong_map_web.json?api_key=${BuildConfig.GOONG_MAPTILES_KEY}") {
                                     isMapReady = true
                                 }
