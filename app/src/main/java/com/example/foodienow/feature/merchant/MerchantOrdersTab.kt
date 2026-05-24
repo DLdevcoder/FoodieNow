@@ -8,6 +8,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,14 +26,14 @@ fun MerchantOrdersTab(
     val uiState by viewModel.uiState.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
-    // Tách riêng 6 tab tương ứng với 6 trạng thái
+    // Chuyển đổi để mỗi tab chứa một danh sách các trạng thái
     val tabs = listOf(
-        OrderStatus.PENDING to R.string.merchant_orders_status_pending,
-        OrderStatus.PREPARING to R.string.merchant_orders_status_preparing,
-        OrderStatus.DRIVER_ASSIGNED to R.string.merchant_orders_status_driver_assigned,
-        OrderStatus.DELIVERING to R.string.merchant_orders_status_delivering,
-        OrderStatus.COMPLETED to R.string.merchant_orders_status_completed,
-        OrderStatus.CANCELLED to R.string.merchant_orders_status_cancelled
+        listOf(OrderStatus.PENDING) to R.string.merchant_orders_status_pending,
+        listOf(OrderStatus.PREPARING) to R.string.merchant_orders_status_preparing,
+        listOf(OrderStatus.DRIVER_ASSIGNED) to R.string.merchant_orders_status_driver_assigned,
+        listOf(OrderStatus.DELIVERING) to R.string.merchant_orders_status_delivering,
+        // Gộp COMPLETED và CANCELLED vào chung 1 tab "Lịch sử"
+        listOf(OrderStatus.COMPLETED, OrderStatus.CANCELLED) to R.string.merchant_orders_status_history
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -70,10 +71,10 @@ fun MerchantOrdersTab(
             return
         }
 
-        // Lọc đơn hàng theo tab hiện tại
-        val currentStatusFilter = tabs[selectedTabIndex].first
+        // Lọc đơn hàng theo danh sách trạng thái của tab hiện tại bằng toán tử "in"
+        val currentStatusFilters = tabs[selectedTabIndex].first
         val filteredOrders = uiState.orders
-            .filter { it.status == currentStatusFilter }
+            .filter { it.status in currentStatusFilters }
             .sortedByDescending { it.createdAt }
 
         if (filteredOrders.isEmpty()) {
@@ -131,7 +132,6 @@ private fun MerchantOrderCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Đảm bảo R.string.activity_history_order_title đã được khai báo ("Đơn #%1$s")
                 Text(
                     text = stringResource(R.string.activity_history_order_title, order.id?.take(8) ?: "N/A"),
                     style = MaterialTheme.typography.titleMedium,
@@ -144,7 +144,6 @@ private fun MerchantOrderCard(
                 )
             }
 
-            // Đảm bảo R.string.merchant_orders_customer_name đã được khai báo ("Khách hàng: %1$s")
             Text(
                 text = stringResource(R.string.merchant_orders_customer_name, order.customerId.take(8)),
                 style = MaterialTheme.typography.bodyMedium
@@ -159,10 +158,17 @@ private fun MerchantOrderCard(
                 OrderStatus.CANCELLED -> stringResource(R.string.merchant_status_display_cancelled)
             }
 
+            // Xử lý màu sắc riêng cho phần trạng thái
+            val statusColor = when (order.status) {
+                OrderStatus.COMPLETED -> Color(0xFF4CAF50) // Xanh lá
+                OrderStatus.CANCELLED -> MaterialTheme.colorScheme.error // Đỏ
+                else -> MaterialTheme.colorScheme.primary // Màu mặc định cho các trạng thái khác
+            }
+
             Text(
                 text = "$statusDisplay - $formattedPrice",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = statusColor,
                 fontWeight = FontWeight.SemiBold
             )
 
