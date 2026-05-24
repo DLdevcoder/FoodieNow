@@ -95,11 +95,12 @@ fun OrderHistoryScreen(
     onBack: () -> Unit,
     onNavigateToOrderDetail: (String) -> Unit,
     onNavigateToCart: () -> Unit = {},
+    initialTab: Int = 0,
     viewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember(initialTab) { mutableIntStateOf(initialTab) }
 
     val activeStatuses = setOf(
         OrderStatus.PENDING,
@@ -564,10 +565,7 @@ private fun OrderCardItem(
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(
-                            R.string.order_history_order_title,
-                            order.id?.take(8) ?: "Unknown"
-                        ),
+                        text = stringResource(R.string.order_card_title_no_id),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -599,7 +597,15 @@ private fun OrderCardItem(
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = order.previewFoodName ?: "Đơn hàng từ FoodieNow",
+                        text = if (order.otherItemsCount != null && order.otherItemsCount > 0) {
+                            stringResource(
+                                R.string.order_food_name_with_others,
+                                order.previewFoodName ?: "Đơn hàng từ FoodieNow",
+                                order.otherItemsCount
+                            )
+                        } else {
+                            order.previewFoodName ?: "Đơn hàng từ FoodieNow"
+                        },
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,

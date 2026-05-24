@@ -49,9 +49,36 @@ class OrderRepositoryImpl @Inject constructor(
 
     override fun getOrdersByCustomer(customerId: String): Flow<List<Order>> = channelFlow {
         val fetchOrders = suspend {
-            supabaseClient.postgrest["orders"]
+            val orders = supabaseClient.postgrest["orders"]
                 .select { filter { eq("customer_id", customerId) } }
                 .decodeList<Order>()
+            if (orders.isNotEmpty()) {
+                val orderIds = orders.mapNotNull { it.id }
+                val itemsResponse = supabaseClient.postgrest["order_items"]
+                    .select(columns = Columns.raw("*, foods(name, image_url)")) {
+                        filter {
+                            isIn("order_id", orderIds)
+                        }
+                    }
+                    .decodeList<OrderItemResponse>()
+                val itemsByOrder = itemsResponse.groupBy { it.orderId }
+                orders.map { order ->
+                    val orderItems = itemsByOrder[order.id] ?: emptyList()
+                    if (orderItems.isNotEmpty()) {
+                        val maxItem = orderItems.maxByOrNull { it.priceAtTime }
+                        val otherCount = orderItems.size - 1
+                        order.copy(
+                            previewFoodName = maxItem?.foods?.name,
+                            previewImageUrl = maxItem?.foods?.imageUrl,
+                            otherItemsCount = otherCount
+                        )
+                    } else {
+                        order
+                    }
+                }
+            } else {
+                orders
+            }
         }
 
         send(fetchOrders())

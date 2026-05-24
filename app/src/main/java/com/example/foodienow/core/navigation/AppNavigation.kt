@@ -408,12 +408,22 @@ fun AppNavigation() {
             ActivityHistoryScreen(onBack = { navController.popBackStack() })
         }
 
-        composable(route = Screen.OrderHistory.route) {
+        composable(
+            route = "order_history_screen?tab={tab}",
+            arguments = listOf(
+                navArgument("tab") {
+                    type = NavType.IntType
+                    defaultValue = 0
+                }
+            )
+        ) { backStackEntry ->
+            val tab = backStackEntry.arguments?.getInt("tab") ?: 0
             OrderHistoryScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateToOrderDetail = { orderId ->
                     navController.navigate("order_detail/$orderId")
-                }
+                },
+                initialTab = tab
             )
         }
 

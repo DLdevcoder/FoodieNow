@@ -7,9 +7,14 @@ import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.Payment
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
+import com.example.foodienow.domain.model.Review
+import com.example.foodienow.domain.model.WalletTransaction
+import com.example.foodienow.domain.model.WalletTransactionType
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import com.example.foodienow.domain.repository.PaymentRepository
+import com.example.foodienow.domain.repository.ReviewRepository
+import com.example.foodienow.data.repository.MockWalletTransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,13 +22,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
 
 enum class ActivityType {
     ORDER,
-    PAYMENT
+    PAYMENT,
+    REVIEW,
+    WALLET_TRANSACTION
 }
 
 data class ActivityHistoryItem(
@@ -35,7 +43,13 @@ data class ActivityHistoryItem(
     val method: PaymentMethod? = null,
     val provider: WalletProvider? = null,
     val totalPrice: Long? = null,
-    val createdAt: String?
+    val createdAt: String?,
+    val rating: Int? = null,
+    val comment: String? = null,
+    val foodName: String? = null,
+    val amount: Long? = null,
+    val description: String? = null,
+    val transactionType: WalletTransactionType? = null
 )
 
 data class ActivityHistoryUiState(
@@ -48,7 +62,9 @@ data class ActivityHistoryUiState(
 class ActivityHistoryViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val orderRepository: OrderRepository,
-    private val paymentRepository: PaymentRepository
+    private val paymentRepository: PaymentRepository,
+    private val reviewRepository: ReviewRepository,
+    private val walletTransactionRepository: MockWalletTransactionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ActivityHistoryUiState())
@@ -75,10 +91,23 @@ class ActivityHistoryViewModel @Inject constructor(
 
             combine(
                 orderRepository.getOrdersByCustomer(user.id),
-                paymentRepository.getPaymentsByCustomer(user.id)
-            ) { orders, payments ->
-                (orders.map { it.toHistoryItem() } + payments.map { it.toHistoryItem() })
+                paymentRepository.getPaymentsByCustomer(user.id),
+                reviewRepository.getReviewsByCustomer(user.id),
+                walletTransactionRepository.getTransactions()
+            ) { orders, payments, reviews, transactions ->
+                val orderItems = orders.map { it.toHistoryItem() }
+                val paymentItems = payments.map { it.toHistoryItem() }
+                val reviewItems = reviews.map { it.toHistoryItem() }
+                val transactionItems = transactions.map { it.toHistoryItem() }
+                (orderItems + paymentItems + reviewItems + transactionItems)
                     .sortedByDescending { it.createdAt.toSortableTime() }
+            }.catch { e ->
+                _uiState.update { state ->
+                    state.copy(
+                        isLoading = false,
+                        errorResId = R.string.error_load_activity_history
+                    )
+                }
             }.collect { items ->
                 _uiState.update {
                     it.copy(
@@ -114,6 +143,29 @@ class ActivityHistoryViewModel @Inject constructor(
             method = method,
             provider = provider,
             totalPrice = amount,
+            createdAt = createdAt
+        )
+    }
+
+    private fun Review.toHistoryItem(): ActivityHistoryItem {
+        return ActivityHistoryItem(
+            id = "review-$id",
+            type = ActivityType.REVIEW,
+            orderId = orderId,
+            rating = rating,
+            comment = comment,
+            foodName = foodName,
+            createdAt = createdAt
+        )
+    }
+
+    private fun WalletTransaction.toHistoryItem(): ActivityHistoryItem {
+        return ActivityHistoryItem(
+            id = "wallet-tx-$id",
+            type = ActivityType.WALLET_TRANSACTION,
+            amount = amount,
+            description = description,
+            transactionType = type,
             createdAt = createdAt
         )
     }

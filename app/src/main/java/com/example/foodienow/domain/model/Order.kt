@@ -32,5 +32,6 @@ data class Order(
     @SerialName("delivery_lat") val deliveryLat: Double? = null,
     @SerialName("delivery_lng") val deliveryLng: Double? = null,
     @SerialName("shipper_lat") val shipperLat: Double? = null,
-    @SerialName("shipper_lng") val shipperLng: Double? = null
+    @SerialName("shipper_lng") val shipperLng: Double? = null,
+    val otherItemsCount: Int? = null
 )

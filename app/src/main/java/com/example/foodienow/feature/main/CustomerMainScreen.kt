@@ -48,6 +48,7 @@ fun CustomerMainScreen(
     onLogout: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var orderHistoryInitialTab by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
         bottomBar = {
@@ -80,7 +81,12 @@ fun CustomerMainScreen(
                                 )
                             },
                             selected = selected,
-                            onClick = { selectedTab = index },
+                            onClick = {
+                                selectedTab = index
+                                if (index == 1) {
+                                    orderHistoryInitialTab = 1
+                                }
+                            },
                             alwaysShowLabel = true,
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.primary,
@@ -113,15 +119,19 @@ fun CustomerMainScreen(
                     onNavigateToOrderDetail = { orderId ->
                         rootNavController.navigate("order_detail/$orderId")
                     },
-                    onNavigateToCart = onNavigateToCart
+                    onNavigateToCart = onNavigateToCart,
+                    initialTab = orderHistoryInitialTab
                 )
                 2 -> NotificationScreen(
                     onBack = { selectedTab = 0 }
                 )
                 3 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
-                    onNavigateToOrderHistory = { selectedTab = 1 },
-                    onNavigateToActivityHistory = { selectedTab = 1 },
+                    onNavigateToOrderHistory = {
+                        orderHistoryInitialTab = 2
+                        selectedTab = 1
+                    },
+                    onNavigateToActivityHistory = { rootNavController.navigate("activity_history_screen") },
                     onLoggedOut = onLogout,
                     onNavigateToAddress = { rootNavController.navigate("address_screen") },
                     onNavigateToPaymentSettings = { rootNavController.navigate("payment_settings_screen") },
