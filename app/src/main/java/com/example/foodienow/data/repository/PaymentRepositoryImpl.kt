@@ -88,7 +88,9 @@ internal object PaymentRpcMapper {
             items = request.items.map { item ->
                 PaymentRpcItem(foodId = item.foodId, quantity = item.quantity)
             },
-            voucherCode = request.voucherCode
+            voucherCode = request.voucherCode,
+            deliveryLat = request.deliveryLat,
+            deliveryLng = request.deliveryLng
         )
     }
 
@@ -115,6 +117,8 @@ internal object PaymentRpcMapper {
             .put("p_used_reward_points", payload.usedRewardPoints)
             .put("p_items", itemPayload)
             .put("p_voucher_code", payload.voucherCode ?: JSONObject.NULL)
+            .put("p_delivery_lat", payload.deliveryLat ?: JSONObject.NULL)
+            .put("p_delivery_lng", payload.deliveryLng ?: JSONObject.NULL)
     }
 
     fun toAtomicPaymentResult(body: String): AtomicPaymentResult {
@@ -164,7 +168,9 @@ internal data class PaymentRpcPayload(
     val note: String?,
     val usedRewardPoints: Int,
     val items: List<PaymentRpcItem>,
-    val voucherCode: String?
+    val voucherCode: String?,
+    val deliveryLat: Double?,
+    val deliveryLng: Double?
 )
 
 internal data class PaymentRpcItem(

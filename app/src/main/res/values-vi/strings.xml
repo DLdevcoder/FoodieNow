@@ -79,6 +79,12 @@
     <string name="notifications_mark_all_read">Đánh dấu đã đọc</string>
 
     <string name="activity_history_title">Lịch sử hoạt động</string>
+    <string name="activity_history_subtitle_count">%1$d hoạt động gần đây</string>
+    <string name="activity_history_subtitle_empty">Theo dõi đơn hàng, thanh toán và đánh giá</string>
+    <string name="activity_filter_all">Tất cả</string>
+    <string name="activity_filter_orders">Đơn hàng</string>
+    <string name="activity_filter_finance">Tài chính</string>
+    <string name="activity_filter_reviews">Đánh giá</string>
     <string name="activity_history_empty">Chưa có hoạt động nào.</string>
     <string name="activity_history_time_unknown">Không rõ thời gian</string>
     <string name="activity_history_order_title">Đơn hàng #%1$s</string>
@@ -89,6 +95,8 @@
     <string name="order_history_empty">Chưa có đơn hàng nào.</string>
     <string name="order_history_time_unknown">Không rõ thời gian</string>
     <string name="order_history_order_title">Đơn hàng #%1$s</string>
+    <string name="order_card_title_no_id">Đơn hàng</string>
+    <string name="order_food_name_with_others">%1$s và %2$d món khác</string>
 
     <string name="settings_language_title">Ngôn ngữ</string>
     <string name="settings_language_english">Tiếng Anh</string>
@@ -153,6 +161,17 @@
     <string name="food_reviews_empty">Chưa có đánh giá nào.</string>
 
     <string name="activity_history_item_subtitle">Trạng thái: %1$s | Tổng: %2$s</string>
+    <string name="error_load_activity_history">Không thể tải lịch sử hoạt động.</string>
+    <string name="activity_history_review_title">Đánh giá món ăn</string>
+    <string name="activity_history_review_title_with_food">Đánh giá: %1$s</string>
+    <string name="activity_history_review_subtitle">%1$d ★ | Nhận xét: %2$s</string>
+    <string name="activity_history_wallet_top_up_title">Nạp tiền ví</string>
+    <string name="activity_history_wallet_payment_title">Thanh toán từ ví</string>
+    <string name="activity_history_wallet_subtitle">%1$s | Số tiền: %2$s</string>
+    <string name="activity_history_payment_title_no_id">Thanh toán</string>
+    <string name="activity_history_payment_subtitle_no_id">%1$s | %2$s</string>
+    <string name="activity_history_section_recent">Gần đây</string>
+    <string name="activity_history_count_badge">%1$d hoạt động</string>
     <string name="order_history_item_subtitle">Trạng thái: %1$s | Tổng: %2$s</string>
 
     <string name="error_no_session">Không tìm thấy phiên đăng nhập.</string>

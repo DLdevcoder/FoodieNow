@@ -1,325 +1,765 @@
 package com.example.foodienow.feature.order_history
 
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.RemoveShoppingCart
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
-import coil3.compose.AsyncImage
+import com.example.foodienow.core.designsystem.components.FoodImage
+import com.example.foodienow.core.designsystem.components.FoodieCard
+import com.example.foodienow.core.designsystem.components.FoodieEmptyState
+import com.example.foodienow.core.designsystem.components.FoodieErrorState
+import com.example.foodienow.core.designsystem.components.FoodieLoadingState
+import com.example.foodienow.core.designsystem.components.VoucherBadge
+import com.example.foodienow.core.designsystem.components.shimmerEffect
+import com.example.foodienow.core.designsystem.theme.AmberTertiary
+import com.example.foodienow.core.designsystem.theme.ErrorRed
+import com.example.foodienow.core.designsystem.theme.FoodieCream
+import com.example.foodienow.core.designsystem.theme.FoodieNowTheme
+import com.example.foodienow.core.designsystem.theme.InfoBlue
+import com.example.foodienow.core.designsystem.theme.PromoGradientEnd
+import com.example.foodienow.core.designsystem.theme.PromoGradientStart
+import com.example.foodienow.core.designsystem.theme.SuccessGreen
+import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderStatus
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
+import com.example.foodienow.feature.customer_home.components.formatPrice
 
-@OptIn(ExperimentalMaterial3Api::class)
+private enum class OrdersTab(
+    val title: String,
+    val icon: ImageVector
+) {
+    CART("Giỏ hàng", Icons.Default.ShoppingCart),
+    ACTIVE("Đang giao", Icons.Default.LocalShipping),
+    HISTORY("Lịch sử", Icons.Default.History)
+}
+
 @Composable
 fun OrderHistoryScreen(
     onBack: () -> Unit,
     onNavigateToOrderDetail: (String) -> Unit,
     onNavigateToCart: () -> Unit = {},
+    initialTab: Int = 0,
     viewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf(
-        R.string.my_orders_tab_ongoing,
-        R.string.my_orders_tab_history,
-        R.string.my_orders_tab_cancelled
+    var selectedTab by remember(initialTab) { mutableIntStateOf(initialTab) }
+
+    val activeStatuses = setOf(
+        OrderStatus.PENDING,
+        OrderStatus.PREPARING,
+        OrderStatus.DRIVER_ASSIGNED,
+        OrderStatus.DELIVERING
     )
+    val activeOrders = uiState.orders.filter { it.status in activeStatuses }
+    val historyOrders = uiState.orders.filter {
+        it.status == OrderStatus.COMPLETED || it.status == OrderStatus.CANCELLED
+    }
+    val cartItems = uiState.cartItems
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary)
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                stringResource(R.string.my_orders_title),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onPrimary
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            OrdersHeader(
+                cartCount = cartItems.values.sum(),
+                activeCount = activeOrders.size,
+                historyCount = historyOrders.size
             )
-            IconButton(
-                onClick = { },
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
-            }
         }
-
-        TabRow(
-            selectedTabIndex = selectedTabIndex,
-            containerColor = Color.White,
-            contentColor = MaterialTheme.colorScheme.primary,
-            indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            },
-            divider = { HorizontalDivider(color = Color.LightGray) }
-        ) {
-            tabs.forEachIndexed { index, titleRes ->
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = { selectedTabIndex = index },
-                    text = {
-                        Text(
-                            stringResource(titleRes),
-                            color = if (selectedTabIndex == index) MaterialTheme.colorScheme.primary else Color.Gray,
-                            fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal
-                        )
-                    }
-                )
-            }
-        }
-
-        val ongoingOrders = uiState.orders.filter { it.status in listOf(OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.DELIVERING) }
-        val historyOrders = uiState.orders.filter { it.status == OrderStatus.COMPLETED }
-        val cancelledOrders = uiState.orders.filter { it.status == OrderStatus.CANCELLED }
-
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
-        } else {
-            val onReorder: (String) -> Unit = { orderId ->
-                viewModel.reorder(orderId) {
-                    Toast.makeText(context, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
-                    onNavigateToCart()
-                }
-            }
-            when (selectedTabIndex) {
-                0 -> OrdersTabContent(orders = ongoingOrders, isEmptyState = ongoingOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail, onReorder = onReorder)
-                1 -> OrdersTabContent(orders = historyOrders, isEmptyState = historyOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail, onReorder = onReorder)
-                2 -> OrdersTabContent(orders = cancelledOrders, isEmptyState = cancelledOrders.isEmpty(), onNavigateToOrderDetail = onNavigateToOrderDetail, onReorder = onReorder)
-            }
-        }
-    }
-}
-
-@Composable
-private fun OrdersTabContent(orders: List<Order>, isEmptyState: Boolean, onNavigateToOrderDetail: (String) -> Unit, onReorder: (String) -> Unit) {
-    if (isEmptyState) {
-        EmptyOngoingState()
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            items(orders.size) { index ->
-                OrderCardItem(order = orders[index], onNavigateToOrderDetail = onNavigateToOrderDetail, onReorder = onReorder)
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyOngoingState() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            Icons.Default.Assignment,
-            contentDescription = null,
-            modifier = Modifier.size(100.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            stringResource(R.string.my_orders_empty_title),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            stringResource(R.string.my_orders_empty_desc),
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            fontSize = 14.sp
-        )
-    }
-}
-
-@Composable
-private fun OrderCardItem(order: Order, onNavigateToOrderDetail: (String) -> Unit, onReorder: (String) -> Unit) {
-    val statusColor = when (order.status) {
-        OrderStatus.COMPLETED -> Color(0xFF10B981) // Green
-        OrderStatus.CANCELLED -> Color(0xFFEF4444) // Red
-        else -> Color(0xFFF59E0B) // Orange
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(FoodieCream)
         ) {
+            OrdersSegmentedTabs(
+                selectedIndex = selectedTab,
+                counts = listOf(cartItems.values.sum(), activeOrders.size, historyOrders.size),
+                onSelected = { selectedTab = it }
+            )
+
+            when {
+                uiState.isLoading -> {
+                    OrdersLoadingState(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    )
+                }
+
+                uiState.errorResId != null -> {
+                    val errorResId = uiState.errorResId ?: R.string.error_load_order_history
+                    FoodieErrorState(
+                        title = "Không thể tải đơn hàng",
+                        subtitle = stringResource(errorResId),
+                        actionLabel = "Thử lại",
+                        onAction = viewModel::loadOrders,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    )
+                }
+
+                selectedTab == OrdersTab.CART.ordinal -> {
+                    CartOrdersTab(
+                        cartItems = cartItems,
+                        onNavigateToCart = onNavigateToCart,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                selectedTab == OrdersTab.ACTIVE.ordinal -> {
+                    OrdersListTab(
+                        orders = activeOrders,
+                        emptyIcon = Icons.Default.LocalShipping,
+                        emptyTitle = "Chưa có đơn đang giao",
+                        emptySubtitle = "Các đơn đã thanh toán và đang được chuẩn bị, lấy hàng hoặc giao đến bạn sẽ xuất hiện tại đây.",
+                        onNavigateToOrderDetail = onNavigateToOrderDetail,
+                        onReorder = null,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                else -> {
+                    val onReorder: (String) -> Unit = { orderId ->
+                        viewModel.reorder(orderId) {
+                            Toast.makeText(context, "Đã thêm món vào giỏ hàng", Toast.LENGTH_SHORT).show()
+                            onNavigateToCart()
+                        }
+                    }
+                    OrdersListTab(
+                        orders = historyOrders,
+                        emptyIcon = Icons.Default.History,
+                        emptyTitle = "Chưa có lịch sử đơn hàng",
+                        emptySubtitle = "Những đơn đã giao thành công hoặc đã hủy sẽ được lưu tại đây.",
+                        onNavigateToOrderDetail = onNavigateToOrderDetail,
+                        onReorder = onReorder,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrdersHeader(
+    cartCount: Int,
+    activeCount: Int,
+    historyCount: Int
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        PromoGradientStart,
+                        MaterialTheme.colorScheme.primary,
+                        PromoGradientEnd
+                    )
+                )
+            )
+            .statusBarsPadding()
+            .padding(horizontal = 18.dp, vertical = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(Color.White.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ReceiptLong,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.my_orders_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "$cartCount món trong giỏ • $activeCount đơn đang xử lý • $historyCount đơn đã lưu",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.84f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrdersSegmentedTabs(
+    selectedIndex: Int,
+    counts: List<Int>,
+    onSelected: (Int) -> Unit
+) {
+    val tabs = OrdersTab.entries
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp)
+            .padding(top = 16.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = FoodieNowTheme.elevation.card,
+        shadowElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            tabs.forEachIndexed { index, tab ->
+                OrdersSegment(
+                    selected = selectedIndex == index,
+                    title = tab.title,
+                    count = counts.getOrElse(index) { 0 },
+                    icon = tab.icon,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onSelected(index) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrdersSegment(
+    selected: Boolean,
+    title: String,
+    count: Int,
+    icon: ImageVector,
+    modifier: Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .height(48.dp)
+            .clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.large,
+        color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+        contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 9.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(17.dp))
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            CountPill(count = count, selected = selected)
+        }
+    }
+}
+
+@Composable
+private fun CountPill(count: Int, selected: Boolean) {
+    Surface(
+        shape = CircleShape,
+        color = if (selected) {
+            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
+        contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+    ) {
+        Text(
+            text = count.toString(),
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun CartOrdersTab(
+    cartItems: Map<Food, Int>,
+    onNavigateToCart: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (cartItems.isEmpty()) {
+        FoodieEmptyState(
+            icon = Icons.Default.RemoveShoppingCart,
+            title = "Giỏ hàng đang trống",
+            subtitle = "Các món bạn thêm nhưng chưa thanh toán sẽ nằm ở đây.",
+            actionLabel = "Khám phá món ngon",
+            onAction = onNavigateToCart,
+            modifier = modifier.fillMaxWidth()
+        )
+        return
+    }
+
+    val total = cartItems.entries.sumOf { (food, quantity) -> food.price * quantity }
+
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            CartSummaryCard(
+                itemCount = cartItems.values.sum(),
+                total = total,
+                onNavigateToCart = onNavigateToCart
+            )
+        }
+        items(
+            items = cartItems.entries.toList(),
+            key = { it.key.id.ifBlank { it.key.name } }
+        ) { entry ->
+            CartFoodCard(food = entry.key, quantity = entry.value)
+        }
+        item {
+            Spacer(modifier = Modifier.navigationBarsPadding())
+        }
+    }
+}
+
+@Composable
+private fun CartSummaryCard(
+    itemCount: Int,
+    total: Long,
+    onNavigateToCart: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.extraLarge)
+            .background(Brush.linearGradient(listOf(PromoGradientStart, PromoGradientEnd)))
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(54.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(Color.White.copy(alpha = 0.18f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color.White)
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "$itemCount món chưa thanh toán",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = "Tạm tính ${total.formatPrice()}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.86f)
+                )
+            }
+            Button(
+                onClick = onNavigateToCart,
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Text("Thanh toán", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CartFoodCard(food: Food, quantity: Int) {
+    FoodieCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FoodImage(
+                imageUrl = food.imageUrl,
+                contentDescription = food.name,
+                modifier = Modifier.size(78.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = food.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "${food.price.formatPrice()} • x$quantity",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = (food.price * quantity).formatPrice(),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.End
+            )
+        }
+    }
+}
+
+@Composable
+private fun OrdersListTab(
+    orders: List<Order>,
+    emptyIcon: ImageVector,
+    emptyTitle: String,
+    emptySubtitle: String,
+    onNavigateToOrderDetail: (String) -> Unit,
+    onReorder: ((String) -> Unit)?,
+    modifier: Modifier = Modifier
+) {
+    if (orders.isEmpty()) {
+        FoodieEmptyState(
+            icon = emptyIcon,
+            title = emptyTitle,
+            subtitle = emptySubtitle,
+            modifier = modifier.fillMaxWidth()
+        )
+        return
+    }
+
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(
+            items = orders,
+            key = { it.id ?: it.hashCode() }
+        ) { order ->
+            OrderCardItem(
+                order = order,
+                onNavigateToOrderDetail = onNavigateToOrderDetail,
+                onReorder = onReorder
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.navigationBarsPadding())
+        }
+    }
+}
+
+@Composable
+private fun OrderCardItem(
+    order: Order,
+    onNavigateToOrderDetail: (String) -> Unit,
+    onReorder: ((String) -> Unit)?
+) {
+    val style = order.status.toOrderStatusStyle()
+
+    FoodieCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { order.id?.let(onNavigateToOrderDetail) }
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    stringResource(
-                        R.string.order_history_order_title,
-                        order.id?.substring(0, 8) ?: "Unknown"
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = Color.Black
-                )
                 Box(
                     modifier = Modifier
-                        .background(statusColor.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .size(42.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(style.color.copy(alpha = 0.14f)),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Icon(style.icon, contentDescription = null, tint = style.color, modifier = Modifier.size(22.dp))
+                }
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        order.status.name,
-                        fontSize = 12.sp,
-                        color = statusColor,
-                        fontWeight = FontWeight.Bold
+                        text = stringResource(R.string.order_card_title_no_id),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = order.createdAt.toDisplayTime(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                VoucherBadge(label = style.label, containerColor = style.color)
             }
+
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color(0xFFF3F4F6))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.16f))
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = order.previewImageUrl
-                        ?: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.LightGray),
-                    contentScale = ContentScale.Crop
+                FoodImage(
+                    imageUrl = order.previewImageUrl,
+                    contentDescription = order.previewFoodName,
+                    modifier = Modifier.size(74.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        order.previewFoodName ?: "Đơn hàng từ FoodieNow",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
+                        text = if (order.otherItemsCount != null && order.otherItemsCount > 0) {
+                            stringResource(
+                                R.string.order_food_name_with_others,
+                                order.previewFoodName ?: "Đơn hàng từ FoodieNow",
+                                order.otherItemsCount
+                            )
+                        } else {
+                            order.previewFoodName ?: "Đơn hàng từ FoodieNow"
+                        },
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        order.deliveryAddress,
-                        fontSize = 13.sp,
-                        color = Color.Gray,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = order.deliveryAddress,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = Color(0xFFF3F4F6))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.16f))
             Spacer(modifier = Modifier.height(12.dp))
-
-            val formattedDate = order.createdAt?.let {
-                if (it.length >= 16) it.substring(0, 16).replace("T", " ") else it
-            } ?: ""
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    formattedDate,
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.weight(1f)
-                )
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("Tổng cộng", fontSize = 12.sp, color = Color.Gray)
-                    val formattedPrice =
-                        java.text.NumberFormat.getCurrencyInstance(java.util.Locale("vi", "VN"))
-                            .format(order.totalPrice)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Payments,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(17.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        formattedPrice,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        text = order.totalPrice.formatPrice(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-            }
-
-            if (order.status == OrderStatus.COMPLETED) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
-                        onClick = { order.id?.let { onNavigateToOrderDetail(it) } },
-                        modifier = Modifier.weight(1f).height(40.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                        onClick = { order.id?.let(onNavigateToOrderDetail) },
+                        shape = MaterialTheme.shapes.medium,
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
-                        Text("Chi tiết", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                        Text("Chi tiết", fontWeight = FontWeight.Bold)
                     }
-
-                    Button(
-                        onClick = { order.id?.let { onReorder(it) } },
-                        modifier = Modifier.weight(1f).height(40.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.1f
-                            ), contentColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("Đặt lại đơn", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                    if (onReorder != null && order.status == OrderStatus.COMPLETED) {
+                        Button(
+                            onClick = { order.id?.let(onReorder) },
+                            shape = MaterialTheme.shapes.medium,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text("Đặt lại", fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun OrdersLoadingState(modifier: Modifier = Modifier) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(4) {
+            OrderSkeletonCard()
+        }
+    }
+}
+
+@Composable
+private fun OrderSkeletonCard() {
+    FoodieCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(74.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .shimmerEffect()
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(18.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .shimmerEffect()
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(15.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .shimmerEffect()
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.45f)
+                        .height(16.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .shimmerEffect()
+                )
+            }
+        }
+    }
+}
+
+private data class OrderStatusStyle(
+    val label: String,
+    val color: Color,
+    val icon: ImageVector
+)
+
+private fun OrderStatus.toOrderStatusStyle(): OrderStatusStyle {
+    return when (this) {
+        OrderStatus.PENDING -> OrderStatusStyle("Chờ xác nhận", AmberTertiary, Icons.Default.AccessTime)
+        OrderStatus.PREPARING -> OrderStatusStyle("Đang chuẩn bị", AmberTertiary, Icons.AutoMirrored.Filled.Assignment)
+        OrderStatus.DRIVER_ASSIGNED -> OrderStatusStyle("Đã có tài xế", InfoBlue, Icons.Default.LocalShipping)
+        OrderStatus.DELIVERING -> OrderStatusStyle("Đang giao", InfoBlue, Icons.Default.LocalShipping)
+        OrderStatus.COMPLETED -> OrderStatusStyle("Đã giao", SuccessGreen, Icons.Default.CheckCircle)
+        OrderStatus.CANCELLED -> OrderStatusStyle("Đã hủy", ErrorRed, Icons.Default.RemoveShoppingCart)
+    }
+}
+
+private fun String?.toDisplayTime(): String {
+    if (this.isNullOrBlank()) return "Chưa rõ thời gian"
+    return if (length >= 16) substring(0, 16).replace("T", " ") else this
 }

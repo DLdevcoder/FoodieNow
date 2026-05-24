@@ -13,9 +13,12 @@ interface AuthRepository {
 
     // Gửi lại email xác thực tài khoản
     suspend fun resendVerificationEmail(email: String): Result<Unit>
+    suspend fun verifyRegistrationCode(email: String, code: String): Result<Unit>
 
     // Gửi email đặt lại mật khẩu
     suspend fun forgotPassword(email: String): Result<Unit>
+    suspend fun sendPasswordChangeCode(email: String): Result<Unit>
+    suspend fun verifyPasswordChangeCode(email: String, code: String): Result<User>
 
     // Đăng xuất và xóa trạng thái đăng nhập hiện tại
     suspend fun logout(): Result<Unit>

@@ -4,41 +4,41 @@
     <string name="good_morning">Good morning ☀️</string>
     <string name="good_afternoon">Good afternoon ⛅</string>
     <string name="good_evening">Good evening 🌙</string>
-    <string name="auth_checking_session">Checking sign-in session...</string>
-    <string name="auth_login_title">Sign in</string>
-    <string name="auth_login_subtitle">Welcome back, please sign in to continue.</string>
-    <string name="auth_register_title">Sign up</string>
-    <string name="auth_register_subtitle">Create a new account to get started.</string>
+    <string name="auth_checking_session">Đang kiểm tra phiên đăng nhập...</string>
+    <string name="auth_login_title">Đăng nhập</string>
+    <string name="auth_login_subtitle">Chào mừng bạn quay lại FoodieNow.</string>
+    <string name="auth_register_title">Đăng ký</string>
+    <string name="auth_register_subtitle">Tạo tài khoản để bắt đầu đặt món.</string>
     <string name="auth_email_label">Email</string>
-    <string name="auth_password_label">Password</string>
-    <string name="auth_confirm_password_label">Confirm password</string>
-    <string name="auth_role_label">Role</string>
-    <string name="auth_hide_password">Hide password</string>
-    <string name="auth_show_password">Show password</string>
-    <string name="auth_hide_confirm_password">Hide confirm password</string>
-    <string name="auth_show_confirm_password">Show confirm password</string>
-    <string name="auth_login_button">Sign in</string>
-    <string name="auth_create_account_button">Create account</string>
-    <string name="auth_forgot_password_action">Forgot password?</string>
-    <string name="auth_register_action">No account yet? Sign up</string>
-    <string name="auth_back_to_login_action">Already have an account? Back to sign in</string>
-    <string name="auth_back_to_login">Back to sign in</string>
-    <string name="auth_try_again_in_seconds">Try again in %1$ds</string>
-    <string name="auth_error_empty_email_password">Email and password cannot be empty.</string>
-    <string name="auth_error_invalid_email">Invalid email format.</string>
-    <string name="auth_error_password_min_length">Password must be at least 6 characters.</string>
-    <string name="auth_error_password_mismatch">Passwords do not match.</string>
+    <string name="auth_password_label">Mật khẩu</string>
+    <string name="auth_confirm_password_label">Nhập lại mật khẩu</string>
+    <string name="auth_role_label">Loại tài khoản</string>
+    <string name="auth_hide_password">Ẩn mật khẩu</string>
+    <string name="auth_show_password">Hiện mật khẩu</string>
+    <string name="auth_hide_confirm_password">Ẩn mật khẩu xác nhận</string>
+    <string name="auth_show_confirm_password">Hiện mật khẩu xác nhận</string>
+    <string name="auth_login_button">Đăng nhập</string>
+    <string name="auth_create_account_button">Tạo tài khoản</string>
+    <string name="auth_forgot_password_action">Quên mật khẩu?</string>
+    <string name="auth_register_action">Chưa có tài khoản? Đăng ký</string>
+    <string name="auth_back_to_login_action">Đã có tài khoản? Đăng nhập</string>
+    <string name="auth_back_to_login">Quay lại đăng nhập</string>
+    <string name="auth_try_again_in_seconds">Thử lại sau %1$ds</string>
+    <string name="auth_error_empty_email_password">Email và mật khẩu không được để trống.</string>
+    <string name="auth_error_invalid_email">Email chưa đúng định dạng.</string>
+    <string name="auth_error_password_min_length">Mật khẩu tối thiểu 6 ký tự.</string>
+    <string name="auth_error_password_mismatch">Mật khẩu xác nhận không khớp.</string>
 
-    <string name="auth_verify_title">Verify account</string>
-    <string name="auth_verify_subtitle">Confirm your email to unlock full access.</string>
-    <string name="auth_verify_sent_to">We have sent a verification email to:</string>
-    <string name="auth_verify_instruction">After clicking the link in your email, come back and sign in.</string>
-    <string name="auth_verify_resend">Resend verification email</string>
-    <string name="auth_verify_back_to_login">I have verified, back to sign in</string>
+    <string name="auth_verify_title">Xác thực tài khoản</string>
+    <string name="auth_verify_subtitle">Xác nhận email để mở đầy đủ quyền truy cập.</string>
+    <string name="auth_verify_sent_to">FoodieNow đã gửi email xác thực tới:</string>
+    <string name="auth_verify_instruction">Sau khi bấm link trong email, quay lại app để đăng nhập.</string>
+    <string name="auth_verify_resend">Gửi lại email xác thực</string>
+    <string name="auth_verify_back_to_login">Tôi đã xác thực, quay lại đăng nhập</string>
 
-    <string name="auth_forgot_password_title">Recover password</string>
-    <string name="auth_forgot_password_subtitle">Enter your email to receive a reset link.</string>
-    <string name="auth_forgot_password_send">Send recovery email</string>
+    <string name="auth_forgot_password_title">Khôi phục mật khẩu</string>
+    <string name="auth_forgot_password_subtitle">Nhập email để nhận hướng dẫn đặt lại mật khẩu.</string>
+    <string name="auth_forgot_password_send">Gửi email khôi phục</string>
 
     <string name="profile_title">Profile</string>
     <string name="profile_account_information">Account information</string>
@@ -49,7 +49,7 @@
     <string name="profile_phone_label">Phone</string>
     <string name="profile_address_label">Address</string>
     <string name="profile_save_button">Save profile</string>
-    <string name="profile_logout">Sign out</string>
+    <string name="profile_logout">Đăng xuất</string>
 
     <string name="payment_title">Payment</string>
     <string name="payment_order_information">Order information</string>
@@ -142,6 +142,13 @@
     <string name="notification_mark_all_read">Mark all as read</string>
     <string name="notification_filter_all">All</string>
     <string name="notification_filter_unread">Unread</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_back_content_desc">Back</string>
+    <string name="settings_push_notifications">Push notifications</string>
+    <string name="settings_dark_mode">Dark mode</string>
+    <string name="settings_use_english">Use English</string>
     <string name="notification_all_caught_up">All caught up</string>
     <string name="notification_unread_label">Unread</string>
     <string name="notification_empty_unread_title">No unread notifications</string>
@@ -150,39 +157,24 @@
     <string name="notification_time_minutes_ago">%1$d min ago</string>
     <string name="notification_time_hours_ago">%1$d hr ago</string>
     <string name="notification_time_days_ago">%1$d d ago</string>
-
     <string name="notifications_title">Notifications</string>
     <string name="notifications_unread_count">Unread: %1$d</string>
     <string name="notifications_mark_all_read">Mark all as read</string>
-
-    <string name="activity_history_title">Activity history</string>
-    <string name="activity_history_empty">No activities yet.</string>
-    <string name="activity_history_time_unknown">Unknown time</string>
-    <string name="activity_history_order_title">Order #%1$s</string>
-    <string name="activity_history_payment_title">Payment #%1$s</string>
-    <string name="activity_history_payment_subtitle">Order #%1$s | %2$s | %3$s</string>
-
     <string name="order_history_title">Order history</string>
     <string name="order_history_empty">No orders yet.</string>
     <string name="order_history_time_unknown">Unknown time</string>
     <string name="order_history_order_title">Order #%1$s</string>
-
+    <string name="order_card_title_no_id">Order</string>
+    <string name="order_food_name_with_others">%1$s and %2$d other items</string>
     <string name="settings_language_title">Language</string>
     <string name="settings_language_english">English</string>
     <string name="settings_language_vietnamese">Vietnamese</string>
-    <string name="settings_theme_title">Theme</string>
     <string name="settings_theme_system">System</string>
-    <string name="settings_theme_light">Light</string>
-    <string name="settings_theme_dark">Dark</string>
-    <string name="settings_title">Settings</string>
-    <string name="settings_back_content_desc">Back</string>
-    <string name="settings_push_notifications">Push notifications</string>
-    <string name="settings_dark_mode">Dark mode</string>
-    <string name="settings_use_english">Use English</string>
+    <string name="settings_theme_title">Theme</string>
 
-    <string name="role_customer">Customer</string>
-    <string name="role_merchant">Merchant</string>
-    <string name="role_shipper">Shipper</string>
+    <string name="role_customer">Khách hàng</string>
+    <string name="role_merchant">Chủ quán</string>
+    <string name="role_shipper">Tài xế</string>
 
     <string name="nav_cart">Cart</string>
     <string name="nav_merchant_home">Merchant Home</string>
@@ -234,7 +226,30 @@
     <string name="food_reviews_title">All reviews</string>
     <string name="food_reviews_empty">No reviews yet.</string>
 
+    <string name="activity_history_title">Activity history</string>
+    <string name="activity_history_subtitle_count">%1$d recent activities</string>
+    <string name="activity_history_subtitle_empty">Track your orders, payments and reviews</string>
+    <string name="activity_filter_all">All</string>
+    <string name="activity_filter_orders">Orders</string>
+    <string name="activity_filter_finance">Finance</string>
+    <string name="activity_filter_reviews">Reviews</string>
+    <string name="activity_history_empty">No activities yet.</string>
+    <string name="activity_history_time_unknown">Unknown time</string>
+    <string name="activity_history_order_title">Order #%1$s</string>
+    <string name="activity_history_payment_title">Payment #%1$s</string>
+    <string name="activity_history_payment_title_no_id">Payment</string>
+    <string name="activity_history_payment_subtitle">Order #%1$s | %2$s | %3$s</string>
+    <string name="activity_history_payment_subtitle_no_id">%1$s | %2$s</string>
     <string name="activity_history_item_subtitle">Status: %1$s | Total: %2$s</string>
+    <string name="error_load_activity_history">Unable to load activity history.</string>
+    <string name="activity_history_review_title">Food Review</string>
+    <string name="activity_history_review_title_with_food">Reviewed: %1$s</string>
+    <string name="activity_history_review_subtitle">%1$d ★ | Comment: %2$s</string>
+    <string name="activity_history_wallet_top_up_title">Wallet Top Up</string>
+    <string name="activity_history_wallet_payment_title">Wallet Payment</string>
+    <string name="activity_history_wallet_subtitle">%1$s | Amount: %2$s</string>
+    <string name="activity_history_section_recent">Recent</string>
+    <string name="activity_history_count_badge">%1$d activities</string>
     <string name="order_history_item_subtitle">Status: %1$s | Total: %2$s</string>
 
     <string name="error_no_session">No active session found.</string>
@@ -343,7 +358,7 @@
     <string name="profile_vouchers">Vouchers</string>
     <string name="profile_vouchers_count">%1$s vouchers</string>
     <string name="profile_change_password">Change password</string>
-    <string name="profile_logout_btn">Log out</string>
+    <string name="profile_logout_btn">Đăng xuất</string>
     <string name="feature_under_development">Feature under development</string>
 
     <string name="cart_clear_dialog_title">Tạo giỏ hàng mới?</string>

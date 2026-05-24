@@ -3,6 +3,7 @@ package com.example.foodienow.feature.order_history
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodienow.R
+import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
@@ -29,6 +30,15 @@ class OrderHistoryViewModel @Inject constructor(
 
     init {
         loadOrders()
+        observeCart()
+    }
+
+    private fun observeCart() {
+        viewModelScope.launch {
+            cartRepository.cartItems.collect { cartItems ->
+                _uiState.update { it.copy(cartItems = cartItems) }
+            }
+        }
     }
 
     fun loadOrders() {
@@ -106,5 +116,6 @@ class OrderHistoryViewModel @Inject constructor(
 data class OrderHistoryUiState(
     val isLoading: Boolean = true,
     val orders: List<Order> = emptyList(),
+    val cartItems: Map<Food, Int> = emptyMap(),
     val errorResId: Int? = null
 )

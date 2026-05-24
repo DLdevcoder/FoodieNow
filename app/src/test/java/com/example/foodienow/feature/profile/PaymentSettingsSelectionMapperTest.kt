@@ -2,7 +2,10 @@ package com.example.foodienow.feature.profile
 
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
+import com.example.foodienow.domain.payment.PaymentMethodCatalog
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PaymentSettingsSelectionMapperTest {
@@ -32,5 +35,21 @@ class PaymentSettingsSelectionMapperTest {
         assertEquals("foodie_pay", PaymentSettingsSelectionMapper.toOptionId(PaymentMethod.FOODIE_PAY, WalletProvider.ZALOPAY))
         assertEquals("card", PaymentSettingsSelectionMapper.toOptionId(PaymentMethod.CARD, WalletProvider.GOOGLE_PLAY))
         assertEquals("cod", PaymentSettingsSelectionMapper.toOptionId(PaymentMethod.COD, null))
+    }
+
+    @Test
+    fun paymentCatalog_onlyRequiresSetupForExternalMethods() {
+        assertTrue(PaymentMethodCatalog.isOptionAvailable(PaymentMethodCatalog.COD_ID, emptySet()))
+        assertTrue(PaymentMethodCatalog.isOptionAvailable(PaymentMethodCatalog.FOODIE_PAY_ID, emptySet()))
+
+        assertFalse(PaymentMethodCatalog.isOptionAvailable(PaymentMethodCatalog.CARD_ID, emptySet()))
+        assertFalse(PaymentMethodCatalog.isOptionAvailable(PaymentMethodCatalog.MOMO_ID, emptySet()))
+
+        assertTrue(
+            PaymentMethodCatalog.isOptionAvailable(
+                PaymentMethodCatalog.CARD_ID,
+                setOf(PaymentMethodCatalog.CARD_ID)
+            )
+        )
     }
 }

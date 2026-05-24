@@ -7,6 +7,8 @@ import com.example.foodienow.data.repository.PaymentSettingsRepository
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.domain.model.Voucher
+import com.example.foodienow.domain.model.Address
+import com.example.foodienow.domain.payment.PaymentMethodCatalog
 import com.example.foodienow.domain.payment.WalletChargeResult
 import com.example.foodienow.domain.payment.WalletPaymentGateway
 import com.example.foodienow.domain.repository.AtomicPaymentRequest
@@ -34,11 +36,13 @@ data class PaymentUiState(
     val defaultAddress: String = "",
     val defaultPaymentMethod: PaymentMethod = PaymentMethod.COD,
     val defaultWalletProvider: WalletProvider = WalletProvider.ZALOPAY,
+    val configuredPaymentOptionIds: Set<String> = PaymentMethodCatalog.alwaysAvailableOptionIds,
     val paymentSettingsLoaded: Boolean = false,
     val availableVouchers: List<Voucher> = emptyList(),
     val selectedVoucher: Voucher? = null,
     val infoMessage: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val selectedAddress: Address? = null
 )
 
 sealed class PaymentEvent {
@@ -47,6 +51,7 @@ sealed class PaymentEvent {
         val amount: Long,
         val methodLabel: String
     ) : PaymentEvent()
+    object SessionExpired : PaymentEvent()
 }
 
 @HiltViewModel
@@ -91,8 +96,9 @@ class PaymentViewModel @Inject constructor(
         }
         viewModelScope.launch {
             addressRepository.addresses.collect { addresses ->
-                val defaultAddr = addresses.firstOrNull { it.isDefault }?.detail ?: ""
-                _uiState.update { it.copy(defaultAddress = defaultAddr) }
+                val defaultAddrObj = addresses.firstOrNull { it.isDefault }
+                val defaultAddrStr = defaultAddrObj?.detail ?: ""
+                _uiState.update { it.copy(defaultAddress = defaultAddrStr, selectedAddress = defaultAddrObj) }
             }
         }
         viewModelScope.launch {
@@ -101,6 +107,8 @@ class PaymentViewModel @Inject constructor(
                     it.copy(
                         defaultPaymentMethod = settings.defaultMethod,
                         defaultWalletProvider = settings.defaultProvider,
+                        configuredPaymentOptionIds = PaymentMethodCatalog.alwaysAvailableOptionIds +
+                            settings.configuredOptionIds,
                         paymentSettingsLoaded = settings.isLoaded
                     )
                 }
@@ -139,7 +147,9 @@ class PaymentViewModel @Inject constructor(
         note: String,
         amount: Long,
         usedRewardPoints: Int = 0,
-        voucherCode: String? = null
+        voucherCode: String? = null,
+        deliveryLat: Double? = null,
+        deliveryLng: Double? = null
     ) {
         if (deliveryAddress.isBlank()) {
             _uiState.update {
@@ -196,6 +206,18 @@ class PaymentViewModel @Inject constructor(
                 return@launch
             }
 
+            val paymentOptionId = PaymentMethodCatalog.optionIdFor(method, provider)
+            val configuredOptionIds = paymentSettingsRepository.settings.value.configuredOptionIds
+            if (!PaymentMethodCatalog.isOptionAvailable(paymentOptionId, configuredOptionIds)) {
+                _uiState.update {
+                    it.copy(
+                        isProcessing = false,
+                        errorMessage = "Vui long cai dat thong tin phuong thuc thanh toan truoc."
+                    )
+                }
+                return@launch
+            }
+
             val chargeResult = prepareClientSideCharge(
                 method = method,
                 provider = provider,
@@ -227,7 +249,9 @@ class PaymentViewModel @Inject constructor(
                                 PaymentLineItem(foodId = food.id, quantity = quantity)
                             },
                             voucherCode = voucherCode?.trim()?.takeIf { it.isNotBlank() },
-                            accessToken = user.token
+                            accessToken = user.token,
+                            deliveryLat = deliveryLat,
+                            deliveryLng = deliveryLng
                         )
                     )
                         .onSuccess { result ->
@@ -254,6 +278,7 @@ class PaymentViewModel @Inject constructor(
                             val isJwtError = error.message?.contains("JWT", ignoreCase = true) == true
                             if (isJwtError) {
                                 authRepository.logout()
+                                _paymentEvent.emit(PaymentEvent.SessionExpired)
                             }
                             _uiState.update {
                                 it.copy(

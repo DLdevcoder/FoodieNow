@@ -94,7 +94,7 @@ fun ShipperMainScreen(
                 3 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
                     onNavigateToOrderHistory = { selectedTab = 1 },
-                    onNavigateToActivityHistory = { selectedTab = 1 },
+                    onNavigateToActivityHistory = { rootNavController.navigate("activity_history_screen") },
                     onLoggedOut = onLogout,
                     onNavigateToAddress = { rootNavController.navigate("address_screen") },
                     onNavigateToPaymentSettings = { rootNavController.navigate("payment_settings_screen") },

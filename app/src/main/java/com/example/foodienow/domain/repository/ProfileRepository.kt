@@ -8,6 +8,10 @@ interface ProfileRepository {
 
     suspend fun upsertProfile(profile: Profile): Result<Profile>
 
+    suspend fun uploadAvatar(profile: Profile, imageBytes: ByteArray): Result<Profile>
+
+    suspend fun deleteAvatar(profile: Profile): Result<Profile>
+
     suspend fun updateFcmToken(userId: String, token: String): Result<Unit>
 }
 

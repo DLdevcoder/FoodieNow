@@ -166,12 +166,13 @@ fun MerchantMainScreen(
                             newIsActive,
                             imageBytes
                         )
-                    }
+                    },
+                    viewModel = viewModel
                 )
                 3 -> NotificationScreen(onBack = { selectedTab = 0 })
                 4 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
-                    onNavigateToOrderHistory = { rootNavController.navigate("order_history_screen") },
+                    onNavigateToOrderHistory = { rootNavController.navigate("order_history_screen?tab=2") },
                     onNavigateToActivityHistory = { rootNavController.navigate("activity_history_screen") },
                     onLoggedOut = onLogout,
                     onNavigateToAddress = { rootNavController.navigate("address_screen") },
