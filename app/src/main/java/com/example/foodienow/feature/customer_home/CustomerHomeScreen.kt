@@ -116,69 +116,69 @@ fun CustomerHomeScreen(
                 onCategoryClick = { category ->
                     category.id?.let { onNavigateToCategory(it, category.name) }
                 }
-            } else {
-                item {
-                    PromoBanner(
-                        imageUrl = uiState.recommendedFoods.firstOrNull()?.imageUrl,
-                        onClick = onNavigateToSearch
-                    )
-                }
+        } else {
+        item {
+            PromoBanner(
+                imageUrl = uiState.recommendedFoods.firstOrNull()?.imageUrl,
+                onClick = onNavigateToSearch
+            )
+        }
 
-                item {
-                    CategoriesSection(
-                        categories = uiState.categories,
-                        isLoading = uiState.isLoading,
-                        onCategoryClick = { category ->
-                            val categoryId = category.id
-                            if (categoryId != null) {
-                                onNavigateToCategory(categoryId, category.name)
-                            } else {
-                                onNavigateToSearch()
-                            }
-                        }
-                    )
-                }
-
-                item {
-                    HorizontalFoodSection(
-                        title = stringResource(R.string.home_section_good_meal),
-                        subtitle = "Món bán chạy quanh bạn, giao nhanh trong hôm nay",
-                        foods = uiState.recommendedFoods.sortedByDescending { it.soldCount },
-                        isLoading = uiState.isLoading,
-                        onFoodClick = onNavigateToFoodDetail,
-                        onSeeAllClick = onNavigateToSearch
-                    )
-                }
-
-                if (uiState.isLoading || uiState.featuredStores.isNotEmpty()) {
-                    item {
-                        RestaurantsSection(
-                            stores = uiState.featuredStores,
-                            isLoading = uiState.isLoading,
-                            onSeeAllClick = onNavigateToSearch
-                        )
+        item {
+            CategoriesSection(
+                categories = uiState.categories,
+                isLoading = uiState.isLoading,
+                onCategoryClick = { category ->
+                    val categoryId = category.id
+                    if (categoryId != null) {
+                        onNavigateToCategory(categoryId, category.name)
+                    } else {
+                        onNavigateToSearch()
                     }
                 }
+            )
+        }
 
-                item {
-                    HorizontalFoodSection(
-                        title = stringResource(R.string.home_section_must_try),
-                        subtitle = "Gợi ý được chọn theo đánh giá và lượt đặt",
-                        foods = uiState.recommendedFoods.sortedWith(
-                            compareByDescending<Food> { it.rating }.thenByDescending { it.soldCount }
-                        ),
-                        isLoading = uiState.isLoading,
-                        onFoodClick = onNavigateToFoodDetail,
-                        onSeeAllClick = onNavigateToSearch
-                    )
-                }
+        item {
+            HorizontalFoodSection(
+                title = stringResource(R.string.home_section_good_meal),
+                subtitle = "Món bán chạy quanh bạn, giao nhanh trong hôm nay",
+                foods = uiState.recommendedFoods.sortedByDescending { it.soldCount },
+                isLoading = uiState.isLoading,
+                onFoodClick = onNavigateToFoodDetail,
+                onSeeAllClick = onNavigateToSearch
+            )
+        }
 
-                item {
-                    CollectionsSection(onSeeAllClick = onNavigateToSearch)
-                }
+        if (uiState.isLoading || uiState.featuredStores.isNotEmpty()) {
+            item {
+                RestaurantsSection(
+                    stores = uiState.featuredStores,
+                    isLoading = uiState.isLoading,
+                    onSeeAllClick = onNavigateToSearch
+                )
             }
         }
+
+        item {
+            HorizontalFoodSection(
+                title = stringResource(R.string.home_section_must_try),
+                subtitle = "Gợi ý được chọn theo đánh giá và lượt đặt",
+                foods = uiState.recommendedFoods.sortedWith(
+                    compareByDescending<Food> { it.rating }.thenByDescending { it.soldCount }
+                ),
+                isLoading = uiState.isLoading,
+                onFoodClick = onNavigateToFoodDetail,
+                onSeeAllClick = onNavigateToSearch
+            )
+        }
+
+        item {
+            CollectionsSection(onSeeAllClick = onNavigateToSearch)
+        }
     }
+    }
+}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
