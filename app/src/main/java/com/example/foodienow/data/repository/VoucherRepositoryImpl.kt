@@ -7,6 +7,7 @@ import com.example.foodienow.domain.repository.VoucherRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.floor
@@ -150,6 +151,148 @@ class VoucherRepositoryImpl @Inject constructor() : VoucherRepository {
             minOrderValue = voucher.optLong("min_order_value", 0L),
             discountAmount = voucher.optLong("discount_amount", 0L)
         )
+    }
+
+    override suspend fun getVouchersByMerchant(merchantId: String): Result<List<Voucher>> = withContext(Dispatchers.IO) {
+        if (merchantId.isBlank()) {
+            return@withContext Result.success(emptyList())
+        }
+
+        runCatching {
+            val response = SupabaseRest.get(
+                "/rest/v1/vouchers?select=id,merchant_id,code,discount_percent,max_discount,min_order_value,discount_amount,is_active,expires_at,created_at,max_usages_per_user,total_usages_limit,starts_at" +
+                    "&merchant_id=eq.${SupabaseRest.encodeQueryValue(merchantId)}"
+            )
+
+            if (!response.isSuccess) {
+                throw Exception(SupabaseRest.parseErrorMessage(response.body))
+            }
+
+            val list = mutableListOf<Voucher>()
+            val array = JSONArray(response.body)
+
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                list.add(
+                    Voucher(
+                        id = obj.getString("id"),
+                        merchantId = obj.optString("merchant_id").takeIf { it.isNotBlank() },
+                        code = obj.getString("code"),
+                        discountPercent = obj.optInt("discount_percent", 0),
+                        maxDiscount = obj.optLong("max_discount", 0L),
+                        minOrderValue = obj.optLong("min_order_value", 0L),
+                        discountAmount = obj.optLong("discount_amount", 0L),
+                        isActive = obj.optBoolean("is_active", true),
+                        expiresAt = obj.optString("expires_at").takeIf { it.isNotBlank() },
+                        createdAt = obj.optString("created_at").takeIf { it.isNotBlank() },
+                        maxUsagesPerUser = if (obj.isNull("max_usages_per_user")) null else obj.getInt("max_usages_per_user"),
+                        totalUsagesLimit = if (obj.isNull("total_usages_limit")) null else obj.getInt("total_usages_limit"),
+                        startsAt = obj.optString("starts_at").takeIf { it.isNotBlank() }
+                    )
+                )
+            }
+            list
+        }
+    }
+
+    override suspend fun createVoucher(voucher: Voucher): Result<Voucher> = withContext(Dispatchers.IO) {
+        runCatching {
+            val body = JSONObject().apply {
+                put("merchant_id", voucher.merchantId)
+                put("code", voucher.code)
+                put("discount_percent", voucher.discountPercent)
+                put("max_discount", voucher.maxDiscount)
+                put("min_order_value", voucher.minOrderValue)
+                put("discount_amount", voucher.discountAmount)
+                put("is_active", voucher.isActive)
+                if (voucher.expiresAt != null) put("expires_at", voucher.expiresAt)
+            }
+
+            val response = SupabaseRest.post(
+                path = "/rest/v1/vouchers",
+                body = body,
+                prefer = "return=representation"
+            )
+
+            if (!response.isSuccess) {
+                throw Exception(SupabaseRest.parseErrorMessage(response.body))
+            }
+
+            val array = JSONArray(response.body)
+            if (array.length() == 0) throw Exception("Khong nhan duoc phan hoi tu Supabase.")
+            val obj = array.getJSONObject(0)
+            Voucher(
+                id = obj.getString("id"),
+                merchantId = obj.optString("merchant_id").takeIf { it.isNotBlank() },
+                code = obj.getString("code"),
+                discountPercent = obj.optInt("discount_percent", 0),
+                maxDiscount = obj.optLong("max_discount", 0L),
+                minOrderValue = obj.optLong("min_order_value", 0L),
+                discountAmount = obj.optLong("discount_amount", 0L),
+                isActive = obj.optBoolean("is_active", true),
+                expiresAt = obj.optString("expires_at").takeIf { it.isNotBlank() },
+                createdAt = obj.optString("created_at").takeIf { it.isNotBlank() },
+                maxUsagesPerUser = if (obj.isNull("max_usages_per_user")) null else obj.getInt("max_usages_per_user"),
+                totalUsagesLimit = if (obj.isNull("total_usages_limit")) null else obj.getInt("total_usages_limit"),
+                startsAt = obj.optString("starts_at").takeIf { it.isNotBlank() }
+            )
+        }
+    }
+
+    override suspend fun updateVoucher(voucher: Voucher): Result<Voucher> = withContext(Dispatchers.IO) {
+        runCatching {
+            val body = JSONObject().apply {
+                put("code", voucher.code)
+                put("discount_percent", voucher.discountPercent)
+                put("max_discount", voucher.maxDiscount)
+                put("min_order_value", voucher.minOrderValue)
+                put("discount_amount", voucher.discountAmount)
+                put("is_active", voucher.isActive)
+                if (voucher.expiresAt != null) put("expires_at", voucher.expiresAt)
+            }
+
+            val response = SupabaseRest.patch(
+                path = "/rest/v1/vouchers?id=eq.${SupabaseRest.encodeQueryValue(voucher.id)}",
+                body = body,
+                prefer = "return=representation"
+            )
+
+            if (!response.isSuccess) {
+                throw Exception(SupabaseRest.parseErrorMessage(response.body))
+            }
+
+            val array = JSONArray(response.body)
+            if (array.length() == 0) throw Exception("Khong nhan duoc phan hoi tu Supabase.")
+            val obj = array.getJSONObject(0)
+            Voucher(
+                id = obj.getString("id"),
+                merchantId = obj.optString("merchant_id").takeIf { it.isNotBlank() },
+                code = obj.getString("code"),
+                discountPercent = obj.optInt("discount_percent", 0),
+                maxDiscount = obj.optLong("max_discount", 0L),
+                minOrderValue = obj.optLong("min_order_value", 0L),
+                discountAmount = obj.optLong("discount_amount", 0L),
+                isActive = obj.optBoolean("is_active", true),
+                expiresAt = obj.optString("expires_at").takeIf { it.isNotBlank() },
+                createdAt = obj.optString("created_at").takeIf { it.isNotBlank() },
+                maxUsagesPerUser = if (obj.isNull("max_usages_per_user")) null else obj.getInt("max_usages_per_user"),
+                totalUsagesLimit = if (obj.isNull("total_usages_limit")) null else obj.getInt("total_usages_limit"),
+                startsAt = obj.optString("starts_at").takeIf { it.isNotBlank() }
+            )
+        }
+    }
+
+    override suspend fun deleteVoucher(voucherId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response = SupabaseRest.delete(
+                path = "/rest/v1/vouchers?id=eq.${SupabaseRest.encodeQueryValue(voucherId)}"
+            )
+
+            if (!response.isSuccess) {
+                throw Exception(SupabaseRest.parseErrorMessage(response.body))
+            }
+            Unit
+        }
     }
 
     private data class VoucherRecord(

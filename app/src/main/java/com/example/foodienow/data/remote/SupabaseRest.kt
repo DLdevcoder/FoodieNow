@@ -44,6 +44,35 @@ internal object SupabaseRest {
         )
     }
 
+    fun patch(
+        path: String,
+        body: JSONObject,
+        accessToken: String? = null,
+        prefer: String? = null
+    ): SupabaseHttpResponse {
+        return request(
+            method = "PATCH",
+            path = path,
+            body = body,
+            accessToken = accessToken,
+            prefer = prefer
+        )
+    }
+
+    fun delete(
+        path: String,
+        accessToken: String? = null,
+        prefer: String? = null
+    ): SupabaseHttpResponse {
+        return request(
+            method = "DELETE",
+            path = path,
+            body = null,
+            accessToken = accessToken,
+            prefer = prefer
+        )
+    }
+
     fun encodeQueryValue(value: String): String {
         return URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
             .replace("+", "%20")

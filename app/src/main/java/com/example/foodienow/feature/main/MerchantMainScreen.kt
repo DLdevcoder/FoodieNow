@@ -9,7 +9,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +27,7 @@ import androidx.navigation.NavController
 import com.example.foodienow.core.designsystem.theme.ColorBackground
 import com.example.foodienow.feature.merchant.MerchantMenuTab
 import com.example.foodienow.feature.merchant.MerchantOrdersTab
-import com.example.foodienow.feature.merchant.MerchantStoreTab
+import com.example.foodienow.feature.merchant.MerchantEarningsTab
 import com.example.foodienow.feature.merchant.MerchantViewModel
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.profile.ProfileScreen
@@ -50,56 +50,6 @@ fun MerchantMainScreen(
     }
 
     Scaffold(
-        topBar = {
-            if (selectedTab in 0..2) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = when (selectedTab) {
-                                0 -> "Quản lý đơn hàng"
-                                1 -> "Quản lý thực đơn"
-                                else -> "Cửa hàng của tôi"
-                            },
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    },
-                    actions = {
-                        if (selectedTab == 0) {
-                            IconButton(
-                                onClick = onNavigateToChatList
-                            ) {
-                                BadgedBox(
-                                    badge = {
-                                        if (uiState.unreadMessageCount > 0) {
-                                            Badge(
-                                                containerColor = MaterialTheme.colorScheme.error,
-                                                contentColor = Color.White
-                                            ) {
-                                                Text(
-                                                    text = if (uiState.unreadMessageCount > 99) "99+"
-                                                    else uiState.unreadMessageCount.toString()
-                                                )
-                                            }
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ChatBubbleOutline,
-                                        contentDescription = "Tin nhắn",
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-            }
-        },
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
@@ -108,7 +58,7 @@ fun MerchantMainScreen(
                 val tabs = listOf(
                     Triple(Icons.Default.List, "Đơn hàng", 0),
                     Triple(Icons.Default.MenuBook, "Thực đơn", 1),
-                    Triple(Icons.Default.Store, "Cửa hàng", 2),
+                    Triple(Icons.Default.AccountBalanceWallet, "Thu nhập", 2),
                     Triple(Icons.Default.Notifications, "Thông báo", 3),
                     Triple(Icons.Default.Person, "Hồ sơ", 4)
                 )
@@ -143,32 +93,31 @@ fun MerchantMainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = if (selectedTab in 3..4) 0.dp else paddingValues.calculateTopPadding(),
+                    top = 0.dp,
                     bottom = paddingValues.calculateBottomPadding()
                 )
         ) {
             when (selectedTab) {
-                0 -> MerchantOrdersTab()
+                0 -> MerchantOrdersTab(
+                    onNavigateToChatList = onNavigateToChatList,
+                    unreadMessageCount = uiState.unreadMessageCount
+                )
                 1 -> MerchantMenuTab(
                     uiState = uiState,
                     onToggleAvailability = { viewModel.toggleFoodAvailability(it) },
                     onAddFoodClick = { uiState.store?.let { onNavigateToAddFood(it.id) } },
-                    onEditFoodClick = { food -> onNavigateToEditFood(food.id) }
-                )
-                2 -> MerchantStoreTab(
-                    uiState = uiState,
-                    onUpdateStore = { newName, newAddress, newOpeningTime, newClosingTime, newIsActive, imageBytes ->
-                        viewModel.updateStoreInfo(
-                            newName,
-                            newAddress,
-                            newOpeningTime,
-                            newClosingTime,
-                            newIsActive,
-                            imageBytes
-                        )
+                    onEditFoodClick = { food -> onNavigateToEditFood(food.id) },
+                    onCreateVoucher = { code, percent, amount, minVal, maxDis, active, expiry ->
+                        viewModel.createVoucher(code, percent, amount, minVal, maxDis, active, expiry)
                     },
-                    viewModel = viewModel
+                    onUpdateVoucher = { id, code, percent, amount, minVal, maxDis, active, expiry ->
+                        viewModel.updateVoucher(id, code, percent, amount, minVal, maxDis, active, expiry)
+                    },
+                    onDeleteVoucher = { id ->
+                        viewModel.deleteVoucher(id)
+                    }
                 )
+                2 -> MerchantEarningsTab()
                 3 -> NotificationScreen(onBack = { selectedTab = 0 })
                 4 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
