@@ -6,6 +6,8 @@ import com.example.foodienow.domain.repository.ReviewRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
@@ -18,10 +20,28 @@ data class ReviewWithUserResponse(
     @SerialName("created_at") val createdAt: String? = null,
     @SerialName("profiles") val profiles: UserInfoResponse? = null
 )
+
 @Serializable
 data class UserInfoResponse(
     @SerialName("full_name") val fullName: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null
+)
+
+@Serializable
+data class ReviewWithFoodResponse(
+    val id: String,
+    @SerialName("order_id") val orderId: String,
+    @SerialName("customer_id") val customerId: String,
+    @SerialName("food_id") val foodId: String,
+    val rating: Int,
+    val comment: String? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+    val foods: FoodNameOnlyResponse? = null
+)
+
+@Serializable
+data class FoodNameOnlyResponse(
+    val name: String
 )
 
 class ReviewRepositoryImpl @Inject constructor(
@@ -30,7 +50,7 @@ class ReviewRepositoryImpl @Inject constructor(
 
     override suspend fun getReviewsByFoodId(foodId: String): List<ReviewUiModel> {
         val response = supabase.postgrest["reviews"]
-            .select(columns = Columns.raw("id, rating, comment, created_at, profiles(full_name, avatar_url)")){
+            .select(columns = Columns.raw("id, rating, comment, created_at, profiles(full_name, avatar_url)")) {
                 filter { eq("food_id", foodId) }
             }.decodeList<ReviewWithUserResponse>()
 
@@ -60,7 +80,13 @@ class ReviewRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun submitReview(orderId: String, customerId: String, foodId: String, rating: Int, comment: String): Boolean {
+    override suspend fun submitReview(
+        orderId: String,
+        customerId: String,
+        foodId: String,
+        rating: Int,
+        comment: String
+    ): Boolean {
         return try {
             @Serializable
             data class ReviewInsert(
@@ -102,5 +128,26 @@ class ReviewRepositoryImpl @Inject constructor(
             e.printStackTrace()
             false
         }
+    }
+
+    override fun getReviewsByCustomer(customerId: String): Flow<List<Review>> = flow {
+        val response = supabase.postgrest["reviews"]
+            .select(columns = Columns.raw("*, foods(name)")) {
+                filter {
+                    eq("customer_id", customerId)
+                }
+            }.decodeList<ReviewWithFoodResponse>()
+        emit(response.map { item ->
+            Review(
+                id = item.id,
+                orderId = item.orderId,
+                customerId = item.customerId,
+                foodId = item.foodId,
+                rating = item.rating,
+                comment = item.comment,
+                createdAt = item.createdAt,
+                foodName = item.foods?.name
+            )
+        })
     }
 }

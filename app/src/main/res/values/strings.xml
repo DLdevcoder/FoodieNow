@@ -142,36 +142,6 @@
     <string name="notification_mark_all_read">Mark all as read</string>
     <string name="notification_filter_all">All</string>
     <string name="notification_filter_unread">Unread</string>
-    <string name="notification_all_caught_up">All caught up</string>
-    <string name="notification_unread_label">Unread</string>
-    <string name="notification_empty_unread_title">No unread notifications</string>
-    <string name="notification_empty_unread_subtitle">You have read all recent updates.</string>
-    <string name="notification_time_just_now">Just now</string>
-    <string name="notification_time_minutes_ago">%1$d min ago</string>
-    <string name="notification_time_hours_ago">%1$d hr ago</string>
-    <string name="notification_time_days_ago">%1$d d ago</string>
-
-    <string name="notifications_title">Notifications</string>
-    <string name="notifications_unread_count">Unread: %1$d</string>
-    <string name="notifications_mark_all_read">Mark all as read</string>
-
-    <string name="activity_history_title">Activity history</string>
-    <string name="activity_history_empty">No activities yet.</string>
-    <string name="activity_history_time_unknown">Unknown time</string>
-    <string name="activity_history_order_title">Order #%1$s</string>
-    <string name="activity_history_payment_title">Payment #%1$s</string>
-    <string name="activity_history_payment_subtitle">Order #%1$s | %2$s | %3$s</string>
-
-    <string name="order_history_title">Order history</string>
-    <string name="order_history_empty">No orders yet.</string>
-    <string name="order_history_time_unknown">Unknown time</string>
-    <string name="order_history_order_title">Order #%1$s</string>
-
-    <string name="settings_language_title">Language</string>
-    <string name="settings_language_english">English</string>
-    <string name="settings_language_vietnamese">Vietnamese</string>
-    <string name="settings_theme_title">Theme</string>
-    <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_title">Settings</string>

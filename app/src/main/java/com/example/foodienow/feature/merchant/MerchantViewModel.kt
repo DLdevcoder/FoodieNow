@@ -7,6 +7,8 @@ import com.example.foodienow.domain.model.Store
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.MerchantRepository
 import com.example.foodienow.domain.repository.ChatRepository
+import com.example.foodienow.data.remote.GoongAddressService
+import com.example.foodienow.data.remote.GoongPrediction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,11 +30,75 @@ data class MerchantUiState(
 class MerchantViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val merchantRepository: MerchantRepository,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val goongAddressService: GoongAddressService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MerchantUiState())
     val uiState: StateFlow<MerchantUiState> = _uiState.asStateFlow()
+
+    private val _predictions = MutableStateFlow<List<GoongPrediction>>(emptyList())
+    val predictions: StateFlow<List<GoongPrediction>> = _predictions.asStateFlow()
+
+    private val _selectedLat = MutableStateFlow<Double?>(null)
+    val selectedLat: StateFlow<Double?> = _selectedLat.asStateFlow()
+
+    private val _selectedLng = MutableStateFlow<Double?>(null)
+    val selectedLng: StateFlow<Double?> = _selectedLng.asStateFlow()
+
+    private val _selectedDetail = MutableStateFlow("")
+    val selectedDetail: StateFlow<String> = _selectedDetail.asStateFlow()
+
+    private val _isResolving = MutableStateFlow(false)
+    val isResolving: StateFlow<Boolean> = _isResolving.asStateFlow()
+
+    fun searchAddress(query: String) {
+        viewModelScope.launch {
+            if (query.isBlank()) {
+                _predictions.value = emptyList()
+            } else {
+                _predictions.value = goongAddressService.getAutocomplete(query)
+            }
+        }
+    }
+
+    fun selectPrediction(prediction: GoongPrediction) {
+        _predictions.value = emptyList()
+        _selectedDetail.value = prediction.description
+        _isResolving.value = true
+        viewModelScope.launch {
+            val result = goongAddressService.getPlaceDetail(prediction.placeId)
+            if (result != null) {
+                _selectedLat.value = result.geometry.location.lat
+                _selectedLng.value = result.geometry.location.lng
+                _selectedDetail.value = result.formattedAddress ?: result.name ?: prediction.description
+            }
+            _isResolving.value = false
+        }
+    }
+
+    fun updateLocation(lat: Double, lng: Double, detail: String? = null) {
+        _selectedLat.value = lat
+        _selectedLng.value = lng
+        if (detail != null) {
+            _selectedDetail.value = detail
+        } else {
+            viewModelScope.launch {
+                val result = goongAddressService.getReverseGeocode(lat, lng)
+                if (result != null) {
+                    _selectedDetail.value = result.formattedAddress ?: result.name ?: ""
+                }
+            }
+        }
+    }
+
+    fun clearAddForm() {
+        _predictions.value = emptyList()
+        _selectedLat.value = null
+        _selectedLng.value = null
+        _selectedDetail.value = ""
+        _isResolving.value = false
+    }
 
     init {
         loadMerchantData()

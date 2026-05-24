@@ -21,7 +21,9 @@ data class AtomicPaymentRequest(
     val usedRewardPoints: Int,
     val items: List<PaymentLineItem>,
     val voucherCode: String?,
-    val accessToken: String
+    val accessToken: String,
+    val deliveryLat: Double? = null,
+    val deliveryLng: Double? = null
 )
 
 data class AtomicPaymentResult(

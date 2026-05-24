@@ -595,6 +595,8 @@ fun PaymentScreen(
                 Button(
                     onClick = {
                         showConfirmDialog = false
+                        val lat = if (deliveryAddress == uiState.selectedAddress?.detail) uiState.selectedAddress?.latitude else null
+                        val lng = if (deliveryAddress == uiState.selectedAddress?.detail) uiState.selectedAddress?.longitude else null
                         viewModel.submitPayment(
                             method = selectedMethod,
                             provider = if (selectedMethod == PaymentMethod.WALLET) selectedProvider else null,
@@ -602,7 +604,9 @@ fun PaymentScreen(
                             note = note,
                             amount = totalAmount,
                             usedRewardPoints = pointsDiscount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
-                            voucherCode = appliedVoucherCode
+                            voucherCode = appliedVoucherCode,
+                            deliveryLat = lat,
+                            deliveryLng = lng
                         )
                     }
                 ) {

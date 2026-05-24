@@ -166,7 +166,8 @@ fun MerchantMainScreen(
                             newIsActive,
                             imageBytes
                         )
-                    }
+                    },
+                    viewModel = viewModel
                 )
                 3 -> NotificationScreen(onBack = { selectedTab = 0 })
                 4 -> ProfileScreen(

@@ -21,4 +21,6 @@ interface ReviewRepository {
         rating: Int,
         comment: String
     ): Boolean
+
+    fun getReviewsByCustomer(customerId: String): kotlinx.coroutines.flow.Flow<List<Review>>
 }
