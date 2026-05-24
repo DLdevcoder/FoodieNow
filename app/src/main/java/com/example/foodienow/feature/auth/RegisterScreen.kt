@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.core.designsystem.components.FoodieCard
+import com.example.foodienow.core.designsystem.components.FoodieLoadingOverlay
 import com.example.foodienow.core.designsystem.theme.FoodieCream
 import com.example.foodienow.core.designsystem.theme.FoodieCreamSurface
 import com.example.foodienow.core.designsystem.theme.InfoBlue
@@ -131,17 +132,17 @@ fun RegisterScreen(
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize().imePadding(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = FoodieCream
     ) { paddingValues ->
+        FoodieLoadingOverlay(isLoading = uiState.isLoading)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .background(FoodieCream)
                 .verticalScroll(rememberScrollState())
-                .imePadding()
-                .navigationBarsPadding()
+                .padding(paddingValues)
                 .padding(horizontal = 18.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {

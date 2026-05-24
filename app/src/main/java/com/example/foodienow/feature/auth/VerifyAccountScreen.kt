@@ -100,6 +100,7 @@ fun VerifyAccountScreen(
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize().imePadding(),
         topBar = {
             FoodieTopAppBar(
                 title = "Xác thực tài khoản",
@@ -112,11 +113,9 @@ fun VerifyAccountScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .background(FoodieCream)
                 .verticalScroll(rememberScrollState())
-                .imePadding()
-                .navigationBarsPadding()
+                .padding(paddingValues)
                 .padding(horizontal = 18.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
