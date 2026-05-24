@@ -33,7 +33,6 @@ class PaymentSettingsSelectionMapperTest {
         assertEquals("momo", PaymentSettingsSelectionMapper.toOptionId(PaymentMethod.WALLET, WalletProvider.MOMO))
         assertEquals("paypal", PaymentSettingsSelectionMapper.toOptionId(PaymentMethod.WALLET, WalletProvider.PAYPAL))
         assertEquals("foodie_pay", PaymentSettingsSelectionMapper.toOptionId(PaymentMethod.FOODIE_PAY, WalletProvider.ZALOPAY))
-        assertEquals("card", PaymentSettingsSelectionMapper.toOptionId(PaymentMethod.CARD, WalletProvider.GOOGLE_PLAY))
         assertEquals("cod", PaymentSettingsSelectionMapper.toOptionId(PaymentMethod.COD, null))
     }
 
@@ -42,13 +41,12 @@ class PaymentSettingsSelectionMapperTest {
         assertTrue(PaymentMethodCatalog.isOptionAvailable(PaymentMethodCatalog.COD_ID, emptySet()))
         assertTrue(PaymentMethodCatalog.isOptionAvailable(PaymentMethodCatalog.FOODIE_PAY_ID, emptySet()))
 
-        assertFalse(PaymentMethodCatalog.isOptionAvailable(PaymentMethodCatalog.CARD_ID, emptySet()))
         assertFalse(PaymentMethodCatalog.isOptionAvailable(PaymentMethodCatalog.MOMO_ID, emptySet()))
 
         assertTrue(
             PaymentMethodCatalog.isOptionAvailable(
-                PaymentMethodCatalog.CARD_ID,
-                setOf(PaymentMethodCatalog.CARD_ID)
+                PaymentMethodCatalog.MOMO_ID,
+                setOf(PaymentMethodCatalog.MOMO_ID)
             )
         )
     }

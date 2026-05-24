@@ -444,3 +444,6 @@ REVOKE ALL ON FUNCTION public.process_payment(uuid, numeric, text, text, text, t
 REVOKE ALL ON FUNCTION public.process_payment(uuid, numeric, text, text, text, text, text, integer, jsonb, text, double precision, double precision) FROM anon;
 REVOKE ALL ON FUNCTION public.process_payment(uuid, numeric, text, text, text, text, text, integer, jsonb, text, double precision, double precision) FROM authenticated;
 GRANT ALL ON FUNCTION public.process_payment(uuid, numeric, text, text, text, text, text, integer, jsonb, text, double precision, double precision) TO service_role;
+GRANT ALL ON FUNCTION public.process_payment(uuid, numeric, text, text, text, text, text, integer, jsonb, text, double precision, double precision) TO authenticated;
+GRANT ALL ON FUNCTION public.process_payment(uuid, numeric, text, text, text, text, text, integer, jsonb, text, double precision, double precision) TO anon;
+

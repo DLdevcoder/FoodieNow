@@ -516,14 +516,12 @@ private fun resolvePaymentMethodLabel(
 ): String {
     return when (method) {
         PaymentMethod.COD -> stringResource(R.string.payment_method_cod)
-        PaymentMethod.CARD -> stringResource(R.string.payment_method_card)
         PaymentMethod.WALLET -> {
             val providerLabel = when (provider) {
                 WalletProvider.ZALOPAY -> stringResource(R.string.payment_wallet_provider_zalopay)
                 WalletProvider.MOMO -> stringResource(R.string.payment_wallet_provider_momo)
                 WalletProvider.VNPAY -> stringResource(R.string.payment_wallet_provider_vnpay)
                 WalletProvider.PAYPAL -> stringResource(R.string.payment_wallet_provider_paypal)
-                WalletProvider.GOOGLE_PLAY -> stringResource(R.string.payment_wallet_provider_google)
                 null -> stringResource(R.string.payment_method_wallet)
             }
             if (provider == null) {

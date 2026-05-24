@@ -1,5 +1,6 @@
 package com.example.foodienow.feature.shipper
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,10 +11,14 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -26,17 +31,26 @@ import com.example.foodienow.core.designsystem.components.FoodieCard
 import com.example.foodienow.core.designsystem.theme.FoodieCream
 import com.example.foodienow.core.designsystem.theme.PromoGradientEnd
 import com.example.foodienow.core.designsystem.theme.PromoGradientStart
+import com.example.foodienow.core.designsystem.theme.SuccessGreen
+import com.example.foodienow.core.designsystem.theme.OrangePrimary
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
 fun ShipperEarningsScreen(
-    viewModel: ShipperEarningsViewModel = hiltViewModel(),
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToPaymentSettings: () -> Unit,
+    viewModel: ShipperEarningsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
+
+    var showNotLinkedDialog by remember { mutableStateOf(false) }
+    var showWithdrawDialog by remember { mutableStateOf(false) }
+    var selectedWallet by remember { mutableStateOf("") }
+    var withdrawAmountText by remember { mutableStateOf("") }
+    var amountError by remember { mutableStateOf<String?>(null) }
 
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize().background(FoodieCream), contentAlignment = Alignment.Center) {
@@ -107,7 +121,16 @@ fun ShipperEarningsScreen(
                     }
 
                     Button(
-                        onClick = { },
+                        onClick = {
+                            if (uiState.linkedWallets.isEmpty()) {
+                                showNotLinkedDialog = true
+                            } else {
+                                selectedWallet = uiState.linkedWallets.first()
+                                withdrawAmountText = uiState.currentBalance.toString()
+                                amountError = null
+                                showWithdrawDialog = true
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.White,
                             contentColor = MaterialTheme.colorScheme.primary
@@ -251,6 +274,203 @@ fun ShipperEarningsScreen(
                 }
             }
         }
+    }
+
+    if (showNotLinkedDialog) {
+        AlertDialog(
+            onDismissRequest = { showNotLinkedDialog = false },
+            title = { Text("Chưa liên kết ví rút tiền", fontWeight = FontWeight.Bold) },
+            text = { Text("Bạn cần liên kết ít nhất một tài khoản ví điện tử (MoMo, ZaloPay, VNPAY, PayPal) để có thể thực hiện rút tiền.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showNotLinkedDialog = false
+                        onNavigateToPaymentSettings()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Liên kết ngay", fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showNotLinkedDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                ) {
+                    Text("Để sau", fontWeight = FontWeight.SemiBold)
+                }
+            },
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (showWithdrawDialog) {
+        AlertDialog(
+            onDismissRequest = { showWithdrawDialog = false },
+            title = { Text("Rút tiền về ví liên kết", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Số dư khả dụng: ${formatter.format(uiState.currentBalance)} ₫",
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Text(
+                        text = "Chọn ví nhận tiền:",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        uiState.linkedWallets.forEach { walletId ->
+                            val name = when (walletId) {
+                                "momo" -> "MoMo"
+                                "zalopay" -> "ZaloPay"
+                                "vnpay" -> "VNPAY"
+                                "paypal" -> "PayPal"
+                                else -> walletId.uppercase()
+                            }
+                            val isSelected = selectedWallet == walletId
+                            OutlinedButton(
+                                onClick = { selectedWallet = walletId },
+                                border = BorderStroke(
+                                    1.5.dp,
+                                    if (isSelected) OrangePrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                                ),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (isSelected) OrangePrimary.copy(alpha = 0.1f) else Color.Transparent,
+                                    contentColor = if (isSelected) OrangePrimary else MaterialTheme.colorScheme.onSurface
+                                ),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                            ) {
+                                Text(name, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = withdrawAmountText,
+                        onValueChange = { input ->
+                            if (input.all { it.isDigit() }) {
+                                withdrawAmountText = input
+                                amountError = null
+                            }
+                        },
+                        label = { Text("Số tiền rút (₫)") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = amountError != null
+                    )
+
+                    amountError?.let { err ->
+                        Text(text = err, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    }
+
+                    Button(
+                        onClick = {
+                            val amount = withdrawAmountText.toLongOrNull() ?: 0L
+                            if (amount <= 0) {
+                                amountError = "Vui lòng nhập số tiền rút hợp lệ."
+                            } else if (amount > uiState.currentBalance) {
+                                amountError = "Số dư không đủ để thực hiện rút tiền."
+                            } else if (amount < 10000L) {
+                                amountError = "Số tiền rút tối thiểu là 10.000 ₫."
+                            } else {
+                                viewModel.withdraw(amount, selectedWallet)
+                                showWithdrawDialog = false
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (uiState.isWithdrawing) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text("Rút tiền", fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(
+                    onClick = { showWithdrawDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                ) {
+                    Text("Hủy", fontWeight = FontWeight.SemiBold)
+                }
+            },
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (uiState.withdrawSuccess) {
+        AlertDialog(
+            onDismissRequest = { viewModel.resetWithdrawSuccess() },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = SuccessGreen,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Text("Rút tiền thành công", fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Giao dịch đã được thực hiện thành công.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "Số tiền: ${formatter.format(uiState.lastWithdrawalAmount)} ₫",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "Nhận bởi: Ví ${uiState.lastWithdrawalWallet}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Số dư hiện tại: ${formatter.format(uiState.currentBalance)} ₫",
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.resetWithdrawSuccess() },
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Xác nhận", fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            },
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }
 

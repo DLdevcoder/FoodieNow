@@ -13,6 +13,7 @@ interface WalletPaymentGateway {
 
 data class WalletChargeResult(
     val transactionId: String,
-    val message: String
+    val message: String,
+    val paymentUrl: String? = null
 )
 

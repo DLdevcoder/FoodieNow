@@ -32,6 +32,10 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.RemoveShoppingCart
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -95,6 +99,7 @@ fun OrderHistoryScreen(
     onBack: () -> Unit,
     onNavigateToOrderDetail: (String) -> Unit,
     onNavigateToCart: () -> Unit = {},
+    onNavigateToFoodDetail: (Food) -> Unit = {},
     initialTab: Int = 0,
     viewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
@@ -162,6 +167,9 @@ fun OrderHistoryScreen(
                     CartOrdersTab(
                         cartItems = cartItems,
                         onNavigateToCart = onNavigateToCart,
+                        onNavigateToFoodDetail = onNavigateToFoodDetail,
+                        onUpdateQuantity = { food, qty -> viewModel.updateQuantity(food, qty) },
+                        onBack = onBack,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -360,6 +368,9 @@ private fun CountPill(count: Int, selected: Boolean) {
 private fun CartOrdersTab(
     cartItems: Map<Food, Int>,
     onNavigateToCart: () -> Unit,
+    onNavigateToFoodDetail: (Food) -> Unit,
+    onUpdateQuantity: (Food, Int) -> Unit,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (cartItems.isEmpty()) {
@@ -368,7 +379,7 @@ private fun CartOrdersTab(
             title = "Giỏ hàng đang trống",
             subtitle = "Các món bạn thêm nhưng chưa thanh toán sẽ nằm ở đây.",
             actionLabel = "Khám phá món ngon",
-            onAction = onNavigateToCart,
+            onAction = onBack,
             modifier = modifier.fillMaxWidth()
         )
         return
@@ -392,7 +403,12 @@ private fun CartOrdersTab(
             items = cartItems.entries.toList(),
             key = { it.key.id.ifBlank { it.key.name } }
         ) { entry ->
-            CartFoodCard(food = entry.key, quantity = entry.value)
+            CartFoodCard(
+                food = entry.key,
+                quantity = entry.value,
+                onNavigateToFoodDetail = onNavigateToFoodDetail,
+                onUpdateQuantity = onUpdateQuantity
+            )
         }
         item {
             Spacer(modifier = Modifier.navigationBarsPadding())
@@ -456,8 +472,17 @@ private fun CartSummaryCard(
 }
 
 @Composable
-private fun CartFoodCard(food: Food, quantity: Int) {
-    FoodieCard(modifier = Modifier.fillMaxWidth()) {
+private fun CartFoodCard(
+    food: Food,
+    quantity: Int,
+    onNavigateToFoodDetail: (Food) -> Unit,
+    onUpdateQuantity: (Food, Int) -> Unit
+) {
+    FoodieCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onNavigateToFoodDetail(food) }
+    ) {
         Row(
             modifier = Modifier.padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -477,20 +502,65 @@ private fun CartFoodCard(food: Food, quantity: Int) {
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${food.price.formatPrice()} • x$quantity",
+                    text = food.price.formatPrice(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = (food.price * quantity).formatPrice(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                shape = MaterialTheme.shapes.large
+                            )
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                    ) {
+                        IconButton(
+                            onClick = { onUpdateQuantity(food, quantity - 1) },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (quantity == 1) Icons.Default.Delete else Icons.Default.Remove,
+                                contentDescription = null,
+                                tint = if (quantity == 1) ErrorRed else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        Text(
+                            text = quantity.toString(),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                        IconButton(
+                            onClick = { onUpdateQuantity(food, quantity + 1) },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
             }
-            Text(
-                text = (food.price * quantity).formatPrice(),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.End
-            )
         }
     }
 }

@@ -1,25 +1,36 @@
 package com.example.foodienow.feature.profile
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Money
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,12 +40,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,16 +57,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
+import com.example.foodienow.core.designsystem.theme.FoodieCream
+import com.example.foodienow.core.designsystem.theme.FoodieCreamSurface
+import com.example.foodienow.core.designsystem.theme.OrangePrimary
+import com.example.foodienow.core.designsystem.theme.SuccessGreen
+import com.example.foodienow.core.designsystem.theme.ErrorRed
 import com.example.foodienow.domain.payment.PaymentMethodCatalog
 
 data class PaymentSettingItem(
     val id: String,
     val title: String,
     val subtitle: String,
-    val icon: ImageVector,
+    val icon: ImageVector? = null,
+    val iconRes: Int? = null,
     val requiresSetup: Boolean
 )
 
@@ -78,52 +101,38 @@ fun PaymentSettingsScreen(
                 requiresSetup = false
             ),
             PaymentSettingItem(
-                id = PaymentMethodCatalog.CARD_ID,
-                title = "Thẻ tín dụng / ghi nợ",
-                subtitle = "Lưu chủ thẻ và 4 số cuối",
-                icon = Icons.Default.CreditCard,
-                requiresSetup = true
-            ),
-            PaymentSettingItem(
                 id = PaymentMethodCatalog.FOODIE_PAY_ID,
                 title = "Ví FoodiePay",
-                subtitle = "Dùng số dư FoodiePay",
+                subtitle = "Dùng số dư tài khoản FoodiePay",
                 icon = Icons.Default.AccountBalanceWallet,
                 requiresSetup = false
             ),
             PaymentSettingItem(
                 id = PaymentMethodCatalog.MOMO_ID,
                 title = "Ví MoMo",
-                subtitle = "Liên kết số điện thoại hoặc tài khoản",
-                icon = Icons.Default.AccountBalanceWallet,
+                subtitle = "Liên kết số điện thoại ví MoMo",
+                iconRes = R.drawable.ic_momo,
                 requiresSetup = true
             ),
             PaymentSettingItem(
                 id = PaymentMethodCatalog.ZALOPAY_ID,
                 title = "ZaloPay",
-                subtitle = "Liên kết số điện thoại hoặc tài khoản",
-                icon = Icons.Default.AccountBalanceWallet,
+                subtitle = "Liên kết số điện thoại ví ZaloPay",
+                iconRes = R.drawable.ic_zalopay,
                 requiresSetup = true
             ),
             PaymentSettingItem(
                 id = PaymentMethodCatalog.VNPAY_ID,
                 title = "VNPAY",
-                subtitle = "Liên kết tài khoản thanh toán",
-                icon = Icons.Default.AccountBalanceWallet,
+                subtitle = "Liên kết tài khoản thẻ NCB Sandbox",
+                iconRes = R.drawable.ic_vnpay,
                 requiresSetup = true
             ),
             PaymentSettingItem(
                 id = PaymentMethodCatalog.PAYPAL_ID,
                 title = "PayPal",
-                subtitle = "Liên kết email PayPal",
-                icon = Icons.Default.AccountBalanceWallet,
-                requiresSetup = true
-            ),
-            PaymentSettingItem(
-                id = PaymentMethodCatalog.GOOGLE_PLAY_ID,
-                title = "Google Play",
-                subtitle = "Liên kết tài khoản Google Play",
-                icon = Icons.Default.AccountBalanceWallet,
+                subtitle = "Liên kết địa chỉ email PayPal Sandbox",
+                iconRes = R.drawable.ic_paypal,
                 requiresSetup = true
             )
         )
@@ -135,18 +144,28 @@ fun PaymentSettingsScreen(
     )
 
     Scaffold(
+        containerColor = FoodieCream,
         topBar = {
             TopAppBar(
-                title = { Text("Phương thức thanh toán") },
+                title = { 
+                    Text(
+                        text = "Phương thức thanh toán", 
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Quay lại"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = FoodieCream,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         }
@@ -157,24 +176,42 @@ fun PaymentSettingsScreen(
                 .padding(padding)
         ) {
             uiState.errorMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .background(ErrorRed.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = message,
+                        color = ErrorRed,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
             uiState.infoMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .background(SuccessGreen.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = message,
+                        color = SuccessGreen,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(paymentMethods, key = { it.id }) { method ->
                     val info = settings.methodInfos[method.id]
@@ -228,10 +265,10 @@ fun PaymentSettingsScreen(
     removeTarget?.let { method ->
         AlertDialog(
             onDismissRequest = { removeTarget = null },
-            title = { Text("Gỡ thông tin thanh toán") },
+            title = { Text("Gỡ thông tin thanh toán", fontWeight = FontWeight.Bold) },
             text = {
                 Text(
-                    "Gỡ thông tin ${method.title}? Nếu đây là phương thức mặc định, hệ thống sẽ chuyển về tiền mặt."
+                    "Bạn chắc chắn muốn hủy liên kết ${method.title}? Nếu đây là phương thức thanh toán mặc định, hệ thống sẽ chuyển về tiền mặt."
                 )
             },
             confirmButton = {
@@ -240,16 +277,22 @@ fun PaymentSettingsScreen(
                     onClick = {
                         viewModel.removePaymentMethodInfo(method.id)
                         removeTarget = null
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Gỡ")
+                    Text("Gỡ bỏ", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { removeTarget = null }) {
-                    Text("Hủy")
+                TextButton(
+                    onClick = { removeTarget = null },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                ) {
+                    Text("Hủy", fontWeight = FontWeight.SemiBold)
                 }
-            }
+            },
+            shape = RoundedCornerShape(16.dp)
         )
     }
 }
@@ -267,14 +310,15 @@ private fun PaymentSettingCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = onSetDefault,
+        border = BorderStroke(
+            width = 1.5.dp,
+            color = if (isDefault) OrangePrimary else Color.Transparent
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isDefault) {
-                MaterialTheme.colorScheme.primaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant
-            }
-        )
+            containerColor = if (isDefault) FoodieCreamSurface else Color.White
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -284,26 +328,92 @@ private fun PaymentSettingCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(method.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = method.title, fontWeight = FontWeight.Bold)
-                    Text(text = details ?: method.subtitle, style = MaterialTheme.typography.bodyMedium)
-                    if (method.requiresSetup && !isAvailable) {
-                        Text(
-                            text = "Chưa cài đặt",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .background(color = Color.White, shape = RoundedCornerShape(12.dp))
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (method.iconRes != null) {
+                        Image(
+                            painter = painterResource(id = method.iconRes),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else if (method.icon != null) {
+                        Icon(
+                            imageVector = method.icon,
+                            contentDescription = null,
+                            tint = OrangePrimary,
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = method.title,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        if (isDefault) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = SuccessGreen.copy(alpha = 0.12f),
+                                        shape = RoundedCornerShape(6.dp)
+                                    )
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "Mặc định",
+                                    color = SuccessGreen,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        text = details ?: method.subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp
+                    )
+                    if (method.requiresSetup && !isAvailable) {
+                        Text(
+                            text = "Chưa liên kết tài khoản",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ErrorRed,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
                 if (isDefault) {
                     Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = "Mặc định",
-                        tint = Color(0xFF10B981)
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = SuccessGreen,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -316,30 +426,61 @@ private fun PaymentSettingCard(
                 if (method.requiresSetup && !isAvailable) {
                     Button(
                         enabled = !isSaving,
-                        onClick = onSetup
+                        onClick = onSetup,
+                        colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f).height(38.dp),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text("Cài đặt")
+                        Icon(
+                            imageVector = Icons.Default.Link,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Liên kết ngay", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 } else {
-                    OutlinedButton(
-                        enabled = !isSaving && !isDefault,
-                        onClick = onSetDefault
-                    ) {
-                        Text(if (isDefault) "Đang mặc định" else "Đặt mặc định")
-                    }
-                    if (method.requiresSetup) {
-                        TextButton(
+                    if (!isDefault) {
+                        Button(
                             enabled = !isSaving,
-                            onClick = onRemove
+                            onClick = onSetDefault,
+                            colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f).height(38.dp),
+                            contentPadding = PaddingValues(0.dp)
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = null)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Gỡ")
+                            Text("Đặt mặc định", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+
+                    if (method.requiresSetup) {
+                        OutlinedButton(
+                            enabled = !isSaving,
+                            onClick = onRemove,
+                            border = BorderStroke(1.dp, ErrorRed),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = if (!isDefault) Modifier.weight(1f).height(38.dp) else Modifier.height(38.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Hủy liên kết", fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
+
                 if (isSaving) {
-                    CircularProgressIndicator(modifier = Modifier.width(20.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        color = OrangePrimary,
+                        strokeWidth = 2.dp
+                    )
                 }
             }
         }
@@ -353,66 +494,388 @@ private fun SetupPaymentMethodDialog(
     onDismiss: () -> Unit,
     onSave: (String) -> Unit
 ) {
-    var primaryInput by remember(method.id) { mutableStateOf("") }
-    var lastFourInput by remember(method.id) { mutableStateOf("") }
-    val isCard = method.id == PaymentMethodCatalog.CARD_ID
-    val normalizedLastFour = lastFourInput.filter { it.isDigit() }.takeLast(4)
-    val canSave = if (isCard) {
-        primaryInput.isNotBlank() && normalizedLastFour.length == 4
-    } else {
-        primaryInput.isNotBlank()
+    var step by remember { mutableStateOf(1) }
+    var phoneNumber by remember { mutableStateOf("") }
+    var otpCode by remember { mutableStateOf("") }
+    var otpError by remember { mutableStateOf<String?>(null) }
+    
+    var vnpCardNumber by remember { mutableStateOf("") }
+    var vnpCardName by remember { mutableStateOf("") }
+    var vnpCardExpiry by remember { mutableStateOf("") }
+    var vnpCardError by remember { mutableStateOf<String?>(null) }
+
+    var paypalEmail by remember { mutableStateOf("") }
+    var paypalPassword by remember { mutableStateOf("") }
+    var paypalError by remember { mutableStateOf<String?>(null) }
+    var showPaypalLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showPaypalLoading) {
+        if (showPaypalLoading) {
+            kotlinx.coroutines.delay(1500)
+            onSave("PayPal - ${paypalEmail.trim()}")
+        }
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Cài đặt ${method.title}") },
+        title = {
+            Text(
+                text = when (method.id) {
+                    PaymentMethodCatalog.MOMO_ID, PaymentMethodCatalog.ZALOPAY_ID -> {
+                        if (step == 1) "Liên kết ví ${method.title}" else "Xác thực OTP liên kết"
+                    }
+                    PaymentMethodCatalog.VNPAY_ID -> {
+                        if (step == 1) "Liên kết thẻ nội địa VNPAY" else "Xác thực OTP Ngân hàng"
+                    }
+                    PaymentMethodCatalog.PAYPAL_ID -> "Liên kết tài khoản PayPal"
+                    else -> "Liên kết phương thức thanh toán"
+                },
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (isCard) {
-                    OutlinedTextField(
-                        value = primaryInput,
-                        onValueChange = { primaryInput = it },
-                        label = { Text("Tên chủ thẻ") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = lastFourInput,
-                        onValueChange = { lastFourInput = it.filter(Char::isDigit).take(4) },
-                        label = { Text("4 số cuối trên thẻ") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else {
-                    OutlinedTextField(
-                        value = primaryInput,
-                        onValueChange = { primaryInput = it },
-                        label = { Text("Số điện thoại, email hoặc mã tài khoản") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (method.id == PaymentMethodCatalog.MOMO_ID || method.id == PaymentMethodCatalog.ZALOPAY_ID) {
+                    if (step == 1) {
+                        Text(
+                            text = "Nhập số điện thoại đăng ký tài khoản ví điện tử ${method.title} của bạn để gửi yêu cầu liên kết.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp
+                        )
+
+                        OutlinedTextField(
+                            value = phoneNumber,
+                            onValueChange = { input: String ->
+                                if (input.all { it.isDigit() } && input.length <= 10) {
+                                    phoneNumber = input
+                                }
+                            },
+                            label = { Text("Số điện thoại liên kết") },
+                            placeholder = { Text("Ví dụ: 0987654321") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Button(
+                            onClick = { phoneNumber = "0987654321" },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Tự động điền số điện thoại Test", fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        Text(
+                            text = "Mã OTP xác thực liên kết đã được gửi tới số điện thoại ${phoneNumber}. Vui lòng nhập mã để hoàn tất ví ${method.title}.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp
+                        )
+
+                        OutlinedTextField(
+                            value = otpCode,
+                            onValueChange = { input: String ->
+                                if (input.all { it.isDigit() } && input.length <= 6) {
+                                    otpCode = input
+                                    otpError = null
+                                }
+                            },
+                            label = { Text("Mã xác thực OTP") },
+                            placeholder = { Text("Nhập 6 chữ số") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = androidx.compose.ui.text.TextStyle(textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        )
+
+                        otpError?.let { err ->
+                            Text(text = err, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        }
+
+                        Button(
+                            onClick = {
+                                otpCode = "123456"
+                                otpError = null
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Tự động điền OTP Sandbox (123456)", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                if (method.id == PaymentMethodCatalog.VNPAY_ID) {
+                    if (step == 1) {
+                        Text(
+                            text = "Cung cấp thông tin thẻ ATM ngân hàng NCB Sandbox để thực hiện quy trình liên kết tài khoản ngân hàng thực tế.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp
+                        )
+
+                        OutlinedTextField(
+                            value = "NCB (Ngân hàng Quốc Dân)",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Ngân hàng") },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = vnpCardNumber,
+                            onValueChange = { input: String ->
+                                if (input.all { it.isDigit() } && input.length <= 19) {
+                                    vnpCardNumber = input
+                                    vnpCardError = null
+                                }
+                            },
+                            label = { Text("Số thẻ ATM") },
+                            placeholder = { Text("Ví dụ: 9704198526191432198") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = vnpCardName,
+                            onValueChange = { input: String ->
+                                if (input.all { it.isLetter() || it.isWhitespace() }) {
+                                    vnpCardName = input
+                                    vnpCardError = null
+                                }
+                            },
+                            label = { Text("Tên chủ thẻ (không dấu)") },
+                            placeholder = { Text("Ví dụ: NGUYEN VAN A") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = vnpCardExpiry,
+                            onValueChange = { input: String ->
+                                if (input.length <= 5) {
+                                    vnpCardExpiry = input
+                                    vnpCardError = null
+                                }
+                            },
+                            label = { Text("Ngày phát hành (MM/YY)") },
+                            placeholder = { Text("Ví dụ: 07/15") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        vnpCardError?.let { err ->
+                            Text(text = err, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        }
+
+                        Button(
+                            onClick = {
+                                vnpCardNumber = "9704198526191432198"
+                                vnpCardName = "NGUYEN VAN A"
+                                vnpCardExpiry = "07/15"
+                                vnpCardError = null
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Tự động điền thẻ Test NCB", fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        Text(
+                            text = "Mã OTP đã được ngân hàng NCB gửi tới số điện thoại của bạn. Vui lòng xác minh để hoàn tất liên kết thẻ.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp
+                        )
+
+                        OutlinedTextField(
+                            value = otpCode,
+                            onValueChange = { input: String ->
+                                if (input.all { it.isDigit() } && input.length <= 6) {
+                                    otpCode = input
+                                    otpError = null
+                                }
+                            },
+                            label = { Text("Mã xác thực OTP") },
+                            placeholder = { Text("Nhập 6 chữ số") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = androidx.compose.ui.text.TextStyle(textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        )
+
+                        otpError?.let { err ->
+                            Text(text = err, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        }
+
+                        Button(
+                            onClick = {
+                                otpCode = "123456"
+                                otpError = null
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Tự động điền OTP Sandbox (123456)", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                if (method.id == PaymentMethodCatalog.PAYPAL_ID) {
+                    if (showPaypalLoading) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp)
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF003087))
+                            Text("Đang kết nối bảo mật đến PayPal...", fontWeight = FontWeight.SemiBold, color = Color(0xFF003087))
+                        }
+                    } else {
+                        Text(
+                            text = "Đăng nhập tài khoản PayPal Sandbox của bạn để cấp quyền ủy nhiệm thanh toán nhanh.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp
+                        )
+
+                        OutlinedTextField(
+                            value = paypalEmail,
+                            onValueChange = { input: String ->
+                                paypalEmail = input
+                                paypalError = null
+                            },
+                            label = { Text("Địa chỉ Email PayPal") },
+                            placeholder = { Text("Ví dụ: sandbox-buyer@paypal.com") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedTextField(
+                            value = paypalPassword,
+                            onValueChange = { input: String ->
+                                paypalPassword = input
+                                paypalError = null
+                            },
+                            label = { Text("Mật khẩu") },
+                            placeholder = { Text("Nhập mật khẩu") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        paypalError?.let { err ->
+                            Text(text = err, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        }
+
+                        Button(
+                            onClick = {
+                                paypalEmail = "sandbox-buyer@paypal.com"
+                                paypalPassword = "mypassword123"
+                                paypalError = null
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Tự động điền tài khoản PayPal Test", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
         },
         confirmButton = {
-            Button(
-                enabled = canSave && !isSaving,
-                onClick = {
-                    val details = if (isCard) {
-                        "Chủ thẻ ${primaryInput.trim()} - **** $normalizedLastFour"
-                    } else {
-                        "${method.title} - ${primaryInput.trim()}"
-                    }
-                    onSave(details)
+            if (!showPaypalLoading) {
+                Button(
+                    enabled = !isSaving && when (method.id) {
+                        PaymentMethodCatalog.MOMO_ID, PaymentMethodCatalog.ZALOPAY_ID -> {
+                            if (step == 1) phoneNumber.length >= 9 else otpCode.length >= 4
+                        }
+                        PaymentMethodCatalog.VNPAY_ID -> {
+                            if (step == 1) {
+                                vnpCardNumber.isNotEmpty() && vnpCardName.isNotEmpty() && vnpCardExpiry.isNotEmpty()
+                            } else otpCode.length >= 4
+                        }
+                        PaymentMethodCatalog.PAYPAL_ID -> paypalEmail.isNotEmpty() && paypalPassword.isNotEmpty()
+                        else -> false
+                    },
+                    onClick = {
+                        when (method.id) {
+                            PaymentMethodCatalog.MOMO_ID, PaymentMethodCatalog.ZALOPAY_ID -> {
+                                if (step == 1) {
+                                    step = 2
+                                } else {
+                                    if (otpCode == "123456") {
+                                        onSave("${method.title} - ${phoneNumber.trim()}")
+                                    } else {
+                                        otpError = "Mã OTP chưa chính xác. Vui lòng dùng mã 123456."
+                                    }
+                                }
+                            }
+                            PaymentMethodCatalog.VNPAY_ID -> {
+                                if (step == 1) {
+                                    if (vnpCardNumber == "9704198526191432198" && vnpCardName.trim().uppercase() == "NGUYEN VAN A" && vnpCardExpiry.trim() == "07/15") {
+                                        step = 2
+                                    } else {
+                                        vnpCardError = "Thông tin thẻ ATM NCB Sandbox chưa chính xác. Vui lòng kiểm tra lại."
+                                    }
+                                } else {
+                                    if (otpCode == "123456") {
+                                        onSave("NCB - **** ${vnpCardNumber.takeLast(4)}")
+                                    } else {
+                                        otpError = "Mã OTP chưa chính xác. Vui lòng dùng mã 123456."
+                                    }
+                                }
+                            }
+                            PaymentMethodCatalog.PAYPAL_ID -> {
+                                if (paypalEmail.contains("@")) {
+                                    showPaypalLoading = true
+                                } else {
+                                    paypalError = "Địa chỉ email PayPal chưa đúng định dạng."
+                                }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = when (method.id) {
+                            PaymentMethodCatalog.MOMO_ID, PaymentMethodCatalog.ZALOPAY_ID, PaymentMethodCatalog.VNPAY_ID -> {
+                                if (step == 1) "Tiếp tục" else "Xác nhận liên kết"
+                            }
+                            PaymentMethodCatalog.PAYPAL_ID -> "Đăng nhập & Chấp nhận"
+                            else -> "Xác nhận"
+                        },
+                        fontWeight = FontWeight.Bold
+                    )
                 }
-            ) {
-                Text("Lưu")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Hủy")
+            if (!showPaypalLoading) {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                ) {
+                    Text("Hủy", fontWeight = FontWeight.SemiBold)
+                }
             }
-        }
+        },
+        shape = RoundedCornerShape(16.dp)
     )
 }

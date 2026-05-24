@@ -104,7 +104,10 @@ fun ShipperMainScreen(
                         rootNavController.navigate("shipper_tracking/$orderId")
                     }
                 )
-                1 -> ShipperEarningsScreen(onBack = { selectedTab = 0 })
+                1 -> ShipperEarningsScreen(
+                    onBack = { selectedTab = 0 },
+                    onNavigateToPaymentSettings = { rootNavController.navigate("payment_settings_screen") }
+                )
                 2 -> NotificationScreen(onBack = { selectedTab = 0 })
                 3 -> ProfileScreen(
                     onBack = { selectedTab = 0 },

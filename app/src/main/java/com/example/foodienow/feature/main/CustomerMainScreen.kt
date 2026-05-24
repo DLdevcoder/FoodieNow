@@ -37,6 +37,7 @@ import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import com.example.foodienow.feature.notification.NotificationScreen
 import com.example.foodienow.feature.order_history.OrderHistoryScreen
 import com.example.foodienow.feature.profile.ProfileScreen
+import com.example.foodienow.core.navigation.Screen
 
 @Composable
 fun CustomerMainScreen(
@@ -84,7 +85,7 @@ fun CustomerMainScreen(
                             onClick = {
                                 selectedTab = index
                                 if (index == 1) {
-                                    orderHistoryInitialTab = 1
+                                    orderHistoryInitialTab = 0
                                 }
                             },
                             alwaysShowLabel = true,
@@ -119,7 +120,8 @@ fun CustomerMainScreen(
                     onNavigateToOrderDetail = { orderId ->
                         rootNavController.navigate("order_detail/$orderId")
                     },
-                    onNavigateToCart = onNavigateToCart,
+                    onNavigateToCart = { rootNavController.navigate(Screen.Payment.route) },
+                    onNavigateToFoodDetail = onNavigateToFoodDetail,
                     initialTab = orderHistoryInitialTab
                 )
                 2 -> NotificationScreen(

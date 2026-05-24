@@ -117,7 +117,9 @@ fun MerchantMainScreen(
                         viewModel.deleteVoucher(id)
                     }
                 )
-                2 -> MerchantEarningsTab()
+                2 -> MerchantEarningsTab(
+                    onNavigateToPaymentSettings = { rootNavController.navigate("payment_settings_screen") }
+                )
                 3 -> NotificationScreen(onBack = { selectedTab = 0 })
                 4 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
