@@ -1,5 +1,8 @@
 package com.example.foodienow.feature.shipper
 
+import com.example.foodienow.core.designsystem.theme.FoodieCream
+import com.example.foodienow.core.designsystem.theme.PromoGradientEnd
+import com.example.foodienow.core.designsystem.theme.PromoGradientStart
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,10 +33,11 @@ import java.util.Locale
 fun ShipperHomeScreen(
     viewModel: ShipperViewModel = hiltViewModel(),
     onNavigateToTracking: (String) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    initialTabIndex: Int = 0
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var selectedTabIndex by remember(initialTabIndex) { mutableIntStateOf(initialTabIndex) }
 
     val tabs = listOf(
         R.string.shipper_tab_available,
@@ -44,11 +48,10 @@ fun ShipperHomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
+            .background(FoodieCream)
     ) {
         ShipperTopSection(
-            activeOrderCount = uiState.activeOrders.size,
-            onLogout = onLogout
+            activeOrderCount = uiState.activeOrders.size
         )
 
         TabRow(
@@ -94,7 +97,7 @@ fun ShipperHomeScreen(
             0 -> OrderList(
                 orders = uiState.availableOrders,
                 emptyMessageRes = R.string.shipper_empty_available,
-                onNavigateToMapClick = { }, // Không mở bản đồ khi chưa nhận đơn
+                onNavigateToMapClick = { },
                 viewModel = viewModel,
                 isHistoryTab = false
             )
@@ -117,7 +120,7 @@ fun ShipperHomeScreen(
 }
 
 @Composable
-private fun ShipperTopSection(activeOrderCount: Int, onLogout: () -> Unit) {
+private fun ShipperTopSection(activeOrderCount: Int) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (currentHour) {
         in 0..11 -> "Chào buổi sáng ☀️"
@@ -131,12 +134,14 @@ private fun ShipperTopSection(activeOrderCount: Int, onLogout: () -> Unit) {
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
+                        PromoGradientStart,
                         MaterialTheme.colorScheme.primary,
-                        Color(0xFFF97316)
+                        PromoGradientEnd
                     )
                 )
             )
-            .padding(top = 40.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
+            .statusBarsPadding()
+            .padding(start = 18.dp, top = 8.dp, end = 18.dp, bottom = 14.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -172,10 +177,6 @@ private fun ShipperTopSection(activeOrderCount: Int, onLogout: () -> Unit) {
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
-                }
-                TextButton(onClick = onLogout) {
-                    Text("Đăng xuất", color = Color.White)
                 }
             }
         }

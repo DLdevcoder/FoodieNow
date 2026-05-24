@@ -333,8 +333,8 @@
     <string name="me_settings">Settings</string>
 
     <!-- Shipper -->
-    <string name="shipper_tab_available">Available</string>
-    <string name="shipper_tab_active">Active</string>
+    <string name="shipper_tab_available">Ready Orders</string>
+    <string name="shipper_tab_active">Delivering</string>
     <string name="shipper_empty_available">No available orders.</string>
     <string name="shipper_empty_active">You have no active orders.</string>
     <string name="shipper_action_accept">Accept</string>
@@ -347,8 +347,10 @@
     <string name="shipper_earnings_today">Today\'s Earnings</string>
     <string name="shipper_earnings_week">This Week</string>
     <string name="shipper_earnings_month">This Month</string>
-    <string name="shipper_tab_completed">Complete</string>
+    <string name="shipper_tab_completed">History</string>
     <string name="shipper_empty_completed">No orders have been completed yet</string>
+    <string name="shipper_delivery_history">Delivery History</string>
+    <string name="shipper_delivery_history_desc">View completed delivery orders</string>
 
     <string name="profile_unnamed">Not updated yet</string>
     <string name="profile_unnamed_email">Email not updated</string>
