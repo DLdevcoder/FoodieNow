@@ -191,8 +191,6 @@ fun CustomerTrackingScreen(
                         }
                     }
                 )
-
-                // Khối thông tin phía dưới cùng
                 Surface(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -203,14 +201,8 @@ fun CustomerTrackingScreen(
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        val statusText = when (currentOrder.status) {
-                            OrderStatus.DRIVER_ASSIGNED -> "Tài xế đang đến nhà hàng lấy thức ăn"
-                            OrderStatus.DELIVERING -> "Tài xế đang trên đường giao đến bạn"
-                            else -> "Đơn hàng đang xử lý"
-                        }
-
                         Text(
-                            text = statusText,
+                            text = "Tài xế đang trên đường giao đến bạn",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
@@ -218,6 +210,23 @@ fun CustomerTrackingScreen(
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(text = "Mã đơn: #${currentOrder.id?.take(8)}", style = MaterialTheme.typography.bodySmall)
                         Text(text = "Địa chỉ nhận: ${currentOrder.deliveryAddress}", style = MaterialTheme.typography.bodyMedium)
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // NÚT XÁC NHẬN CHO KHÁCH HÀNG
+                        val isCustomerConfirmed = currentOrder.customerConfirmed
+
+                        Button(
+                            onClick = { viewModel.confirmReceipt(onSuccess = onBack) },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isCustomerConfirmed,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isCustomerConfirmed) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
+                                contentColor = if (isCustomerConfirmed) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
+                            )
+                        ) {
+                            Text(text = if (isCustomerConfirmed) "Chờ tài xế xác nhận..." else "Xác nhận đã nhận đơn")
+                        }
                     }
                 }
             }

@@ -186,4 +186,22 @@ class CustomerTrackingViewModel @Inject constructor(
         }
         return poly
     }
+
+    fun confirmReceipt(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = orderRepository.confirmCustomerReceipt(orderId)
+                if (result.isSuccess) {
+                    _currentOrder.update { it?.copy(customerConfirmed = true) }
+
+                    val latestOrder = orderRepository.getOrderById(orderId)
+                    if (latestOrder?.status == OrderStatus.COMPLETED) {
+                        onSuccess()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }
