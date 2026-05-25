@@ -20,7 +20,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,12 +45,16 @@ import com.example.foodienow.feature.shipper.ShipperViewModel
 @Composable
 fun ShipperMainScreen(
     rootNavController: NavController,
-    onLogout: () -> Unit,
-    shipperViewModel: ShipperViewModel = hiltViewModel(),
-    notificationViewModel: NotificationViewModel = hiltViewModel()
+    initialHomeTab: Int = 0, // THÊM THAM SỐ NÀY
+    onLogout: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-    var shipperHomeInitialTab by rememberSaveable { mutableIntStateOf(0) }
+    var shipperHomeInitialTab by rememberSaveable(initialHomeTab) { mutableIntStateOf(initialHomeTab) }
+    LaunchedEffect(initialHomeTab) {
+        if (selectedTab == 0 && initialHomeTab != shipperHomeInitialTab) {
+            shipperHomeInitialTab = initialHomeTab
+        }
+    }
 
     val shipperState by shipperViewModel.uiState.collectAsState()
     val notificationState by notificationViewModel.uiState.collectAsState()
@@ -108,6 +112,7 @@ fun ShipperMainScreen(
                             onClick = {
                                 selectedTab = index
                                 if (index == 0) {
+                                    // Khi bấm vào lại nút Home thì reset về tab Chờ nhận (0)
                                     shipperHomeInitialTab = 0
                                 }
                             },

@@ -214,7 +214,6 @@ fun MerchantOrdersTab(
         }
     }
 }
-
 @Composable
 private fun MerchantOrderCard(
     order: Order,
@@ -240,7 +239,6 @@ private fun MerchantOrderCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Đảm bảo R.string.activity_history_order_title đã được khai báo ("Đơn #%1$s")
                 Text(
                     text = stringResource(R.string.activity_history_order_title, order.id?.take(8) ?: "N/A"),
                     style = MaterialTheme.typography.titleMedium,
@@ -253,7 +251,6 @@ private fun MerchantOrderCard(
                 )
             }
 
-            // Đảm bảo R.string.merchant_orders_customer_name đã được khai báo ("Khách hàng: %1$s")
             Text(
                 text = stringResource(R.string.merchant_orders_customer_name, order.customerId.take(8)),
                 style = MaterialTheme.typography.bodyMedium
@@ -268,10 +265,16 @@ private fun MerchantOrderCard(
                 OrderStatus.CANCELLED -> stringResource(R.string.merchant_status_display_cancelled)
             }
 
+            val statusColor = when (order.status) {
+                OrderStatus.COMPLETED -> Color(0xFF4CAF50)
+                OrderStatus.CANCELLED -> MaterialTheme.colorScheme.error
+                else -> MaterialTheme.colorScheme.primary
+            }
+
             Text(
                 text = "$statusDisplay - $formattedPrice",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = statusColor,
                 fontWeight = FontWeight.SemiBold
             )
 
@@ -279,7 +282,8 @@ private fun MerchantOrderCard(
                 Text(
                     text = "Ghi chú: ${order.note}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = Color(0xFFF57C00),
+                    fontWeight = FontWeight.Medium
                 )
             }
 

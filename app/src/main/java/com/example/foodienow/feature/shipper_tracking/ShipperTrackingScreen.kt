@@ -41,16 +41,12 @@ import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
-import org.maplibre.android.style.layers.Property
-import org.maplibre.android.style.layers.PropertyFactory
-import org.maplibre.android.style.layers.SymbolLayer
 import android.graphics.Color as AndroidColor
 
 fun createMapIcon(context: Context, drawableId: Int, dpSize: Int): Icon? {
     return try {
         val drawable = ContextCompat.getDrawable(context, drawableId) ?: return null
         val px = (dpSize * context.resources.displayMetrics.density).toInt()
-        // Bắt buộc dùng ARGB_8888 để MapLibre không bị lỗi trong suốt
         val bitmap = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
@@ -86,19 +82,16 @@ fun ShipperTrackingScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val mapView = remember { MapLibre.getInstance(context); MapView(context) }
 
-    // TRẠNG THÁI QUẢN LÝ BẢN ĐỒ
     var mapLibreMapInstance by remember { mutableStateOf<MapLibreMap?>(null) }
-    var isMapReady by remember { mutableStateOf(false) } // CHÌA KHÓA: Đợi Style load xong mới vẽ
+    var isMapReady by remember { mutableStateOf(false) }
     var isCameraInitialized by remember { mutableStateOf(false) }
 
-    // THAM CHIẾU CÁC ĐỐI TƯỢNG (Để xóa/sửa riêng lẻ, không dùng map.clear)
     var polylineToStore by remember { mutableStateOf<Polyline?>(null) }
     var polylineToCustomer by remember { mutableStateOf<Polyline?>(null) }
     var storeMarker by remember { mutableStateOf<Marker?>(null) }
     var customerMarker by remember { mutableStateOf<Marker?>(null) }
     var shipperMarker by remember { mutableStateOf<Marker?>(null) }
 
-    // Load Icons
     val merchantIcon = remember(context) { createMapIcon(context, R.drawable.ic_store, 40) }
     val customerIcon = remember(context) { createMapIcon(context, R.drawable.ic_customer, 40) }
     val shipperIcon = remember(context) { createMapIcon(context, R.drawable.ic_shipper, 45) }
@@ -138,31 +131,42 @@ fun ShipperTrackingScreen(
         onDispose { locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) } }
     }
 
-    // KHỐI VẼ ĐƯỜNG VÀ ĐIỂM CỐ ĐỊNH (Chỉ chạy khi map đã Ready)
-    LaunchedEffect(isMapReady, routeToStore, routeToCustomer, order?.merchantLat, order?.deliveryLat) {
+    // KHỐI VẼ ĐƯỜNG VÀ ĐIỂM CỐ ĐỊNH (ĐÃ SỬA LỖI XÓA ĐƯỜNG MÀU XANH)
+    LaunchedEffect(isMapReady, routeToStore, routeToCustomer, order?.merchantLat, order?.deliveryLat, order?.status) {
         if (!isMapReady) return@LaunchedEffect
         val map = mapLibreMapInstance ?: return@LaunchedEffect
 
-        // Xử lý Route 1 (Xanh - Đến Store)
-        polylineToStore?.let { map.removePolyline(it) } // Xóa đường cũ nếu có
+        // --- QUẢN LÝ CHẶNG ĐẾN CỬA HÀNG (MÀU XANH) ---
         if (routeToStore.isNotEmpty()) {
+            // Nếu có đường mới, xóa đường cũ (nếu tồn tại) trước khi vẽ
+            polylineToStore?.let { map.removePolyline(it) }
             polylineToStore = map.addPolyline(PolylineOptions().addAll(routeToStore).color(AndroidColor.parseColor("#0088FF")).width(6f))
+        } else {
+            // NẾU DANH SÁCH RỖNG -> XÓA TRIỆT ĐỂ KHỎI BẢN ĐỒ VÀ SET REF VỀ NULL
+            polylineToStore?.let {
+                map.removePolyline(it)
+                polylineToStore = null // Dòng này quan trọng để Compose không vẽ lại nó
+            }
         }
 
-        // Xử lý Route 2 (Cam - Đến Khách)
+        // --- QUẢN LÝ CHẶNG ĐẾN KHÁCH HÀNG (MÀU CAM/XÁM) ---
         polylineToCustomer?.let { map.removePolyline(it) }
         if (routeToCustomer.isNotEmpty()) {
-            polylineToCustomer = map.addPolyline(PolylineOptions().addAll(routeToCustomer).color(AndroidColor.parseColor("#EE4D2D")).width(6f))
+            val routeColor = if (order?.status == OrderStatus.DRIVER_ASSIGNED) "#9AA0A6" else "#EE4D2D"
+            polylineToCustomer = map.addPolyline(
+                PolylineOptions()
+                    .addAll(routeToCustomer)
+                    .color(AndroidColor.parseColor(routeColor))
+                    .width(6f)
+            )
         }
 
-        // Vẽ Store Marker (Chỉ vẽ 1 lần)
         if (storeMarker == null && order?.merchantLat != null && order?.merchantLng != null) {
             val opts = MarkerOptions().position(LatLng(order!!.merchantLat!!, order!!.merchantLng!!)).title("Cửa hàng")
             merchantIcon?.let { opts.icon(it) }
             storeMarker = map.addMarker(opts)
         }
 
-        // Vẽ Customer Marker (Chỉ vẽ 1 lần)
         if (customerMarker == null && order?.deliveryLat != null && order?.deliveryLng != null) {
             val opts = MarkerOptions().position(LatLng(order!!.deliveryLat!!, order!!.deliveryLng!!)).title("Khách hàng")
             customerIcon?.let { opts.icon(it) }
@@ -170,7 +174,6 @@ fun ShipperTrackingScreen(
         }
     }
 
-    // KHỐI VẼ SHIPPER ĐỘNG (Chạy khi map Ready và có tọa độ mới)
     LaunchedEffect(isMapReady, order?.shipperLat, order?.shipperLng) {
         if (!isMapReady) return@LaunchedEffect
         val map = mapLibreMapInstance ?: return@LaunchedEffect
@@ -179,10 +182,8 @@ fun ShipperTrackingScreen(
         val currentPos = LatLng(lat, lng)
 
         if (shipperMarker != null) {
-            // Đã có icon -> Trượt nó đi
             shipperMarker?.position = currentPos
         } else {
-            // Chưa có -> Tạo mới
             val opts = MarkerOptions().position(currentPos).title("Tài xế")
             shipperIcon?.let { opts.icon(it) }
             shipperMarker = map.addMarker(opts)
@@ -235,17 +236,34 @@ fun ShipperTrackingScreen(
                             Text(text = "Giao đến: ${currentOrder.deliveryAddress}", style = MaterialTheme.typography.bodyMedium)
                             Spacer(modifier = Modifier.height(16.dp))
 
+                            val isShipperConfirmed = currentOrder.shipperConfirmed
+
                             Button(
                                 onClick = {
                                     when (currentOrder.status) {
-                                        OrderStatus.DELIVERING -> viewModel.completeOrder(onSuccess = onBack)
+                                        OrderStatus.DELIVERING -> viewModel.confirmDelivery(onSuccess = onBack)
                                         OrderStatus.DRIVER_ASSIGNED -> viewModel.confirmOrderPickedUp()
                                         else -> {}
                                     }
                                 },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                enabled = if (currentOrder.status == OrderStatus.DELIVERING) !isShipperConfirmed else true,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isShipperConfirmed && currentOrder.status == OrderStatus.DELIVERING)
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    else MaterialTheme.colorScheme.primary,
+                                    contentColor = if (isShipperConfirmed && currentOrder.status == OrderStatus.DELIVERING)
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    else MaterialTheme.colorScheme.onPrimary
+                                )
                             ) {
-                                Text(if (currentOrder.status == OrderStatus.DELIVERING) "Hoàn thành chuyến đi" else "Đã lấy hàng")
+                                Text(
+                                    text = when {
+                                        currentOrder.status == OrderStatus.DELIVERING && isShipperConfirmed -> "Chờ khách xác nhận..."
+                                        currentOrder.status == OrderStatus.DELIVERING -> "Xác nhận đã giao hàng"
+                                        else -> "Đã lấy hàng"
+                                    }
+                                )
                             }
                         }
                     }

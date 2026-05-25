@@ -50,6 +50,7 @@ import com.example.foodienow.feature.customer_home.components.SearchScreen
 import com.example.foodienow.feature.main.ShipperMainScreen
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.feature.category_detail.CategoryDetailScreen
+import com.example.foodienow.feature.customer_tracking.CustomerTrackingScreen
 
 @Composable
 fun AppNavigation() {
@@ -426,12 +427,32 @@ fun AppNavigation() {
                 onNavigateToOrderDetail = { orderId ->
                     navController.navigate("order_detail/$orderId")
                 },
+                onNavigateToTracking = { orderId ->
+                    navController.navigate("customer_tracking/$orderId")
+                },
                 onNavigateToCart = { navController.navigate(Screen.Payment.route) },
                 onNavigateToFoodDetail = { food ->
                     navController.navigate("food_detail/${food.id}")
                 },
                 initialTab = tab
             )
+        }
+
+        composable(
+            route = "customer_tracking/{orderId}",
+            arguments = listOf(
+                navArgument("orderId") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId")
+
+            if (orderId != null) {
+                CustomerTrackingScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
 
         composable(
@@ -470,9 +491,20 @@ fun AppNavigation() {
             )
         }
 
-        composable(route = Screen.ShipperHome.route) {
+        composable(
+            route = Screen.ShipperHome.route,
+            arguments = listOf(
+                navArgument("tab") {
+                    type = NavType.IntType
+                    defaultValue = 0
+                }
+            )
+        ) { backStackEntry ->
+            val tabIndex = backStackEntry.arguments?.getInt("tab") ?: 0
+
             ShipperMainScreen(
                 rootNavController = navController,
+                initialHomeTab = tabIndex,
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -486,7 +518,12 @@ fun AppNavigation() {
             arguments = listOf(navArgument("orderId") { type = NavType.StringType })
         ) {
             com.example.foodienow.feature.shipper_tracking.ShipperTrackingScreen(
-                onBack = { navController.popBackStack() }
+                onBack = {
+                    navController.navigate(Screen.ShipperHome.createRoute(tab = 1)) {
+                        popUpTo(Screen.ShipperHome.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 

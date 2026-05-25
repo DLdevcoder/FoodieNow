@@ -43,7 +43,9 @@ sealed class Screen(val route: String) {
     }
 
     // Shipper
-    object ShipperHome : Screen("shipper_home_screen")
+    object ShipperHome : Screen("shipper_home_screen?tab={tab}") {
+        fun createRoute(tab: Int = 0): String = "shipper_home_screen?tab=$tab"
+    }
     object ShipperEarnings : Screen("shipper_earnings_screen")
 
     // Admin
