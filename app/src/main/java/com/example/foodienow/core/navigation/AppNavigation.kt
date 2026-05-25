@@ -460,7 +460,12 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.Notifications.route) {
-            NotificationScreen(onBack = { navController.popBackStack() })
+            NotificationScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToDestination = { route ->
+                    navController.navigate(route)
+                }
+            )
         }
 
         composable(route = Screen.ShipperHome.route) {

@@ -1,8 +1,12 @@
 package com.example.foodienow.feature.main
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.List
@@ -19,17 +23,22 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.foodienow.core.designsystem.theme.ColorBackground
+import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.feature.merchant.MerchantMenuTab
 import com.example.foodienow.feature.merchant.MerchantOrdersTab
+import com.example.foodienow.feature.merchant.MerchantOrdersViewModel
 import com.example.foodienow.feature.merchant.MerchantEarningsTab
 import com.example.foodienow.feature.merchant.MerchantViewModel
 import com.example.foodienow.feature.notification.NotificationScreen
+import com.example.foodienow.feature.notification.NotificationViewModel
 import com.example.foodienow.feature.profile.ProfileScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,6 +46,8 @@ import com.example.foodienow.feature.profile.ProfileScreen
 fun MerchantMainScreen(
     rootNavController: NavController,
     viewModel: MerchantViewModel = hiltViewModel(),
+    merchantOrdersViewModel: MerchantOrdersViewModel = hiltViewModel(),
+    notificationViewModel: NotificationViewModel = hiltViewModel(),
     onNavigateToAddFood: (String) -> Unit,
     onNavigateToEditFood: (String) -> Unit,
     onNavigateToChatList: () -> Unit,
@@ -44,6 +55,9 @@ fun MerchantMainScreen(
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val uiState by viewModel.uiState.collectAsState()
+
+    val ordersState by merchantOrdersViewModel.uiState.collectAsState()
+    val notificationState by notificationViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadUnreadMessageCount()
@@ -64,8 +78,27 @@ fun MerchantMainScreen(
                 )
 
                 tabs.forEach { (icon, label, index) ->
+                    val showBadge = when (index) {
+                        0 -> ordersState.orders.any { it.status == OrderStatus.PENDING }
+                        3 -> notificationState.unreadCount > 0
+                        else -> false
+                    }
                     NavigationBarItem(
-                        icon = { Icon(icon, contentDescription = label) },
+                        icon = {
+                            Box {
+                                Icon(icon, contentDescription = label)
+                                if (showBadge) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .offset(x = 5.dp, y = (-3).dp)
+                                            .size(7.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.error)
+                                    )
+                                }
+                            }
+                        },
                         label = {
                             Text(
                                 text = label,
@@ -100,7 +133,8 @@ fun MerchantMainScreen(
             when (selectedTab) {
                 0 -> MerchantOrdersTab(
                     onNavigateToChatList = onNavigateToChatList,
-                    unreadMessageCount = uiState.unreadMessageCount
+                    unreadMessageCount = uiState.unreadMessageCount,
+                    viewModel = merchantOrdersViewModel
                 )
                 1 -> MerchantMenuTab(
                     uiState = uiState,
@@ -120,7 +154,10 @@ fun MerchantMainScreen(
                 2 -> MerchantEarningsTab(
                     onNavigateToPaymentSettings = { rootNavController.navigate("payment_settings_screen") }
                 )
-                3 -> NotificationScreen(onBack = { selectedTab = 0 })
+                3 -> NotificationScreen(
+                    onBack = { selectedTab = 0 },
+                    viewModel = notificationViewModel
+                )
                 4 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
                     onNavigateToOrderHistory = { rootNavController.navigate("order_history_screen?tab=2") },
