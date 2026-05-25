@@ -57,13 +57,11 @@ class ShipperViewModel @Inject constructor(
                         }
                     }
 
-                    // Lắng nghe đơn đang giao (Repository cần lấy các đơn có status = DRIVER_ASSIGNED hoặc DELIVERING)
                     launch {
-                        orderRepository.getShipperActiveOrder(shipperId).collect { order ->
+                        orderRepository.getShipperActiveOrder(shipperId).collect { orders ->
                             _uiState.update { state ->
-                                val activeList = listOfNotNull(order)
                                 state.copy(
-                                    activeOrders = activeList,
+                                    activeOrders = orders.sortedBy { it.createdAt },
                                     isLoading = false
                                 )
                             }
@@ -92,17 +90,15 @@ class ShipperViewModel @Inject constructor(
     fun acceptOrder(orderId: String) {
         val shipperId = _uiState.value.currentShipperId ?: return
         viewModelScope.launch {
-            // 1. Gắn shipper_id vào đơn hàng
+            _uiState.update { state ->
+                state.copy(
+                    availableOrders = state.availableOrders.filter { it.id != orderId }
+                )
+            }
             val result = orderRepository.acceptOrder(orderId, shipperId)
 
-            if (result.isSuccess) {
-                // 2. Chuyển trạng thái sang DRIVER_ASSIGNED (Tài xế đang đến lấy)
-                val statusResult = orderRepository.updateOrderStatus(orderId, OrderStatus.DRIVER_ASSIGNED)
-                if (statusResult.isFailure) {
-                    Log.e("ShipperApp", "Lỗi cập nhật trạng thái sau khi nhận đơn: ", statusResult.exceptionOrNull())
-                }
-            } else {
-                Log.e("ShipperApp", "Lỗi nhận đơn: ", result.exceptionOrNull())
+            if (result.isFailure) {
+                android.util.Log.e("ShipperApp", "Lỗi nhận đơn: ", result.exceptionOrNull())
                 _uiState.update { it.copy(error = "Không thể nhận đơn. Vui lòng thử lại.") }
             }
         }

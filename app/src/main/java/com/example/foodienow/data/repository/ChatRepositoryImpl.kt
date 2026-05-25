@@ -7,11 +7,14 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.rpc
 import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.decodeRecord
 import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.realtime
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import io.github.jan.supabase.realtime.channel
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class ChatRepositoryImpl @Inject constructor(
@@ -45,23 +48,33 @@ class ChatRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun listenToMessages(storeId: String): Flow<Message> = flow {
-        // Dùng supabase.channel thay vì supabase.realtime.createChannel
-        val channel = supabase.channel("chat_channel_$storeId")
+    // SỬA LẠI HÀM NÀY: Dùng channelFlow để giữ kết nối Realtime
+    override fun listenToMessages(storeId: String): Flow<Message> = channelFlow {
+        val channelName = "chat_channel_$storeId"
+        val channel = supabase.channel(channelName)
 
         val changeFlow = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
             table = "messages"
             filter = "store_id=eq.$storeId"
         }
 
+        launch {
+            changeFlow.collect { action ->
+                try {
+                    val message = action.decodeRecord<Message>()
+                    send(message) // Dùng send() thay vì emit() trong channelFlow
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
         channel.subscribe()
 
-        changeFlow.collect { action ->
-            try {
-                val message = action.decodeRecord<Message>()
-                emit(message)
-            } catch (e: Exception) {
-                e.printStackTrace()
+        // Hủy kênh khi người dùng thoát khỏi màn hình Chat
+        awaitClose {
+            launch {
+                supabase.realtime.removeChannel(channel)
             }
         }
     }
@@ -85,8 +98,8 @@ class ChatRepositoryImpl @Inject constructor(
             ) {
                 filter {
                     eq("store_id", storeId)
-                    eq("sender_id", partnerId) // Tin nhắn từ người kia gửi
-                    eq("receiver_id", currentUserId) // Mình là người nhận
+                    eq("sender_id", partnerId)
+                    eq("receiver_id", currentUserId)
                     eq("is_read", false)
                 }
             }

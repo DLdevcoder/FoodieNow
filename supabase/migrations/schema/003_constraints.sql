@@ -41,7 +41,7 @@ ALTER TABLE ONLY "public"."messages"
     ADD CONSTRAINT "messages_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."orders"
-    ADD CONSTRAINT "orders_status_check" CHECK (("status" = ANY (ARRAY['PENDING'::"text", 'PREPARING'::"text", 'DELIVERING'::"text", 'COMPLETED'::"text", 'CANCELLED'::"text"])));
+    ADD CONSTRAINT "orders_status_check" CHECK (("status" = ANY (ARRAY['PENDING'::"text", 'PREPARING'::"text", 'DRIVER_ASSIGNED'::text, 'DELIVERING'::"text", 'COMPLETED'::"text", 'CANCELLED'::"text"])));
 
 ALTER TABLE ONLY "public"."payments"
     ADD CONSTRAINT "payments_amount_check" CHECK (("amount" >= (0)::double precision));

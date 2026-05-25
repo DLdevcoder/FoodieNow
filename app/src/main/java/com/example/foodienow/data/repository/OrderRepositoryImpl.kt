@@ -110,6 +110,7 @@ class OrderRepositoryImpl @Inject constructor(
                 .select {
                     filter {
                         eq("status", OrderStatus.PREPARING.name)
+                        // eq("shipper_id", null) - Nếu Supabase của bạn hỗ trợ is null trực tiếp
                     }
                 }
                 .decodeList<Order>()
@@ -122,7 +123,6 @@ class OrderRepositoryImpl @Inject constructor(
         val channel = supabaseClient.channel(channelName)
         val changes = channel.postgresChangeFlow<PostgresAction>("public") {
             table = "orders"
-            filter = "status=eq.${OrderStatus.PREPARING.name}"
         }
 
         launch {
@@ -137,7 +137,7 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getShipperActiveOrder(shipperId: String): Flow<Order?> = channelFlow {
+    override fun getShipperActiveOrder(shipperId: String): Flow<List<Order>> = channelFlow {
         val fetchActive = suspend {
             supabaseClient.postgrest["orders"]
                 .select {
@@ -147,7 +147,6 @@ class OrderRepositoryImpl @Inject constructor(
                     }
                 }
                 .decodeList<Order>()
-                .firstOrNull() // Giả định tài xế chỉ xử lý 1 đơn tại 1 thời điểm
         }
 
         send(fetchActive())
@@ -156,7 +155,6 @@ class OrderRepositoryImpl @Inject constructor(
         val channel = supabaseClient.channel(channelName)
         val changes = channel.postgresChangeFlow<PostgresAction>("public") {
             table = "orders"
-            filter = "shipper_id=eq.$shipperId"
         }
 
         launch {
