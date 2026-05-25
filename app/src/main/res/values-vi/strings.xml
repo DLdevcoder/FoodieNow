@@ -166,6 +166,7 @@
     <string name="activity_history_review_title_with_food">Đánh giá: %1$s</string>
     <string name="activity_history_review_subtitle">%1$d ★ | Nhận xét: %2$s</string>
     <string name="activity_history_wallet_top_up_title">Nạp tiền ví</string>
+    <string name="activity_history_wallet_refund_title">Hoàn tiền vào ví</string>
     <string name="activity_history_wallet_payment_title">Thanh toán từ ví</string>
     <string name="activity_history_wallet_subtitle">%1$s | Số tiền: %2$s</string>
     <string name="activity_history_payment_title_no_id">Thanh toán</string>

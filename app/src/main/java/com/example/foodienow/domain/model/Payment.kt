@@ -22,7 +22,8 @@ enum class WalletProvider {
 enum class PaymentStatus {
     PENDING,
     SUCCESS,
-    FAILED
+    FAILED,
+    REFUNDED
 }
 
 @Serializable

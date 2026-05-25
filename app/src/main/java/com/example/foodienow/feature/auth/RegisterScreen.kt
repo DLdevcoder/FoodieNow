@@ -338,7 +338,7 @@ private fun AccountTypeSelector(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            UserRole.entries.forEach { role ->
+            UserRole.entries.filter { it != UserRole.ADMIN }.forEach { role ->
                 FilterChip(
                     selected = selectedRole == role,
                     onClick = { onRoleSelected(role) },
@@ -532,6 +532,7 @@ private fun UserRole.toDisplayName(): String {
         UserRole.CUSTOMER -> stringResource(R.string.role_customer)
         UserRole.MERCHANT -> stringResource(R.string.role_merchant)
         UserRole.SHIPPER -> stringResource(R.string.role_shipper)
+        UserRole.ADMIN -> "Admin"
     }
 }
 

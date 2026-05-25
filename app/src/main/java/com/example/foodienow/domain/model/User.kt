@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 enum class UserRole {
     CUSTOMER,
     MERCHANT,
-    SHIPPER
+    SHIPPER,
+    ADMIN
 }
 
 @Serializable

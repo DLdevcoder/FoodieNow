@@ -2,11 +2,14 @@ package com.example.foodienow.domain.model
 
 import kotlinx.serialization.Serializable
 
+import kotlinx.serialization.SerialName
+
 @Serializable
 enum class WalletTransactionType {
     TOP_UP,
     PAYMENT,
-    WITHDRAW
+    WITHDRAW,
+    REFUND
 }
 
 @Serializable
@@ -15,5 +18,5 @@ data class WalletTransaction(
     val type: WalletTransactionType,
     val amount: Long,
     val description: String,
-    val createdAt: String
+    @SerialName("created_at") val createdAt: String
 )

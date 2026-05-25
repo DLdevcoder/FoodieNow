@@ -602,7 +602,8 @@ fun WalletScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        val isTopUp = tx.type == com.example.foodienow.domain.model.WalletTransactionType.TOP_UP
+                        val isTopUp = tx.type == com.example.foodienow.domain.model.WalletTransactionType.TOP_UP ||
+                                tx.type == com.example.foodienow.domain.model.WalletTransactionType.REFUND
                         Box(
                             modifier = Modifier
                                 .size(42.dp)

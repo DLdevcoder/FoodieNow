@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.User
 import com.example.foodienow.domain.model.UserRole
+import com.example.foodienow.feature.admin.AdminDashboardScreen
 import com.example.foodienow.feature.activity.ActivityHistoryScreen
 import com.example.foodienow.feature.auth.AuthViewModel
 import com.example.foodienow.feature.auth.ForgotPasswordScreen
@@ -223,7 +224,8 @@ fun AppNavigation() {
                 onNavigateToAddress = { navController.navigate(Screen.Address.route) },
                 onNavigateToPaymentSettings = { navController.navigate(Screen.PaymentSettings.route) },
                 onNavigateToEditProfile = { navController.navigate("edit_profile_screen") },
-                onNavigateToChangePassword = { navController.navigate("change_password_screen") }
+                onNavigateToChangePassword = { navController.navigate("change_password_screen") },
+                onNavigateToAdminDashboard = { navController.navigate(Screen.AdminDashboard.route) }
             )
         }
 
@@ -530,6 +532,21 @@ fun AppNavigation() {
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(route = Screen.AdminDashboard.route) {
+            AdminDashboardScreen(
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                onNavigateToEditProfile = { navController.navigate("edit_profile_screen") },
+                onNavigateToChangePassword = { navController.navigate("change_password_screen") },
+                onNavigateToWallet = { navController.navigate(Screen.Wallet.route) },
+                onNavigateToPaymentSettings = { navController.navigate(Screen.PaymentSettings.route) }
+            )
+        }
     }
 }
 
@@ -563,6 +580,7 @@ private fun User.homeRoute(): String {
         UserRole.CUSTOMER -> Screen.CustomerHome.route
         UserRole.MERCHANT -> Screen.MerchantHome.route
         UserRole.SHIPPER -> Screen.ShipperHome.route
+        UserRole.ADMIN -> Screen.AdminDashboard.route
     }
 }
 

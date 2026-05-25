@@ -222,7 +222,7 @@ class ActivityHistoryViewModelTest {
         override fun getMerchantOrders(merchantId: String): Flow<List<Order>> = TODO()
         override fun getOrdersByCustomer(customerId: String): Flow<List<Order>> = ordersFlow
         override fun getAvailableDeliveries(): Flow<List<Order>> = TODO()
-        override fun getShipperActiveOrder(shipperId: String): Flow<Order?> = TODO()
+        override fun getShipperActiveOrder(shipperId: String): Flow<List<Order>> = TODO()
         override suspend fun acceptOrder(orderId: String, shipperId: String): Result<Unit> = TODO()
         override suspend fun updateOrderStatus(orderId: String, newStatus: OrderStatus): Result<Unit> = TODO()
         override fun getShipperCompletedOrders(shipperId: String): Flow<List<Order>> = TODO()

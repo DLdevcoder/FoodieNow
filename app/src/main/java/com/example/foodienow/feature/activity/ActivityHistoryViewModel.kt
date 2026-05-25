@@ -93,7 +93,7 @@ class ActivityHistoryViewModel @Inject constructor(
                 orderRepository.getOrdersByCustomer(user.id),
                 paymentRepository.getPaymentsByCustomer(user.id),
                 reviewRepository.getReviewsByCustomer(user.id),
-                walletTransactionRepository.getTransactions()
+                walletTransactionRepository.getTransactions(user.id)
             ) { orders, payments, reviews, transactions ->
                 val orderItems = orders.map { it.toHistoryItem() }
                 val paymentItems = payments.map { it.toHistoryItem() }

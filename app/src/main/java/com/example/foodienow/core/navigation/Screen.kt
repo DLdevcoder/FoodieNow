@@ -45,4 +45,7 @@ sealed class Screen(val route: String) {
     // Shipper
     object ShipperHome : Screen("shipper_home_screen")
     object ShipperEarnings : Screen("shipper_earnings_screen")
+
+    // Admin
+    object AdminDashboard : Screen("admin_dashboard_screen")
 }

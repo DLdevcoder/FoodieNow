@@ -8,6 +8,7 @@ import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.domain.model.UserRole
 import com.example.foodienow.domain.payment.WalletPaymentGateway
 import com.example.foodienow.domain.repository.AuthRepository
+import com.example.foodienow.domain.repository.ProfileRepository
 import com.example.foodienow.data.repository.MockWalletTransactionRepository
 import com.example.foodienow.data.repository.PaymentSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +34,7 @@ data class WalletUiState(
 @HiltViewModel
 class WalletViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val profileRepository: ProfileRepository,
     private val walletPaymentGateway: WalletPaymentGateway,
     private val walletTransactionRepository: MockWalletTransactionRepository,
     private val paymentSettingsRepository: PaymentSettingsRepository
@@ -61,14 +63,36 @@ class WalletViewModel @Inject constructor(
 
     private fun loadTransactions() {
         viewModelScope.launch {
-            walletTransactionRepository.getTransactions().collect { list ->
-                _uiState.update { it.copy(transactions = list) }
+            var activeJob: kotlinx.coroutines.Job? = null
+            authRepository.getAuthState().collect { user ->
+                activeJob?.cancel()
+                if (user != null) {
+                    activeJob = launch {
+                        walletTransactionRepository.getTransactions(user.id).collect { list ->
+                            _uiState.update { it.copy(transactions = list) }
+                        }
+                    }
+                } else {
+                    _uiState.update { it.copy(transactions = emptyList()) }
+                }
             }
         }
     }
 
     private fun loadBalanceAndRole() {
         viewModelScope.launch {
+            val initialUser = authRepository.getAuthState().firstOrNull()
+            if (initialUser != null) {
+                try {
+                    profileRepository.getProfile(initialUser.id).collect { profile ->
+                        if (profile != null) {
+                            authRepository.updateSessionFinancials(profile.balance, profile.rewardPoints)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
             authRepository.getAuthState().collect { user ->
                 if (user != null) {
                     _uiState.update { it.copy(balance = user.balance, userRole = user.role) }
@@ -103,6 +127,7 @@ class WalletViewModel @Inject constructor(
                 val updateResult = authRepository.updateBalance(amount)
                 updateResult.onSuccess { updatedUser ->
                     walletTransactionRepository.addTransaction(
+                        user.id,
                         WalletTransaction(
                             id = "TXN-${System.currentTimeMillis()}",
                             type = WalletTransactionType.TOP_UP,
@@ -161,6 +186,7 @@ class WalletViewModel @Inject constructor(
             val updateResult = authRepository.updateBalance(-amount)
             updateResult.onSuccess { updatedUser ->
                 walletTransactionRepository.addTransaction(
+                    user.id,
                     WalletTransaction(
                         id = "TXN-${System.currentTimeMillis()}",
                         type = WalletTransactionType.WITHDRAW,

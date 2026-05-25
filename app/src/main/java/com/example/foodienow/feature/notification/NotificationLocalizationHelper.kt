@@ -66,9 +66,11 @@ object NotificationLocalizationHelper {
                     )
                 }
                 "ORDER_CANCELLED" -> {
+                    val isRefunded = json["is_refunded"]?.jsonPrimitive?.content == "true"
+                    val suffix = if (isRefunded) context.getString(R.string.payment_vm_notify_failure_refund_suffix) else ""
                     Pair(
                         context.getString(R.string.notification_title_order_cancelled),
-                        context.getString(R.string.notification_body_order_cancelled)
+                        context.getString(R.string.notification_body_order_cancelled) + suffix
                     )
                 }
                 "NEW_REVIEW" -> {
@@ -127,7 +129,15 @@ object NotificationLocalizationHelper {
             "TXT_ORDER_PREPARING" -> context.getString(R.string.notification_body_order_preparing)
             "TXT_ORDER_DELIVERING" -> context.getString(R.string.notification_body_order_delivering)
             "TXT_ORDER_COMPLETED" -> context.getString(R.string.notification_body_order_completed)
-            "TXT_ORDER_CANCELLED" -> context.getString(R.string.notification_body_order_cancelled)
+            "TXT_ORDER_CANCELLED" -> {
+                val isRefunded = try {
+                    Json.parseToJsonElement(messagePayload).jsonObject["is_refunded"]?.jsonPrimitive?.content == "true"
+                } catch (e: Exception) {
+                    false
+                }
+                val suffix = if (isRefunded) context.getString(R.string.payment_vm_notify_failure_refund_suffix) else ""
+                context.getString(R.string.notification_body_order_cancelled) + suffix
+            }
             "TXT_ORDER_DRIVER_ASSIGNED" -> context.getString(R.string.notification_body_order_driver_assigned)
             "TXT_SHIPPER_NEW_ORDER" -> context.getString(R.string.notification_body_shipper_new_order)
             "TXT_ORDER_CANCELLED_SHIPPER" -> context.getString(R.string.notification_body_order_cancelled_shipper)

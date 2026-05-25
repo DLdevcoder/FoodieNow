@@ -376,10 +376,10 @@ private fun ActivityHistoryCard(item: ActivityHistoryItem) {
             }
         }
         ActivityType.WALLET_TRANSACTION -> {
-            if (item.transactionType == WalletTransactionType.TOP_UP) {
-                stringResource(R.string.activity_history_wallet_top_up_title)
-            } else {
-                stringResource(R.string.activity_history_wallet_payment_title)
+            when (item.transactionType) {
+                WalletTransactionType.TOP_UP -> stringResource(R.string.activity_history_wallet_top_up_title)
+                WalletTransactionType.REFUND -> stringResource(R.string.activity_history_wallet_refund_title)
+                else -> stringResource(R.string.activity_history_wallet_payment_title)
             }
         }
     }
@@ -401,7 +401,8 @@ private fun ActivityHistoryCard(item: ActivityHistoryItem) {
             item.comment ?: ""
         )
         ActivityType.WALLET_TRANSACTION -> {
-            val amountFormatted = if (item.transactionType == WalletTransactionType.TOP_UP) {
+            val amountFormatted = if (item.transactionType == WalletTransactionType.TOP_UP ||
+                item.transactionType == WalletTransactionType.REFUND) {
                 "+" + (item.amount?.formatPrice() ?: "-")
             } else {
                 "-" + (item.amount?.formatPrice() ?: "-")
