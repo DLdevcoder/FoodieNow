@@ -3,6 +3,7 @@ package com.example.foodienow.feature.admin
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,6 +41,8 @@ import com.example.foodienow.core.designsystem.theme.SuccessGreen
 import com.example.foodienow.core.designsystem.theme.ErrorRed
 import com.example.foodienow.core.designsystem.theme.InfoBlue
 import com.example.foodienow.core.designsystem.theme.AmberTertiary
+import com.example.foodienow.core.designsystem.theme.PromoGradientStart
+import com.example.foodienow.core.designsystem.theme.PromoGradientEnd
 import com.example.foodienow.domain.model.AdminAccountStats
 import com.example.foodienow.domain.model.AdminFinancialStats
 import com.example.foodienow.domain.model.AdminProfileStats
@@ -362,16 +365,33 @@ fun AdminDashboardScreen(
         containerColor = FoodieCream,
         topBar = {
             if (activeTab != 2) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = if (activeTab == 0) "Quản lý tài khoản" else "Quản lý dòng tiền",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(PromoGradientStart, MaterialTheme.colorScheme.primary, PromoGradientEnd)
+                            )
                         )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = FoodieCream)
-                )
+                ) {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = if (activeTab == 0) "Quản lý tài khoản" else "Quản lý dòng tiền",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                color = Color.White
+                            )
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                            titleContentColor = Color.White,
+                            navigationIconContentColor = Color.White,
+                            actionIconContentColor = Color.White
+                        ),
+                        modifier = Modifier.statusBarsPadding()
+                    )
+                }
             }
         },
         bottomBar = {
@@ -433,7 +453,7 @@ fun AdminDashboardScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = paddingValues.calculateTopPadding())
+                            .padding(top = paddingValues.calculateTopPadding() + 16.dp)
                             .padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
@@ -472,6 +492,7 @@ fun AdminDashboardScreen(
                             formatter = formatter,
                             onSearchQueryChanged = { viewModel.updateSearchQuery(it) },
                             onRoleFilterChanged = { viewModel.updateRoleFilter(it) },
+                            onSearchCriteriaChanged = { viewModel.updateSearchCriteria(it) },
                             onEditBalanceRequested = { profile ->
                                 showDetailUserDialog = profile
                             },
@@ -486,7 +507,7 @@ fun AdminDashboardScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = paddingValues.calculateTopPadding())
+                            .padding(top = paddingValues.calculateTopPadding() + 16.dp)
                             .padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
@@ -920,6 +941,7 @@ private fun AccountsTabContent(
     formatter: NumberFormat,
     onSearchQueryChanged: (String) -> Unit,
     onRoleFilterChanged: (UserRole?) -> Unit,
+    onSearchCriteriaChanged: (SearchCriteria) -> Unit,
     onEditBalanceRequested: (AdminProfileStats) -> Unit,
     onRefresh: () -> Unit
 ) {
@@ -936,13 +958,6 @@ private fun AccountsTabContent(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Phân bổ tài khoản",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
                     AccountPieChart(accountStats = uiState.accountStats)
                 }
             }
@@ -974,35 +989,139 @@ private fun AccountsTabContent(
         }
 
         item {
+            var showRoleMenu by remember { mutableStateOf(false) }
+            var showCriteriaMenu by remember { mutableStateOf(false) }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val roles = listOf(null) + UserRole.entries
-                roles.forEach { role ->
-                    val isSelected = uiState.selectedRoleFilter == role
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { onRoleFilterChanged(role) },
-                        label = {
+                Box(modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .clickable { showRoleMenu = true }
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = when (role) {
-                                    null -> "Tất cả"
-                                    UserRole.CUSTOMER -> "User"
-                                    UserRole.MERCHANT -> "Store"
-                                    UserRole.SHIPPER -> "Shipper"
-                                    UserRole.ADMIN -> "Admin"
+                                text = when (uiState.selectedRoleFilter) {
+                                    null -> "Vai trò: Tất cả"
+                                    UserRole.CUSTOMER -> "Vai trò: User"
+                                    UserRole.MERCHANT -> "Vai trò: Store"
+                                    UserRole.SHIPPER -> "Vai trò: Shipper"
+                                    UserRole.ADMIN -> "Vai trò: Admin"
                                 },
-                                fontSize = 11.sp
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = OrangePrimary.copy(alpha = 0.15f),
-                            selectedLabelColor = OrangePrimary
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.height(32.dp)
-                    )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = showRoleMenu,
+                        onDismissRequest = { showRoleMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Tất cả", fontSize = 13.sp) },
+                            onClick = {
+                                onRoleFilterChanged(null)
+                                showRoleMenu = false
+                            }
+                        )
+                        UserRole.entries.forEach { role ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = when (role) {
+                                            UserRole.CUSTOMER -> "User"
+                                            UserRole.MERCHANT -> "Store"
+                                            UserRole.SHIPPER -> "Shipper"
+                                            UserRole.ADMIN -> "Admin"
+                                        },
+                                        fontSize = 13.sp
+                                    )
+                                },
+                                onClick = {
+                                    onRoleFilterChanged(role)
+                                    showRoleMenu = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Box(modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .clickable { showCriteriaMenu = true }
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = when (uiState.searchCriteria) {
+                                    SearchCriteria.ALL -> "Tìm theo: Tất cả"
+                                    SearchCriteria.NAME -> "Tìm theo: Tên"
+                                    SearchCriteria.EMAIL -> "Tìm theo: Email"
+                                    SearchCriteria.ID -> "Tìm theo: ID"
+                                },
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = showCriteriaMenu,
+                        onDismissRequest = { showCriteriaMenu = false }
+                    ) {
+                        SearchCriteria.entries.forEach { criteria ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = when (criteria) {
+                                            SearchCriteria.ALL -> "Tất cả"
+                                            SearchCriteria.NAME -> "Tên"
+                                            SearchCriteria.EMAIL -> "Email"
+                                            SearchCriteria.ID -> "ID"
+                                        },
+                                        fontSize = 13.sp
+                                    )
+                                },
+                                onClick = {
+                                    onSearchCriteriaChanged(criteria)
+                                    showCriteriaMenu = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -1113,8 +1232,9 @@ private fun AccountPieChart(
     accountStats: List<AdminAccountStats>,
     modifier: Modifier = Modifier
 ) {
-    val totalUsers = accountStats.sumOf { it.totalUsers }
-    val entries = accountStats.filter { it.totalUsers > 0 }
+    val nonAdminStats = accountStats.filter { it.role != UserRole.ADMIN }
+    val totalUsers = nonAdminStats.sumOf { it.totalUsers }
+    val entries = nonAdminStats.filter { it.totalUsers > 0 }
     
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -1184,7 +1304,7 @@ private fun AccountPieChart(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.weight(1f)
         ) {
-            UserRole.entries.forEach { role ->
+            UserRole.entries.filter { it != UserRole.ADMIN }.forEach { role ->
                 val stats = accountStats.find { it.role == role }
                 val count = stats?.totalUsers ?: 0
                 val color = when (role) {

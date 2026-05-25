@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class SearchCriteria {
+    ALL, NAME, EMAIL, ID
+}
+
 data class AdminUiState(
     val isFinancialLoading: Boolean = false,
     val financialStats: List<AdminFinancialStats> = emptyList(),
@@ -27,6 +31,7 @@ data class AdminUiState(
     val filteredProfiles: List<AdminProfileStats> = emptyList(),
     val searchQuery: String = "",
     val selectedRoleFilter: UserRole? = null,
+    val searchCriteria: SearchCriteria = SearchCriteria.ALL,
     val isActionProcessing: Boolean = false,
     val successMessage: String? = null,
     val errorMessage: String? = null,
@@ -186,6 +191,11 @@ class AdminViewModel @Inject constructor(
         applyFilters()
     }
 
+    fun updateSearchCriteria(criteria: SearchCriteria) {
+        _uiState.update { it.copy(searchCriteria = criteria) }
+        applyFilters()
+    }
+
     fun updateUserBalance(userId: String, newBalance: Long) {
         if (newBalance < 0) {
             _uiState.update { it.copy(errorMessage = "Số dư không được là số âm.") }
@@ -224,7 +234,12 @@ class AdminViewModel @Inject constructor(
         if (current.searchQuery.isNotBlank()) {
             val q = current.searchQuery.trim().lowercase()
             list = list.filter {
-                it.fullName.lowercase().contains(q) || it.email.lowercase().contains(q) || it.id.lowercase().contains(q)
+                when (current.searchCriteria) {
+                    SearchCriteria.ALL -> it.fullName.lowercase().contains(q) || it.email.lowercase().contains(q) || it.id.lowercase().contains(q)
+                    SearchCriteria.NAME -> it.fullName.lowercase().contains(q)
+                    SearchCriteria.EMAIL -> it.email.lowercase().contains(q)
+                    SearchCriteria.ID -> it.id.lowercase().contains(q)
+                }
             }
         }
 

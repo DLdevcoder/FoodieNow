@@ -226,7 +226,9 @@ fun PaymentScreen(
         subtotal = subtotal,
         voucherDiscount = discountAmount,
         rewardPointsAvailable = uiState.rewardPointsAvailable,
-        useRewardPoints = useRewardPoints
+        useRewardPoints = useRewardPoints,
+        baseDeliveryFee = uiState.baseDeliveryFee,
+        freeDeliveryThreshold = uiState.freeDeliveryThreshold
     )
     val deliveryFee = totals.deliveryFee
     val pointsDiscount = totals.pointsDiscount

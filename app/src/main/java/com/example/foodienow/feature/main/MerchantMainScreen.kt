@@ -22,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -59,6 +61,32 @@ fun MerchantMainScreen(
     val ordersState by merchantOrdersViewModel.uiState.collectAsState()
     val notificationState by notificationViewModel.uiState.collectAsState()
 
+    var hasViewedOrders by remember { mutableStateOf(selectedTab == 0) }
+    var hasViewedNotifications by remember { mutableStateOf(selectedTab == 3) }
+
+    var lastPendingOrdersMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    val currentPendingOrdersMap = ordersState.orders
+        .filter { it.status == OrderStatus.PENDING }
+        .associate { (it.id ?: "") to it.status.name }
+
+    LaunchedEffect(currentPendingOrdersMap) {
+        val hasChanges = currentPendingOrdersMap.any { (id, status) ->
+            lastPendingOrdersMap[id] != status
+        }
+        if (hasChanges) {
+            hasViewedOrders = false
+        }
+        lastPendingOrdersMap = currentPendingOrdersMap
+    }
+
+    var lastUnreadCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(notificationState.unreadCount) {
+        if (notificationState.unreadCount > lastUnreadCount) {
+            hasViewedNotifications = false
+        }
+        lastUnreadCount = notificationState.unreadCount
+    }
+
     LaunchedEffect(Unit) {
         viewModel.loadUnreadMessageCount()
     }
@@ -79,8 +107,8 @@ fun MerchantMainScreen(
 
                 tabs.forEach { (icon, label, index) ->
                     val showBadge = when (index) {
-                        0 -> ordersState.orders.any { it.status == OrderStatus.PENDING }
-                        3 -> notificationState.unreadCount > 0
+                        0 -> currentPendingOrdersMap.isNotEmpty() && !hasViewedOrders && selectedTab != 0
+                        3 -> notificationState.unreadCount > 0 && !hasViewedNotifications && selectedTab != 3
                         else -> false
                     }
                     NavigationBarItem(
@@ -107,7 +135,15 @@ fun MerchantMainScreen(
                             )
                         },
                         selected = selectedTab == index,
-                        onClick = { selectedTab = index },
+                        onClick = {
+                            selectedTab = index
+                            if (index == 0) {
+                                hasViewedOrders = true
+                            }
+                            if (index == 3) {
+                                hasViewedNotifications = true
+                            }
+                        },
                         alwaysShowLabel = false,
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,

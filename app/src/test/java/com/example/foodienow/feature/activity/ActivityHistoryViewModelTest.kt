@@ -13,6 +13,7 @@ import com.example.foodienow.domain.model.User
 import com.example.foodienow.domain.model.UserRole
 import com.example.foodienow.domain.model.WalletTransaction
 import com.example.foodienow.domain.model.WalletTransactionType
+import com.example.foodienow.domain.model.SystemSetting
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import com.example.foodienow.domain.repository.PaymentRepository
@@ -229,6 +230,9 @@ class ActivityHistoryViewModelTest {
         override suspend fun getOrderItemsByOrderId(orderId: String): List<OrderItemUiModel> = TODO()
         override suspend fun updateShipperLocation(orderId: String, lat: Double, lng: Double): Result<Unit> = TODO()
         override suspend fun getOrderById(orderId: String): Order? = TODO()
+        override suspend fun confirmShipperDelivery(orderId: String): Result<Unit> = TODO()
+        override suspend fun confirmCustomerReceipt(orderId: String): Result<Unit> = TODO()
+        override suspend fun checkAndCompleteOrder(orderId: String): Result<Unit> = TODO()
     }
 
     private class FakePaymentRepository : PaymentRepository {
@@ -237,6 +241,7 @@ class ActivityHistoryViewModelTest {
         override suspend fun createPayment(payment: Payment): Result<Payment> = TODO()
         override suspend fun processPaymentAtomic(request: AtomicPaymentRequest): Result<AtomicPaymentResult> = TODO()
         override fun getPaymentsByCustomer(customerId: String): Flow<List<Payment>> = paymentsFlow
+        override suspend fun getSystemSettings(): Result<List<SystemSetting>> = Result.success(emptyList())
     }
 
     private class FakeReviewRepository : ReviewRepository {

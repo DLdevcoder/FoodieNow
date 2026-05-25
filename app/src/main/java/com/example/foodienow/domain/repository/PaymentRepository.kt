@@ -3,6 +3,7 @@ package com.example.foodienow.domain.repository
 import com.example.foodienow.domain.model.Payment
 import com.example.foodienow.domain.model.PaymentMethod
 import com.example.foodienow.domain.model.WalletProvider
+import com.example.foodienow.domain.model.SystemSetting
 import kotlinx.coroutines.flow.Flow
 
 data class PaymentLineItem(
@@ -43,5 +44,8 @@ interface PaymentRepository {
     suspend fun processPaymentAtomic(request: AtomicPaymentRequest): Result<AtomicPaymentResult>
 
     fun getPaymentsByCustomer(customerId: String): Flow<List<Payment>>
+
+    suspend fun getSystemSettings(): Result<List<SystemSetting>>
 }
+
 

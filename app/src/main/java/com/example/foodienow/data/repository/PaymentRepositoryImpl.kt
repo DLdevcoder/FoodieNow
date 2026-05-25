@@ -22,6 +22,8 @@ import org.json.JSONObject
 import java.math.BigDecimal
 import javax.inject.Inject
 
+import com.example.foodienow.domain.model.SystemSetting
+
 class PaymentRepositoryImpl @Inject constructor(
     private val supabaseClient: SupabaseClient
 ) : PaymentRepository {
@@ -69,6 +71,17 @@ class PaymentRepositoryImpl @Inject constructor(
             }
             .decodeList<Payment>()
         emit(payments)
+    }
+
+    override suspend fun getSystemSettings(): Result<List<SystemSetting>> = withContext(Dispatchers.IO) {
+        try {
+            val list = supabaseClient.postgrest["system_settings"]
+                .select()
+                .decodeList<SystemSetting>()
+            Result.success(list)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
 

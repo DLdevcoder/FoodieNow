@@ -16,13 +16,15 @@ object PaymentTotalsCalculator {
         subtotal: Long,
         voucherDiscount: Long,
         rewardPointsAvailable: Int,
-        useRewardPoints: Boolean
+        useRewardPoints: Boolean,
+        baseDeliveryFee: Long = STANDARD_DELIVERY_FEE,
+        freeDeliveryThreshold: Long = FREE_DELIVERY_THRESHOLD
     ): PaymentTotals {
         val normalizedSubtotal = subtotal.coerceAtLeast(0L)
-        val deliveryFee = if (normalizedSubtotal > FREE_DELIVERY_THRESHOLD) {
+        val deliveryFee = if (normalizedSubtotal > freeDeliveryThreshold) {
             0L
         } else {
-            STANDARD_DELIVERY_FEE
+            baseDeliveryFee
         }
         val discountAmount = voucherDiscount.coerceIn(0L, normalizedSubtotal)
         val payableBeforePoints = (normalizedSubtotal + deliveryFee - discountAmount).coerceAtLeast(0L)
