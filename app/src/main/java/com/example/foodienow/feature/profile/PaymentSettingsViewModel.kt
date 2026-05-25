@@ -3,6 +3,8 @@ package com.example.foodienow.feature.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodienow.data.repository.PaymentSettingsRepository
+import com.example.foodienow.domain.repository.AuthRepository
+import com.example.foodienow.domain.model.UserRole
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,12 +16,14 @@ import javax.inject.Inject
 data class PaymentSettingsUiState(
     val isSaving: Boolean = false,
     val infoMessage: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val userRole: UserRole? = null
 )
 
 @HiltViewModel
 class PaymentSettingsViewModel @Inject constructor(
-    private val paymentSettingsRepository: PaymentSettingsRepository
+    private val paymentSettingsRepository: PaymentSettingsRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     val settings = paymentSettingsRepository.settings
     private val _uiState = MutableStateFlow(PaymentSettingsUiState())
@@ -33,6 +37,11 @@ class PaymentSettingsViewModel @Inject constructor(
                         it.copy(errorMessage = error.message ?: "Khong the tai cai dat thanh toan.")
                     }
                 }
+        }
+        viewModelScope.launch {
+            authRepository.getAuthState().collect { user ->
+                _uiState.update { it.copy(userRole = user?.role) }
+            }
         }
     }
     

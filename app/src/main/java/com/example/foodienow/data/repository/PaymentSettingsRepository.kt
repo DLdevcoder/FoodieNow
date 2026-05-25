@@ -56,11 +56,11 @@ class PaymentSettingsRepository @Inject constructor(
                 if (!legacyResponse.isSuccess) {
                     throw Exception(SupabaseRest.parseErrorMessage(response.body))
                 }
-                return@runCatching readSettingsResponse(legacyResponse.body)
+                return@runCatching readSettingsResponse(legacyResponse.body, user.role)
                     .also { _settings.value = it }
             }
 
-            readSettingsResponse(response.body).also { _settings.value = it }
+            readSettingsResponse(response.body, user.role).also { _settings.value = it }
         }
     }
 
@@ -70,6 +70,10 @@ class PaymentSettingsRepository @Inject constructor(
                 ?: return@withContext Result.failure(Exception("No user logged in"))
 
             runCatching {
+                if (user.role == com.example.foodienow.domain.model.UserRole.ADMIN && optionId == PaymentMethodCatalog.COD_ID) {
+                    throw IllegalArgumentException("Admin không thể sử dụng phương thức thanh toán bằng tiền mặt (COD).")
+                }
+
                 val option = PaymentMethodCatalog.optionFor(optionId)
                     ?: throw IllegalArgumentException("Phuong thuc thanh toan khong hop le.")
 
@@ -83,7 +87,8 @@ class PaymentSettingsRepository @Inject constructor(
                     accessToken = user.token,
                     method = option.method,
                     provider = option.provider ?: current.defaultProvider,
-                    methodInfos = current.methodInfos
+                    methodInfos = current.methodInfos,
+                    role = user.role
                 )
             }
         }
@@ -128,7 +133,8 @@ class PaymentSettingsRepository @Inject constructor(
                 accessToken = user.token,
                 method = current.defaultMethod,
                 provider = current.defaultProvider,
-                methodInfos = current.methodInfos + (optionId to info)
+                methodInfos = current.methodInfos + (optionId to info),
+                role = user.role
             )
         }
     }
@@ -153,7 +159,11 @@ class PaymentSettingsRepository @Inject constructor(
                     provider = current.defaultProvider
                 )
                 val nextMethod = if (currentDefaultId == optionId) {
-                    PaymentMethod.COD
+                    if (user.role == com.example.foodienow.domain.model.UserRole.ADMIN) {
+                        PaymentMethod.FOODIE_PAY
+                    } else {
+                        PaymentMethod.COD
+                    }
                 } else {
                     current.defaultMethod
                 }
@@ -164,7 +174,8 @@ class PaymentSettingsRepository @Inject constructor(
                     accessToken = user.token,
                     method = nextMethod,
                     provider = nextProvider,
-                    methodInfos = updatedInfos
+                    methodInfos = updatedInfos,
+                    role = user.role
                 )
             }
         }
@@ -180,12 +191,12 @@ class PaymentSettingsRepository @Inject constructor(
         accessToken = accessToken
     )
 
-    private fun readSettingsResponse(body: String): PaymentSettingsState {
+    private fun readSettingsResponse(body: String, role: com.example.foodienow.domain.model.UserRole): PaymentSettingsState {
         val records = JSONArray(body)
         return if (records.length() == 0) {
-            PaymentSettingsState(isLoaded = true)
+            PaymentSettingsState(isLoaded = true).withValidDefault(role)
         } else {
-            records.getJSONObject(0).toPaymentSettingsState()
+            records.getJSONObject(0).toPaymentSettingsState(role)
         }
     }
 
@@ -194,7 +205,8 @@ class PaymentSettingsRepository @Inject constructor(
         accessToken: String,
         method: PaymentMethod,
         provider: WalletProvider,
-        methodInfos: Map<String, PaymentMethodInfo>
+        methodInfos: Map<String, PaymentMethodInfo>,
+        role: com.example.foodienow.domain.model.UserRole?
     ): PaymentSettingsState {
         val body = JSONObject()
             .put("user_id", userId)
@@ -221,16 +233,16 @@ class PaymentSettingsRepository @Inject constructor(
                 defaultProvider = provider,
                 methodInfos = methodInfos,
                 isLoaded = true
-            ).withValidDefault()
+            ).withValidDefault(role)
         } else {
-            records.getJSONObject(0).toPaymentSettingsState()
+            records.getJSONObject(0).toPaymentSettingsState(role)
         }
 
         _settings.value = updated
         return updated
     }
 
-    private fun JSONObject.toPaymentSettingsState(): PaymentSettingsState {
+    private fun JSONObject.toPaymentSettingsState(role: com.example.foodienow.domain.model.UserRole?): PaymentSettingsState {
         val method = runCatching {
             PaymentMethod.valueOf(optString("default_method").uppercase())
         }.getOrDefault(PaymentMethod.COD)
@@ -244,12 +256,14 @@ class PaymentSettingsRepository @Inject constructor(
             defaultProvider = provider,
             methodInfos = optJSONObject("method_infos").toPaymentMethodInfoMap(),
             isLoaded = true
-        ).withValidDefault()
+        ).withValidDefault(role)
     }
 
-    private fun PaymentSettingsState.withValidDefault(): PaymentSettingsState {
+    private fun PaymentSettingsState.withValidDefault(role: com.example.foodienow.domain.model.UserRole?): PaymentSettingsState {
         val defaultOptionId = PaymentMethodCatalog.optionIdFor(defaultMethod, defaultProvider)
-        return if (isOptionAvailable(defaultOptionId)) {
+        return if (role == com.example.foodienow.domain.model.UserRole.ADMIN && defaultMethod == PaymentMethod.COD) {
+            copy(defaultMethod = PaymentMethod.FOODIE_PAY)
+        } else if (isOptionAvailable(defaultOptionId)) {
             this
         } else {
             copy(defaultMethod = PaymentMethod.COD)

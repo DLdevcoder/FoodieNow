@@ -26,8 +26,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,6 +75,16 @@ fun WalletScreen(
         if (selectedWithdrawWallet.isEmpty() && uiState.linkedWallets.isNotEmpty()) {
             selectedWithdrawWallet = uiState.linkedWallets.first()
         }
+        if (uiState.linkedWallets.isNotEmpty()) {
+            val firstLinked = uiState.linkedWallets.first()
+            selectedProvider = when (firstLinked) {
+                "momo" -> WalletProvider.MOMO
+                "zalopay" -> WalletProvider.ZALOPAY
+                "vnpay" -> WalletProvider.VNPAY
+                "paypal" -> WalletProvider.PAYPAL
+                else -> WalletProvider.MOMO
+            }
+        }
     }
 
     LaunchedEffect(uiState.successMessage) {
@@ -96,16 +111,29 @@ fun WalletScreen(
         containerColor = FoodieCream,
         topBar = {
             TopAppBar(
-                title = { Text("Ví FoodiePay", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
+                title = { Text("Ví FoodiePay", fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, color = Color(0xFF1F1B18)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .border(BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.5f)), CircleShape)
+                            .clickable { onBack() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Quay lại",
+                            tint = Color(0xFF1F1B18),
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = FoodieCream,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                    titleContentColor = Color(0xFF1F1B18)
                 )
             )
         }
@@ -118,18 +146,19 @@ fun WalletScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(190.dp)
+                        .height(210.dp)
+                        .shadow(elevation = 16.dp, shape = RoundedCornerShape(24.dp), clip = false)
                         .clip(RoundedCornerShape(24.dp))
                         .background(
                             brush = Brush.linearGradient(
                                 colors = listOf(
-                                    OrangePrimary,
-                                    Color(0xFFFF8C42),
-                                    Color(0xFFF25C54)
+                                    Color(0xFFFF5A1F),
+                                    Color(0xFFFF8E3C),
+                                    Color(0xFFFF0055)
                                 )
                             )
                         )
@@ -137,14 +166,14 @@ fun WalletScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(150.dp)
-                            .offset(x = 180.dp, y = (-50).dp)
-                            .background(Color.White.copy(alpha = 0.08f), CircleShape)
+                            .size(160.dp)
+                            .offset(x = 180.dp, y = (-60).dp)
+                            .background(Color.White.copy(alpha = 0.1f), CircleShape)
                     )
                     Box(
                         modifier = Modifier
-                            .size(100.dp)
-                            .offset(x = 220.dp, y = 80.dp)
+                            .size(120.dp)
+                            .offset(x = 220.dp, y = 90.dp)
                             .background(Color.White.copy(alpha = 0.05f), CircleShape)
                     )
                     
@@ -162,73 +191,65 @@ fun WalletScreen(
                                     text = "FOODIE PAY",
                                     color = Color.White,
                                     fontWeight = FontWeight.Black,
-                                    fontSize = 18.sp,
+                                    fontSize = 20.sp,
                                     letterSpacing = 2.sp
                                 )
                                 Text(
-                                    text = "Premium Account Wallet",
+                                    text = "Platinum Card",
                                     color = Color.White.copy(alpha = 0.7f),
                                     fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
-                            Icon(
-                                imageVector = Icons.Default.AccountBalanceWallet,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(32.dp)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(width = 44.dp, height = 30.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFFF39C12))
+                                    .border(1.5.dp, Color(0xFFF1C40F), RoundedCornerShape(6.dp))
+                            ) {
+                                Row(modifier = Modifier.fillMaxSize()) {
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().border(0.5.dp, Color(0xFFD68910).copy(alpha = 0.4f)))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().border(0.5.dp, Color(0xFFD68910).copy(alpha = 0.4f)))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().border(0.5.dp, Color(0xFFD68910).copy(alpha = 0.4f)))
+                                }
+                            }
                         }
                         
                         Column {
                             Text(
                                 text = "SỐ DƯ KHẢ DỤNG",
-                                color = Color.White.copy(alpha = 0.6f),
+                                color = Color.White.copy(alpha = 0.7f),
                                 fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.5.sp
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = formatter.format(uiState.balance),
                                 color = Color.White,
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.ExtraBold
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 0.5.sp
                             )
-                        }
-                    }
-                }
-            }
-
-            if (uiState.userRole == UserRole.MERCHANT || uiState.userRole == UserRole.SHIPPER) {
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White, RoundedCornerShape(12.dp))
-                            .padding(4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        val tabs = listOf("Nạp tiền", "Rút tiền")
-                        tabs.forEachIndexed { index, label ->
-                            val isSelected = activeTab == index
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(if (isSelected) OrangePrimary else Color.Transparent)
-                                    .clickable {
-                                        activeTab = index
-                                        viewModel.clearMessages()
-                                    }
-                                    .padding(vertical = 10.dp),
-                                contentAlignment = Alignment.Center
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = label,
-                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    text = "•••• •••• •••• 8888",
+                                    color = Color.White.copy(alpha = 0.8f),
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
+                                    letterSpacing = 1.sp
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.CreditCard,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
@@ -236,234 +257,371 @@ fun WalletScreen(
                 }
             }
 
-            if (activeTab == 0 || uiState.userRole == UserRole.CUSTOMER) {
+            if (uiState.userRole == UserRole.CUSTOMER || uiState.userRole == UserRole.MERCHANT || uiState.userRole == UserRole.SHIPPER || uiState.userRole == UserRole.ADMIN) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            text = "Nạp tiền vào ví",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            val presets = listOf(50000L, 100000L, 200000L, 500000L)
-                            presets.forEach { preset ->
-                                val isSelected = topUpAmountText == preset.toString()
-                                Card(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable {
-                                            topUpAmountText = preset.toString()
-                                            viewModel.clearMessages()
-                                        },
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = if (isSelected) OrangePrimary else Color.White
-                                    ),
-                                    border = BorderStroke(
-                                        width = 1.dp,
-                                        color = if (isSelected) OrangePrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
-                                    ),
-                                    shape = RoundedCornerShape(12.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(Color.White)
+                            .border(BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.4f)), RoundedCornerShape(18.dp))
+                            .padding(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val tabs = listOf("Nạp tiền", "Rút tiền")
+                        tabs.forEachIndexed { index, label ->
+                            val isSelected = activeTab == index
+                            val backgroundModifier = if (isSelected) {
+                                Modifier
+                                    .weight(1f)
+                                    .shadow(elevation = 6.dp, shape = RoundedCornerShape(14.dp))
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                Color(0xFFFF5A1F),
+                                                Color(0xFFFF8E3C)
+                                            )
+                                        ),
+                                        shape = RoundedCornerShape(14.dp)
+                                    )
+                            } else {
+                                Modifier
+                                    .weight(1f)
+                                    .background(Color.Transparent)
+                            }
+
+                            Box(
+                                modifier = backgroundModifier
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .clickable {
+                                        activeTab = index
+                                        viewModel.clearMessages()
+                                    }
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    color = if (isSelected) Color.White else Color(0xFF5E534B),
+                                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    letterSpacing = 0.5.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (activeTab == 0) {
+                if (uiState.linkedWallets.isEmpty()) {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Text(
+                                text = "Nạp tiền vào ví",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF1F1B18),
+                                letterSpacing = 0.5.sp
+                            )
+                            Card(
+                                modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(18.dp)),
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                border = BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.5f)),
+                                shape = RoundedCornerShape(18.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(14.dp)
                                 ) {
+                                    Text(
+                                        text = "Bạn chưa liên kết ví điện tử nào để nạp tiền.",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF5E534B),
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Button(
+                                        onClick = onNavigateToPaymentSettings,
+                                        modifier = Modifier.height(46.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text("Liên kết ngay", fontWeight = FontWeight.ExtraBold, color = Color.White, fontSize = 14.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Text(
+                                text = "Nạp tiền vào ví",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF1F1B18),
+                                letterSpacing = 0.5.sp
+                            )
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                val presets = listOf(50000L, 100000L, 200000L, 500000L)
+                                presets.forEach { preset ->
+                                    val isSelected = topUpAmountText == preset.toString()
                                     Box(
                                         modifier = Modifier
-                                            .fillMaxWidth()
+                                            .weight(1f)
+                                            .shadow(elevation = if (isSelected) 6.dp else 1.dp, shape = RoundedCornerShape(16.dp))
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(if (isSelected) OrangePrimary else Color.White)
+                                            .border(
+                                                BorderStroke(
+                                                    1.5.dp,
+                                                    if (isSelected) OrangePrimary else Color(0xFFE0D6CD).copy(alpha = 0.6f)
+                                                ),
+                                                RoundedCornerShape(16.dp)
+                                            )
+                                            .clickable {
+                                                topUpAmountText = preset.toString()
+                                                viewModel.clearMessages()
+                                            }
                                             .padding(vertical = 12.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = "${preset / 1000}K",
-                                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
-                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) Color.White else Color(0xFF1F1B18),
+                                            fontWeight = FontWeight.ExtraBold,
                                             fontSize = 14.sp
                                         )
                                     }
                                 }
                             }
-                        }
 
-                        OutlinedTextField(
-                            value = topUpAmountText,
-                            onValueChange = { value ->
-                                topUpAmountText = value.filter { it.isDigit() }
-                                viewModel.clearMessages()
-                            },
-                            label = { Text("Nhập số tiền khác cần nạp") },
-                            placeholder = { Text("Ví dụ: 100.000") },
-                            modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = OrangePrimary,
-                                focusedLabelColor = OrangePrimary,
-                                cursorColor = OrangePrimary
+                            OutlinedTextField(
+                                value = topUpAmountText,
+                                onValueChange = { value ->
+                                    topUpAmountText = value.filter { it.isDigit() }
+                                    viewModel.clearMessages()
+                                },
+                                label = { Text("Số tiền cần nạp (₫)", fontWeight = FontWeight.Bold) },
+                                placeholder = { Text("Ví dụ: 100.000") },
+                                modifier = Modifier.fillMaxWidth(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.MonetizationOn,
+                                        contentDescription = null,
+                                        tint = OrangePrimary,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                },
+                                suffix = {
+                                    Text("₫", fontWeight = FontWeight.Bold, color = OrangePrimary)
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = OrangePrimary,
+                                    focusedLabelColor = OrangePrimary,
+                                    cursorColor = OrangePrimary,
+                                    unfocusedBorderColor = Color(0xFFE0D6CD).copy(alpha = 0.8f),
+                                    focusedContainerColor = Color.White,
+                                    unfocusedContainerColor = Color.White
+                                )
                             )
-                        )
+                        }
                     }
-                }
 
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            text = "Chọn nguồn tiền thanh toán",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            WalletProvider.entries.forEach { provider ->
-                                val isSelected = selectedProvider == provider
-                                Box(
-                                    modifier = Modifier
-                                        .size(width = 100.dp, height = 72.dp)
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .background(if (isSelected) OrangePrimary.copy(alpha = 0.08f) else Color.White)
-                                        .border(
-                                            width = 1.5.dp,
-                                            color = if (isSelected) OrangePrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-                                            shape = RoundedCornerShape(14.dp)
-                                        )
-                                        .clickable { selectedProvider = provider }
-                                        .padding(8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center,
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
-                                        val iconRes = when (provider) {
-                                            WalletProvider.MOMO -> R.drawable.ic_momo
-                                            WalletProvider.ZALOPAY -> R.drawable.ic_zalopay
-                                            WalletProvider.VNPAY -> R.drawable.ic_vnpay
-                                            WalletProvider.PAYPAL -> R.drawable.ic_paypal
-                                        }
-                                        Image(
-                                            painter = painterResource(id = iconRes),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(28.dp)
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = when (provider) {
-                                                WalletProvider.MOMO -> "MoMo"
-                                                WalletProvider.ZALOPAY -> "ZaloPay"
-                                                WalletProvider.VNPAY -> "VNPAY"
-                                                WalletProvider.PAYPAL -> "PayPal"
-                                            },
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) OrangePrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            Text(
+                                text = "Chọn nguồn tiền thanh toán",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF1F1B18),
+                                letterSpacing = 0.5.sp
+                            )
+                            
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                val linkedProviders = WalletProvider.entries.filter { provider ->
+                                    val providerId = when (provider) {
+                                        WalletProvider.MOMO -> "momo"
+                                        WalletProvider.ZALOPAY -> "zalopay"
+                                        WalletProvider.VNPAY -> "vnpay"
+                                        WalletProvider.PAYPAL -> "paypal"
                                     }
-                                    
-                                    if (isSelected) {
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.TopEnd)
-                                                .size(14.dp)
-                                                .background(OrangePrimary, CircleShape),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Check,
-                                                contentDescription = null,
-                                                tint = Color.White,
-                                                modifier = Modifier.size(10.dp)
+                                    uiState.linkedWallets.contains(providerId)
+                                }
+                                linkedProviders.forEach { provider ->
+                                    val isSelected = selectedProvider == provider
+                                    Box(
+                                        modifier = Modifier
+                                            .size(width = 110.dp, height = 80.dp)
+                                            .shadow(
+                                                elevation = if (isSelected) 8.dp else 2.dp,
+                                                shape = RoundedCornerShape(16.dp)
                                             )
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(if (isSelected) Color.White else Color.White)
+                                            .border(
+                                                width = if (isSelected) 2.dp else 1.dp,
+                                                color = if (isSelected) OrangePrimary else Color(0xFFE0D6CD).copy(alpha = 0.6f),
+                                                shape = RoundedCornerShape(16.dp)
+                                            )
+                                            .clickable { selectedProvider = provider }
+                                            .padding(10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center,
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {
+                                            val iconRes = when (provider) {
+                                                WalletProvider.MOMO -> R.drawable.ic_momo
+                                                WalletProvider.ZALOPAY -> R.drawable.ic_zalopay
+                                                WalletProvider.VNPAY -> R.drawable.ic_vnpay
+                                                WalletProvider.PAYPAL -> R.drawable.ic_paypal
+                                            }
+                                            Image(
+                                                painter = painterResource(id = iconRes),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(32.dp)
+                                            )
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Text(
+                                                text = when (provider) {
+                                                    WalletProvider.MOMO -> "MoMo"
+                                                    WalletProvider.ZALOPAY -> "ZaloPay"
+                                                    WalletProvider.VNPAY -> "VNPAY"
+                                                    WalletProvider.PAYPAL -> "PayPal"
+                                                },
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = if (isSelected) OrangePrimary else Color(0xFF5E534B)
+                                            )
+                                        }
+                                        
+                                        if (isSelected) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .offset(x = 2.dp, y = (-2).dp)
+                                                    .size(18.dp)
+                                                    .background(OrangePrimary, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Check,
+                                                    contentDescription = null,
+                                                    tint = Color.White,
+                                                    modifier = Modifier.size(12.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        uiState.errorMessage?.let {
-                            Text(text = it, color = ErrorRed, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
-                        uiState.successMessage?.let { msg ->
-                            Text(text = msg, color = SuccessGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
-                        
-                        Button(
-                            onClick = {
-                                val amount = topUpAmountText.toLongOrNull() ?: 0L
-                                viewModel.topUp(amount, selectedProvider)
-                            },
-                            modifier = Modifier.fillMaxWidth().height(50.dp),
-                            enabled = !uiState.isProcessing && topUpAmountText.isNotBlank(),
-                            colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            if (uiState.isProcessing) {
-                                CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Color.White, strokeWidth = 2.5.dp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Đang xử lý nạp tiền...", fontWeight = FontWeight.Bold)
-                            } else {
-                                Icon(imageVector = Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Nạp tiền ngay", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            uiState.errorMessage?.let {
+                                Text(text = it, color = ErrorRed, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                            uiState.successMessage?.let { msg ->
+                                Text(text = msg, color = SuccessGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                            
+                            Button(
+                                onClick = {
+                                    val amount = topUpAmountText.toLongOrNull() ?: 0L
+                                    viewModel.topUp(amount, selectedProvider)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .shadow(8.dp, RoundedCornerShape(16.dp)),
+                                enabled = !uiState.isProcessing && topUpAmountText.isNotBlank(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = OrangePrimary,
+                                    disabledContainerColor = Color(0xFFE0D6CD),
+                                    contentColor = Color.White,
+                                    disabledContentColor = Color(0xFF9E938A)
+                                ),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                if (uiState.isProcessing) {
+                                    CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Color.White, strokeWidth = 2.5.dp)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Đang xử lý nạp tiền...", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                                } else {
+                                    Icon(imageVector = Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.White)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Nạp tiền ngay", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                                }
                             }
                         }
                     }
                 }
             } else {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Text(
                             text = "Rút tiền về ví liên kết",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF1F1B18),
+                            letterSpacing = 0.5.sp
                         )
                         
                         if (uiState.linkedWallets.isEmpty()) {
                             Card(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(18.dp)),
                                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
-                                shape = RoundedCornerShape(14.dp)
+                                border = BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.5f)),
+                                shape = RoundedCornerShape(18.dp)
                             ) {
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(20.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                    verticalArrangement = Arrangement.spacedBy(14.dp)
                                 ) {
                                     Text(
                                         text = "Bạn chưa liên kết ví điện tử nào để rút tiền.",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF5E534B),
                                         textAlign = TextAlign.Center
                                     )
                                     Button(
                                         onClick = onNavigateToPaymentSettings,
+                                        modifier = Modifier.height(46.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
-                                        shape = RoundedCornerShape(8.dp)
+                                        shape = RoundedCornerShape(12.dp)
                                     ) {
-                                        Text("Liên kết ngay", fontWeight = FontWeight.Bold, color = Color.White)
+                                        Text("Liên kết ngay", fontWeight = FontWeight.ExtraBold, color = Color.White, fontSize = 14.sp)
                                     }
                                 }
                             }
                         } else {
                             Text(
                                 text = "Chọn ví nhận tiền:",
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 13.sp,
+                                color = Color(0xFF5E534B)
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -478,21 +636,29 @@ fun WalletScreen(
                                         else -> walletId.uppercase()
                                     }
                                     val isSelected = selectedWithdrawWallet == walletId
-                                    OutlinedButton(
-                                        onClick = { selectedWithdrawWallet = walletId },
-                                        border = BorderStroke(
-                                            1.5.dp,
-                                            if (isSelected) OrangePrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                                        ),
-                                        colors = ButtonDefaults.outlinedButtonColors(
-                                            containerColor = if (isSelected) OrangePrimary.copy(alpha = 0.1f) else Color.Transparent,
-                                            contentColor = if (isSelected) OrangePrimary else MaterialTheme.colorScheme.onSurface
-                                        ),
-                                        shape = RoundedCornerShape(10.dp),
-                                        modifier = Modifier.weight(1f),
-                                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .shadow(elevation = if (isSelected) 6.dp else 1.dp, shape = RoundedCornerShape(16.dp))
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(if (isSelected) OrangePrimary else Color.White)
+                                            .border(
+                                                BorderStroke(
+                                                    1.5.dp,
+                                                    if (isSelected) OrangePrimary else Color(0xFFE0D6CD).copy(alpha = 0.6f)
+                                                ),
+                                                RoundedCornerShape(16.dp)
+                                            )
+                                            .clickable { selectedWithdrawWallet = walletId }
+                                            .padding(vertical = 12.dp),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Text(name, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text(
+                                            text = name,
+                                            color = if (isSelected) Color.White else Color(0xFF1F1B18),
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 13.sp
+                                        )
                                     }
                                 }
                             }
@@ -505,16 +671,31 @@ fun WalletScreen(
                                         localWithdrawError = null
                                     }
                                 },
-                                label = { Text("Số tiền cần rút (₫)") },
+                                label = { Text("Số tiền cần rút (₫)", fontWeight = FontWeight.Bold) },
+                                placeholder = { Text("Ví dụ: 50.000") },
                                 singleLine = true,
-                                shape = RoundedCornerShape(10.dp),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.MonetizationOn,
+                                        contentDescription = null,
+                                        tint = OrangePrimary,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                },
+                                suffix = {
+                                    Text("₫", fontWeight = FontWeight.Bold, color = OrangePrimary)
+                                },
+                                shape = RoundedCornerShape(16.dp),
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 isError = localWithdrawError != null,
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = OrangePrimary,
                                     focusedLabelColor = OrangePrimary,
-                                    cursorColor = OrangePrimary
+                                    cursorColor = OrangePrimary,
+                                    unfocusedBorderColor = Color(0xFFE0D6CD).copy(alpha = 0.8f),
+                                    focusedContainerColor = Color.White,
+                                    unfocusedContainerColor = Color.White
                                 )
                             )
                             
@@ -549,19 +730,27 @@ fun WalletScreen(
                                         viewModel.withdraw(amount, walletName)
                                     }
                                 },
-                                modifier = Modifier.fillMaxWidth().height(50.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .shadow(8.dp, RoundedCornerShape(16.dp)),
                                 enabled = !uiState.isProcessing && withdrawAmountText.isNotBlank(),
-                                colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
-                                shape = RoundedCornerShape(12.dp)
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = OrangePrimary,
+                                    disabledContainerColor = Color(0xFFE0D6CD),
+                                    contentColor = Color.White,
+                                    disabledContentColor = Color(0xFF9E938A)
+                                ),
+                                shape = RoundedCornerShape(16.dp)
                             ) {
                                 if (uiState.isProcessing) {
                                     CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Color.White, strokeWidth = 2.5.dp)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Đang xử lý rút tiền...", fontWeight = FontWeight.Bold)
+                                    Text("Đang xử lý rút tiền...", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
                                 } else {
-                                    Icon(imageVector = Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Icon(imageVector = Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.White)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Rút tiền ngay", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                    Text("Rút tiền ngay", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
                                 }
                             }
                         }
@@ -570,45 +759,75 @@ fun WalletScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "Lịch sử giao dịch",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Lịch sử giao dịch",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF1F1B18),
+                        letterSpacing = 0.5.sp
+                    )
+                    Icon(
+                        imageVector = Icons.Default.History,
+                        contentDescription = null,
+                        tint = Color(0xFF5E534B),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
                 if (uiState.transactions.isEmpty()) {
-                    Box(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(vertical = 12.dp)
+                            .shadow(2.dp, RoundedCornerShape(16.dp)),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        border = BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.4f)),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Chưa có lịch sử giao dịch.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Chưa có lịch sử giao dịch.",
+                                color = Color(0xFF5E534B),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
                     }
                 }
             }
 
             items(uiState.transactions) { tx ->
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(elevation = 3.dp, shape = RoundedCornerShape(16.dp)),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(14.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    border = BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         val isTopUp = tx.type == com.example.foodienow.domain.model.WalletTransactionType.TOP_UP ||
                                 tx.type == com.example.foodienow.domain.model.WalletTransactionType.REFUND
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
+                                .size(44.dp)
                                 .background(
-                                    color = if (isTopUp) SuccessGreen.copy(alpha = 0.1f) else ErrorRed.copy(alpha = 0.1f),
+                                    color = if (isTopUp) SuccessGreen.copy(alpha = 0.08f) else ErrorRed.copy(alpha = 0.08f),
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -622,13 +841,43 @@ fun WalletScreen(
                         }
                         
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = tx.description,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 14.sp
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = tx.description,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFF1F1B18),
+                                    fontSize = 14.sp
+                                )
+                                val badgeText = when (tx.type) {
+                                    com.example.foodienow.domain.model.WalletTransactionType.TOP_UP -> "NẠP TIỀN"
+                                    com.example.foodienow.domain.model.WalletTransactionType.PAYMENT -> "THANH TOÁN"
+                                    com.example.foodienow.domain.model.WalletTransactionType.WITHDRAW -> "RÚT TIỀN"
+                                    com.example.foodienow.domain.model.WalletTransactionType.REFUND -> "HOÀN TIỀN"
+                                }
+                                val badgeColor = when (tx.type) {
+                                    com.example.foodienow.domain.model.WalletTransactionType.TOP_UP -> SuccessGreen
+                                    com.example.foodienow.domain.model.WalletTransactionType.PAYMENT -> OrangePrimary
+                                    com.example.foodienow.domain.model.WalletTransactionType.WITHDRAW -> ErrorRed
+                                    com.example.foodienow.domain.model.WalletTransactionType.REFUND -> Color(0xFF2F6FED)
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(badgeColor.copy(alpha = 0.1f))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = badgeText,
+                                        color = badgeColor,
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 9.sp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
                             val dateStr = runCatching {
                                 val instant = java.time.Instant.parse(tx.createdAt)
                                 val zoned = instant.atZone(java.time.ZoneId.systemDefault())
@@ -638,17 +887,17 @@ fun WalletScreen(
                             
                             Text(
                                 text = dateStr,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 12.sp
+                                color = Color(0xFF5E534B),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                         
                         Text(
                             text = if (isTopUp) "+${formatter.format(tx.amount)}" else "-${formatter.format(tx.amount)}",
                             color = if (isTopUp) SuccessGreen else ErrorRed,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 15.sp
+                            fontWeight = FontWeight.Black,
+                            fontSize = 16.sp
                         )
                     }
                 }

@@ -55,7 +55,8 @@ data class PaymentUiState(
     val selectedDetail: String = "",
     val isResolving: Boolean = false,
     val baseDeliveryFee: Long = 15_000L,
-    val freeDeliveryThreshold: Long = 100_000L
+    val freeDeliveryThreshold: Long = 100_000L,
+    val userRole: com.example.foodienow.domain.model.UserRole? = null
 )
 
 data class PendingPaymentData(
@@ -103,11 +104,11 @@ class PaymentViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.getAuthState().collect { user ->
                 if (user == null) {
-                    _uiState.update { it.copy(rewardPointsAvailable = 0) }
+                    _uiState.update { it.copy(rewardPointsAvailable = 0, userRole = null) }
                     return@collect
                 }
 
-                _uiState.update { it.copy(rewardPointsAvailable = user.rewardPoints) }
+                _uiState.update { it.copy(rewardPointsAvailable = user.rewardPoints, userRole = user.role) }
 
                 runCatching {
                     profileRepository.getProfile(user.id).first()
@@ -217,6 +218,16 @@ class PaymentViewModel @Inject constructor(
                         it.copy(
                             isProcessing = false,
                             errorMessage = "Phien dang nhap khong hop le. Vui long dang nhap lai."
+                        )
+                    }
+                    return@launch
+                }
+
+                if (sessionUser.role == com.example.foodienow.domain.model.UserRole.ADMIN && method == PaymentMethod.COD) {
+                    _uiState.update {
+                        it.copy(
+                            isProcessing = false,
+                            errorMessage = "Admin không được sử dụng phương thức thanh toán bằng tiền mặt (COD)."
                         )
                     }
                     return@launch
