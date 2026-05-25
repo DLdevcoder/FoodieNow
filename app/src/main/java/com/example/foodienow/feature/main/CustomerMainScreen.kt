@@ -120,6 +120,9 @@ fun CustomerMainScreen(
                     onNavigateToOrderDetail = { orderId ->
                         rootNavController.navigate("order_detail/$orderId")
                     },
+                    onNavigateToTracking = { orderId ->
+                        rootNavController.navigate("customer_tracking/$orderId")
+                    },
                     onNavigateToCart = { rootNavController.navigate(Screen.Payment.route) },
                     onNavigateToFoodDetail = onNavigateToFoodDetail,
                     initialTab = orderHistoryInitialTab
