@@ -1,5 +1,10 @@
 package com.example.foodienow.feature.shipper
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Looper
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.example.foodienow.core.designsystem.theme.FoodieCream
 import com.example.foodienow.core.designsystem.theme.PromoGradientEnd
 import com.example.foodienow.core.designsystem.theme.PromoGradientStart
@@ -16,15 +21,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderStatus
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import java.text.NumberFormat
 import java.util.Calendar
 import java.util.Locale
@@ -38,6 +50,35 @@ fun ShipperHomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTabIndex by remember(initialTabIndex) { mutableIntStateOf(initialTabIndex) }
+    val context = LocalContext.current
+
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var hasLocationPermission by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { perms ->
+        hasLocationPermission = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true
+    }
+
+    DisposableEffect(hasLocationPermission) {
+        var locationCallback: LocationCallback? = null
+        if (hasLocationPermission) {
+            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L).build()
+            locationCallback = object : LocationCallback() {
+                override fun onLocationResult(result: LocationResult) {
+                    result.lastLocation?.let { location ->
+                        viewModel.updateLocation(location.latitude, location.longitude)
+                    }
+                }
+            }
+            try { fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper()) }
+            catch (e: Exception) { e.printStackTrace() }
+        } else {
+            permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
+        }
+        onDispose { locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) } }
+    }
 
     val tabs = listOf(
         R.string.shipper_tab_available,
@@ -51,7 +92,9 @@ fun ShipperHomeScreen(
             .background(FoodieCream)
     ) {
         ShipperTopSection(
-            activeOrderCount = uiState.activeOrders.size
+            activeOrderCount = uiState.activeOrders.size,
+            isAutoAcceptEnabled = uiState.isAutoAcceptEnabled,
+            onToggleAutoAccept = { viewModel.toggleAutoAccept(it) }
         )
 
         TabRow(
@@ -93,6 +136,13 @@ fun ShipperHomeScreen(
             return
         }
 
+        if (!hasLocationPermission) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = "Cần quyền vị trí để lấy đơn gần bạn", color = MaterialTheme.colorScheme.error)
+            }
+            return
+        }
+
         when (selectedTabIndex) {
             0 -> OrderList(
                 orders = uiState.availableOrders,
@@ -120,7 +170,11 @@ fun ShipperHomeScreen(
 }
 
 @Composable
-private fun ShipperTopSection(activeOrderCount: Int) {
+private fun ShipperTopSection(
+    activeOrderCount: Int,
+    isAutoAcceptEnabled: Boolean,
+    onToggleAutoAccept: (Boolean) -> Unit
+) {
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (currentHour) {
         in 0..11 -> "Chào buổi sáng ☀️"
@@ -156,12 +210,25 @@ private fun ShipperTopSection(activeOrderCount: Int) {
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Khu vực hoạt động",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Tự động nhận đơn",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(
+                        checked = isAutoAcceptEnabled,
+                        onCheckedChange = onToggleAutoAccept,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xFF4CAF50),
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f)
+                        )
+                    )
+                }
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -272,7 +339,7 @@ private fun ShipperOrderCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Xử lý hiển thị nút bấm theo logic trạng thái mới
+            // Xử lý hiển thị nút bấm
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
@@ -287,7 +354,6 @@ private fun ShipperOrderCard(
                 } else {
                     when (order.status) {
                         OrderStatus.PREPARING -> {
-                            // Đơn đang chờ Shipper nhận (Tab Chờ nhận)
                             Button(
                                 onClick = { order.id?.let { viewModel.acceptOrder(it) } },
                                 shape = MaterialTheme.shapes.medium
@@ -296,7 +362,6 @@ private fun ShipperOrderCard(
                             }
                         }
                         OrderStatus.DRIVER_ASSIGNED -> {
-                            // Shipper đã nhận, đang trên đường đến lấy hàng (Tab Đang giao)
                             OutlinedButton(
                                 onClick = onNavigateToMap,
                                 modifier = Modifier.padding(end = 8.dp),
@@ -312,7 +377,6 @@ private fun ShipperOrderCard(
                             }
                         }
                         OrderStatus.DELIVERING -> {
-                            // Shipper đã lấy hàng, đang đi giao (Tab Đang giao)
                             OutlinedButton(
                                 onClick = onNavigateToMap,
                                 modifier = Modifier.padding(end = 8.dp),
@@ -320,11 +384,19 @@ private fun ShipperOrderCard(
                             ) {
                                 Text("Xem Bản đồ")
                             }
+
+                            val isConfirmed = order.shipperConfirmed
+
                             Button(
                                 onClick = { order.id?.let { viewModel.completeOrder(it) } },
-                                shape = MaterialTheme.shapes.medium
+                                shape = MaterialTheme.shapes.medium,
+                                enabled = !isConfirmed,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isConfirmed) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
+                                    contentColor = if (isConfirmed) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
+                                )
                             ) {
-                                Text("Hoàn thành")
+                                Text(if (isConfirmed) "Chờ khách xác nhận" else "Hoàn thành")
                             }
                         }
                         else -> {}
