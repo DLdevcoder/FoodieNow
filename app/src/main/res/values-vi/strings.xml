@@ -256,7 +256,7 @@
     <string name="me_settings">Cài đặt</string>
 
     <!-- Shipper -->
-    <string name="shipper_tab_available">Chờ giao</string>
+    <string name="shipper_tab_available">Đơn sẵn sàng</string>
     <string name="shipper_tab_active">Đang giao</string>
     <string name="shipper_empty_available">Không có đơn hàng nào chờ nhận.</string>
     <string name="shipper_empty_active">Bạn chưa nhận đơn hàng nào.</string>
@@ -270,8 +270,10 @@
     <string name="shipper_earnings_today">Thu nhập hôm nay</string>
     <string name="shipper_earnings_week">Tuần này</string>
     <string name="shipper_earnings_month">Tháng này</string>
-    <string name="shipper_tab_completed">Hoàn thành</string>
+    <string name="shipper_tab_completed">Lịch sử</string>
     <string name="shipper_empty_completed">Chưa có đơn hàng nào hoàn thành.</string>
+    <string name="shipper_delivery_history">Lịch sử giao hàng</string>
+    <string name="shipper_delivery_history_desc">Xem danh sách các đơn hàng đã hoàn thành</string>
 
     <!-- Payment Result - Failure -->
     <string name="payment_result_failure_title">Thanh toán thất bại</string>

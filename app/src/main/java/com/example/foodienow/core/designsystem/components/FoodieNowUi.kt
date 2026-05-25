@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Fastfood
@@ -182,34 +183,50 @@ fun CategoryChip(
 
     Surface(
         modifier = modifier
-            .height(44.dp)
+            .size(76.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
         color = containerColor,
         border = BorderStroke(1.dp, borderColor),
         shadowElevation = if (selected) 2.dp else 0.dp
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = FoodieNowTheme.spacing.md),
-            horizontalArrangement = Arrangement.spacedBy(FoodieNowTheme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            if (!imageUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(26.dp)
-                        .clip(MaterialTheme.shapes.small)
-                )
-            } else {
-                Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(18.dp))
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(if (selected) Color.White.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!imageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = if (selected) contentColor else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
                 color = contentColor,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

@@ -1,19 +1,30 @@
 package com.example.foodienow.feature.merchant
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
+import com.example.foodienow.core.designsystem.components.FoodieCard
+import com.example.foodienow.core.designsystem.theme.PromoGradientEnd
+import com.example.foodienow.core.designsystem.theme.PromoGradientStart
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderStatus
 import java.text.NumberFormat
@@ -21,22 +32,116 @@ import java.util.Locale
 
 @Composable
 fun MerchantOrdersTab(
+    onNavigateToChatList: () -> Unit,
+    unreadMessageCount: Int,
     viewModel: MerchantOrdersViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
-    // Chuyển đổi để mỗi tab chứa một danh sách các trạng thái
     val tabs = listOf(
-        listOf(OrderStatus.PENDING) to R.string.merchant_orders_status_pending,
-        listOf(OrderStatus.PREPARING) to R.string.merchant_orders_status_preparing,
-        listOf(OrderStatus.DRIVER_ASSIGNED) to R.string.merchant_orders_status_driver_assigned,
-        listOf(OrderStatus.DELIVERING) to R.string.merchant_orders_status_delivering,
-        // Gộp COMPLETED và CANCELLED vào chung 1 tab "Lịch sử"
-        listOf(OrderStatus.COMPLETED, OrderStatus.CANCELLED) to R.string.merchant_orders_status_history
+        OrderStatus.PENDING to R.string.merchant_orders_status_pending,
+        OrderStatus.PREPARING to R.string.merchant_orders_status_preparing,
+        OrderStatus.DRIVER_ASSIGNED to R.string.merchant_orders_status_driver_assigned,
+        OrderStatus.DELIVERING to R.string.merchant_orders_status_delivering,
+        null to R.string.my_orders_tab_history
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            color = Color.Transparent,
+            contentColor = Color.White
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                PromoGradientStart,
+                                MaterialTheme.colorScheme.primary,
+                                PromoGradientEnd
+                            )
+                        )
+                    )
+                    .statusBarsPadding()
+                    .padding(start = 18.dp, top = 16.dp, end = 18.dp, bottom = 18.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(MaterialTheme.shapes.large)
+                            .background(Color.White.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Assignment,
+                            contentDescription = null,
+                            modifier = Modifier.size(27.dp),
+                            tint = Color.White
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Quản lý đơn hàng",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "Theo dõi trạng thái và chế biến món ăn",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.84f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White.copy(alpha = 0.18f),
+                        contentColor = Color.White
+                    ) {
+                        IconButton(
+                            onClick = onNavigateToChatList,
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            BadgedBox(
+                                badge = {
+                                    if (unreadMessageCount > 0) {
+                                        Badge(
+                                            containerColor = MaterialTheme.colorScheme.error,
+                                            contentColor = Color.White
+                                        ) {
+                                            Text(
+                                                text = if (unreadMessageCount > 99) "99+"
+                                                else unreadMessageCount.toString()
+                                            )
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ChatBubbleOutline,
+                                    contentDescription = "Tin nhắn",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         ScrollableTabRow(
             selectedTabIndex = selectedTabIndex,
             edgePadding = 8.dp,
@@ -71,10 +176,15 @@ fun MerchantOrdersTab(
             return
         }
 
-        // Lọc đơn hàng theo danh sách trạng thái của tab hiện tại bằng toán tử "in"
-        val currentStatusFilters = tabs[selectedTabIndex].first
+        val currentTab = tabs[selectedTabIndex]
         val filteredOrders = uiState.orders
-            .filter { it.status in currentStatusFilters }
+            .filter {
+                if (currentTab.first == null) {
+                    it.status == OrderStatus.COMPLETED || it.status == OrderStatus.CANCELLED
+                } else {
+                    it.status == currentTab.first
+                }
+            }
             .sortedByDescending { it.createdAt }
 
         if (filteredOrders.isEmpty()) {
@@ -116,10 +226,8 @@ private fun MerchantOrderCard(
 
     val displayTime = order.createdAt?.take(16)?.replace("T", " ") ?: "-"
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    FoodieCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier
@@ -132,6 +240,7 @@ private fun MerchantOrderCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Đảm bảo R.string.activity_history_order_title đã được khai báo ("Đơn #%1$s")
                 Text(
                     text = stringResource(R.string.activity_history_order_title, order.id?.take(8) ?: "N/A"),
                     style = MaterialTheme.typography.titleMedium,
@@ -144,6 +253,7 @@ private fun MerchantOrderCard(
                 )
             }
 
+            // Đảm bảo R.string.merchant_orders_customer_name đã được khai báo ("Khách hàng: %1$s")
             Text(
                 text = stringResource(R.string.merchant_orders_customer_name, order.customerId.take(8)),
                 style = MaterialTheme.typography.bodyMedium
@@ -158,17 +268,10 @@ private fun MerchantOrderCard(
                 OrderStatus.CANCELLED -> stringResource(R.string.merchant_status_display_cancelled)
             }
 
-            // Xử lý màu sắc riêng cho phần trạng thái
-            val statusColor = when (order.status) {
-                OrderStatus.COMPLETED -> Color(0xFF4CAF50) // Xanh lá
-                OrderStatus.CANCELLED -> MaterialTheme.colorScheme.error // Đỏ
-                else -> MaterialTheme.colorScheme.primary // Màu mặc định cho các trạng thái khác
-            }
-
             Text(
                 text = "$statusDisplay - $formattedPrice",
                 style = MaterialTheme.typography.bodyMedium,
-                color = statusColor,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold
             )
 

@@ -237,7 +237,7 @@ private fun NotificationHeader(
                     )
                 )
                 .statusBarsPadding()
-                .padding(start = 18.dp, top = 16.dp, end = 18.dp, bottom = 18.dp)
+                .padding(horizontal = 18.dp, vertical = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -254,7 +254,8 @@ private fun NotificationHeader(
                     Icon(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = null,
-                        modifier = Modifier.size(27.dp)
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
@@ -263,6 +264,7 @@ private fun NotificationHeader(
                         text = stringResource(R.string.notifications_tab_title),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
+                        color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

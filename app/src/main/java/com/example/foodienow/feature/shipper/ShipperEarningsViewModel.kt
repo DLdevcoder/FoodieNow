@@ -2,6 +2,7 @@ package com.example.foodienow.feature.shipper
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodienow.data.repository.PaymentSettingsRepository
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,13 +33,19 @@ data class ShipperEarningsUiState(
     val todayEarnings: Long = 0L,
     val weekEarnings: Long = 0L,
     val recentTransactions: List<Transaction> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val linkedWallets: List<String> = emptyList(),
+    val isWithdrawing: Boolean = false,
+    val withdrawSuccess: Boolean = false,
+    val lastWithdrawalAmount: Long = 0L,
+    val lastWithdrawalWallet: String = ""
 )
 
 @HiltViewModel
 class ShipperEarningsViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val paymentSettingsRepository: PaymentSettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShipperEarningsUiState())
@@ -46,6 +53,26 @@ class ShipperEarningsViewModel @Inject constructor(
 
     init {
         loadEarningsData()
+        observePaymentSettings()
+    }
+
+    private fun observePaymentSettings() {
+        viewModelScope.launch {
+            paymentSettingsRepository.refreshSettings()
+            paymentSettingsRepository.settings.collect { settings ->
+                val wallets = settings.configuredOptionIds.filter {
+                    it in setOf("momo", "zalopay", "vnpay", "paypal")
+                }
+                _uiState.update { it.copy(linkedWallets = wallets) }
+            }
+        }
+        viewModelScope.launch {
+            authRepository.getAuthState().collect { user ->
+                if (user != null) {
+                    _uiState.update { it.copy(currentBalance = user.balance) }
+                }
+            }
+        }
     }
 
     private fun loadEarningsData() {
@@ -78,12 +105,9 @@ class ShipperEarningsViewModel @Inject constructor(
                             .filter { it.date.after(weekStart) || it.date == weekStart }
                             .sumOf { it.amount }
 
-                        val currentBalance = transactions.sumOf { it.amount }
-
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                currentBalance = currentBalance,
                                 todayEarnings = todayEarnings,
                                 weekEarnings = weekEarnings,
                                 recentTransactions = transactions
@@ -133,4 +157,47 @@ class ShipperEarningsViewModel @Inject constructor(
         calendar.set(Calendar.MILLISECOND, 0)
         return calendar.time
     }
-}
+
+    fun withdraw(amount: Long, walletId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isWithdrawing = true) }
+            kotlinx.coroutines.delay(1500)
+            val walletName = when (walletId) {
+                "momo" -> "MoMo"
+                "zalopay" -> "ZaloPay"
+                "vnpay" -> "VNPAY"
+                "paypal" -> "PayPal"
+                else -> walletId.uppercase()
+            }
+            authRepository.updateBalance(-amount).onSuccess { updatedUser ->
+                _uiState.update { state ->
+                    val newTransaction = Transaction(
+                        id = java.util.UUID.randomUUID().toString(),
+                        title = "Rút tiền về ví $walletName",
+                        amount = amount,
+                        date = Date(),
+                        isIncome = false
+                    )
+                    state.copy(
+                        recentTransactions = listOf(newTransaction) + state.recentTransactions,
+                        isWithdrawing = false,
+                        withdrawSuccess = true,
+                        lastWithdrawalAmount = amount,
+                        lastWithdrawalWallet = walletName
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update { state ->
+                    state.copy(
+                        isWithdrawing = false,
+                        error = error.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun resetWithdrawSuccess() {
+        _uiState.update { it.copy(withdrawSuccess = false) }
+    }
+}

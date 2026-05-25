@@ -37,7 +37,7 @@ class PaymentSettingsViewModel @Inject constructor(
     }
     
     fun updateDefaultMethod(id: String) {
-        runSettingsAction(successMessage = "Da cap nhat phuong thuc mac dinh.") {
+        runSettingsAction(successMessage = null) {
             paymentSettingsRepository.updateDefaultMethod(id)
         }
     }
@@ -67,7 +67,7 @@ class PaymentSettingsViewModel @Inject constructor(
     }
 
     private fun runSettingsAction(
-        successMessage: String,
+        successMessage: String?,
         block: suspend () -> Result<*>
     ) {
         viewModelScope.launch {

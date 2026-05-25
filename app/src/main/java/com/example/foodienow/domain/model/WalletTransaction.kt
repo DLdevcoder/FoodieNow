@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class WalletTransactionType {
     TOP_UP,
-    PAYMENT
+    PAYMENT,
+    WITHDRAW
 }
 
 @Serializable

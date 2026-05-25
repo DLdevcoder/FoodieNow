@@ -1,14 +1,14 @@
-package com.example.foodienow.feature.shipper
+package com.example.foodienow.feature.merchant
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CheckCircle
@@ -21,9 +21,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,10 +40,9 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun ShipperEarningsScreen(
-    onBack: () -> Unit,
+fun MerchantEarningsTab(
     onNavigateToPaymentSettings: () -> Unit,
-    viewModel: ShipperEarningsViewModel = hiltViewModel()
+    viewModel: MerchantEarningsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
@@ -62,93 +63,87 @@ fun ShipperEarningsScreen(
                 .fillMaxSize()
                 .background(FoodieCream)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                PromoGradientStart,
-                                MaterialTheme.colorScheme.primary,
-                                PromoGradientEnd
+            Surface(
+                color = Color.Transparent,
+                contentColor = Color.White
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    PromoGradientStart,
+                                    MaterialTheme.colorScheme.primary,
+                                    PromoGradientEnd
+                                )
                             )
                         )
-                    )
-                    .statusBarsPadding()
-                    .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 24.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                        .statusBarsPadding()
+                        .padding(start = 18.dp, top = 16.dp, end = 18.dp, bottom = 18.dp)
                 ) {
-                    IconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = Color.White
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Quay lại")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Thu nhập & Ví",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                               .clip(MaterialTheme.shapes.large)
+                                .background(Color.White.copy(alpha = 0.18f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AccountBalanceWallet,
+                                contentDescription = null,
+                                modifier = Modifier.size(27.dp),
+                                tint = Color.White
+                            )
+                        }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Số dư doanh thu",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "${formatter.format(uiState.currentBalance)} ₫",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White.copy(alpha = 0.84f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "Số dư khả dụng",
-                            color = Color.White.copy(alpha = 0.8f),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "${formatter.format(uiState.currentBalance)} ₫",
-                            color = Color.White,
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                    }
-
-                    Button(
-                        onClick = {
-                            if (uiState.linkedWallets.isEmpty()) {
-                                showNotLinkedDialog = true
-                            } else {
-                                selectedWallet = uiState.linkedWallets.first()
-                                withdrawAmountText = uiState.currentBalance.toString()
-                                amountError = null
-                                showWithdrawDialog = true
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AccountBalanceWallet,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Rút tiền",
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                        Button(
+                            onClick = {
+                                if (uiState.linkedWallets.isEmpty()) {
+                                    showNotLinkedDialog = true
+                                } else {
+                                    selectedWallet = uiState.linkedWallets.first()
+                                    withdrawAmountText = uiState.currentBalance.toString()
+                                    amountError = null
+                                    showWithdrawDialog = true
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "Rút tiền",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
                     }
                 }
             }
@@ -475,7 +470,7 @@ fun ShipperEarningsScreen(
 }
 
 @Composable
-private fun TransactionItem(transaction: Transaction) {
+private fun TransactionItem(transaction: MerchantTransaction) {
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
     val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("vi", "VN"))
 
@@ -527,3 +522,4 @@ private fun TransactionItem(transaction: Transaction) {
         )
     }
 }
+

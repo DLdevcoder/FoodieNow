@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Home
@@ -37,42 +38,55 @@ fun ShipperMainScreen(
     onLogout: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var shipperHomeInitialTab by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-                modifier = Modifier.height(56.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                tonalElevation = 3.dp,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
-                // Đã cập nhật thành 5 tab để chứa đủ Thu nhập, Thông báo và Profile
-                val tabs = listOf(
-                    Triple(Icons.Default.Home, R.string.shipper_nav_home, 0),
-                    Triple(Icons.Default.AccountBalanceWallet, R.string.shipper_nav_earnings, 1),
-                    Triple(Icons.Default.Notifications, R.string.bottom_nav_notifications, 2),
-                    Triple(Icons.Default.Person, R.string.shipper_nav_profile, 3)
-                )
-
-                tabs.forEach { (icon, labelRes, index) ->
-                    NavigationBarItem(
-                        icon = { Icon(icon, contentDescription = stringResource(labelRes)) },
-                        label = {
-                            Text(
-                                text = stringResource(labelRes),
-                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        alwaysShowLabel = false,
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.surface,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.height(72.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
+                ) {
+                    val tabs = listOf(
+                        Triple(Icons.Default.Home, R.string.shipper_nav_home, 0),
+                        Triple(Icons.Default.AccountBalanceWallet, R.string.shipper_nav_earnings, 1),
+                        Triple(Icons.Default.Notifications, R.string.bottom_nav_notifications, 2),
+                        Triple(Icons.Default.Person, R.string.shipper_nav_profile, 3)
                     )
+
+                    tabs.forEach { (icon, labelRes, index) ->
+                        val selected = selectedTab == index
+                        NavigationBarItem(
+                            icon = { Icon(icon, contentDescription = stringResource(labelRes)) },
+                            label = {
+                                Text(
+                                    text = stringResource(labelRes),
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                )
+                            },
+                            selected = selected,
+                            onClick = {
+                                selectedTab = index
+                                if (index == 0) {
+                                    shipperHomeInitialTab = 0
+                                }
+                            },
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -80,20 +94,27 @@ fun ShipperMainScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(bottom = paddingValues.calculateBottomPadding())
         ) {
             when (selectedTab) {
                 0 -> ShipperHomeScreen(
+                    initialTabIndex = shipperHomeInitialTab,
                     onLogout = onLogout,
                     onNavigateToTracking = { orderId ->
                         rootNavController.navigate("shipper_tracking/$orderId")
                     }
                 )
-                1 -> ShipperEarningsScreen(onBack = { selectedTab = 0 })
+                1 -> ShipperEarningsScreen(
+                    onBack = { selectedTab = 0 },
+                    onNavigateToPaymentSettings = { rootNavController.navigate("payment_settings_screen") }
+                )
                 2 -> NotificationScreen(onBack = { selectedTab = 0 })
                 3 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
-                    onNavigateToOrderHistory = { selectedTab = 1 },
+                    onNavigateToOrderHistory = {
+                        shipperHomeInitialTab = 2
+                        selectedTab = 0
+                    },
                     onNavigateToActivityHistory = { rootNavController.navigate("activity_history_screen") },
                     onLoggedOut = onLogout,
                     onNavigateToAddress = { rootNavController.navigate("address_screen") },

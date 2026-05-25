@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Store
+import com.example.foodienow.domain.model.Voucher
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.MerchantRepository
 import com.example.foodienow.domain.repository.ChatRepository
+import com.example.foodienow.domain.repository.VoucherRepository
 import com.example.foodienow.data.remote.GoongAddressService
 import com.example.foodienow.data.remote.GoongPrediction
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +25,9 @@ data class MerchantUiState(
     val store: Store? = null,
     val menu: List<Food> = emptyList(),
     val error: String? = null,
-    val unreadMessageCount: Int = 0
+    val unreadMessageCount: Int = 0,
+    val vouchers: List<Voucher> = emptyList(),
+    val isVouchersLoading: Boolean = false
 )
 
 @HiltViewModel
@@ -31,7 +35,8 @@ class MerchantViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val merchantRepository: MerchantRepository,
     private val chatRepository: ChatRepository,
-    private val goongAddressService: GoongAddressService
+    private val goongAddressService: GoongAddressService,
+    private val voucherRepository: VoucherRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MerchantUiState())
@@ -116,6 +121,7 @@ class MerchantViewModel @Inject constructor(
 
                     if (store != null) {
                         _uiState.update { it.copy(store = store) }
+                        loadVouchers(currentUser.id)
                         merchantRepository.getMerchantMenu(store.id).collect { foodList ->
                             _uiState.update { it.copy(menu = foodList, isLoading = false) }
                         }
@@ -131,6 +137,120 @@ class MerchantViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
+    }
+
+    private fun loadVouchers(merchantId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isVouchersLoading = true) }
+            val result = voucherRepository.getVouchersByMerchant(merchantId)
+            result.onSuccess { voucherList ->
+                _uiState.update { it.copy(vouchers = voucherList, isVouchersLoading = false) }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isVouchersLoading = false, error = e.message) }
+            }
+        }
+    }
+
+    fun createVoucher(
+        code: String,
+        discountPercent: Int,
+        discountAmount: Long,
+        minOrderValue: Long,
+        maxDiscount: Long,
+        isActive: Boolean,
+        expiresAt: String?
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isVouchersLoading = true) }
+            try {
+                val currentUser = authRepository.getAuthState().firstOrNull()
+                if (currentUser != null) {
+                    val voucher = Voucher(
+                        id = "",
+                        merchantId = currentUser.id,
+                        code = code.trim().uppercase(),
+                        discountPercent = discountPercent,
+                        discountAmount = discountAmount,
+                        minOrderValue = minOrderValue,
+                        maxDiscount = maxDiscount,
+                        isActive = isActive,
+                        expiresAt = expiresAt
+                    )
+                    val result = voucherRepository.createVoucher(voucher)
+                    result.onSuccess {
+                        loadVouchers(currentUser.id)
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(isVouchersLoading = false, error = e.message) }
+                    }
+                } else {
+                    _uiState.update { it.copy(isVouchersLoading = false, error = "Chưa đăng nhập") }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isVouchersLoading = false, error = e.message) }
+            }
+        }
+    }
+
+    fun updateVoucher(
+        id: String,
+        code: String,
+        discountPercent: Int,
+        discountAmount: Long,
+        minOrderValue: Long,
+        maxDiscount: Long,
+        isActive: Boolean,
+        expiresAt: String?
+    ) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isVouchersLoading = true) }
+            try {
+                val currentUser = authRepository.getAuthState().firstOrNull()
+                if (currentUser != null) {
+                    val voucher = Voucher(
+                        id = id,
+                        merchantId = currentUser.id,
+                        code = code.trim().uppercase(),
+                        discountPercent = discountPercent,
+                        discountAmount = discountAmount,
+                        minOrderValue = minOrderValue,
+                        maxDiscount = maxDiscount,
+                        isActive = isActive,
+                        expiresAt = expiresAt
+                    )
+                    val result = voucherRepository.updateVoucher(voucher)
+                    result.onSuccess {
+                        loadVouchers(currentUser.id)
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(isVouchersLoading = false, error = e.message) }
+                    }
+                } else {
+                    _uiState.update { it.copy(isVouchersLoading = false, error = "Chưa đăng nhập") }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isVouchersLoading = false, error = e.message) }
+            }
+        }
+    }
+
+    fun deleteVoucher(voucherId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isVouchersLoading = true) }
+            try {
+                val currentUser = authRepository.getAuthState().firstOrNull()
+                if (currentUser != null) {
+                    val result = voucherRepository.deleteVoucher(voucherId)
+                    result.onSuccess {
+                        loadVouchers(currentUser.id)
+                    }.onFailure { e ->
+                        _uiState.update { it.copy(isVouchersLoading = false, error = e.message) }
+                    }
+                } else {
+                    _uiState.update { it.copy(isVouchersLoading = false, error = "Chưa đăng nhập") }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isVouchersLoading = false, error = e.message) }
             }
         }
     }

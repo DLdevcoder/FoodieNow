@@ -106,6 +106,12 @@ class OrderHistoryViewModel @Inject constructor(
         }
     }
 
+    fun updateQuantity(food: Food, quantity: Int) {
+        viewModelScope.launch {
+            cartRepository.updateQuantity(food, quantity)
+        }
+    }
+
     private fun String?.toSortableTime(): Long {
         return runCatching {
             if (this.isNullOrBlank()) 0L else Instant.parse(this).toEpochMilli()

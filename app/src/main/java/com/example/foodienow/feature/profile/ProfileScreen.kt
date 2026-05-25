@@ -210,21 +210,25 @@ fun ProfileScreen(
                     )
                 }
             } else {
-                item {
-                    QuickStatsRow(
-                        balance = formatter.format(balance),
-                        rewardPoints = rewardPoints.toString(),
-                        voucherLabel = "Kho mã",
-                        onNavigateToWallet = onNavigateToWallet,
-                        onNavigateToRewardPoints = onNavigateToRewardPoints,
-                        onNavigateToVouchers = onNavigateToVouchers
-                    )
+                val isShipper = profile?.role == UserRole.SHIPPER
+                val isMerchant = profile?.role == UserRole.MERCHANT
+
+                if (!isShipper && !isMerchant) {
+                    item {
+                        QuickStatsRow(
+                            balance = formatter.format(balance),
+                            rewardPoints = rewardPoints.toString(),
+                            voucherLabel = "Kho mã",
+                            onNavigateToWallet = onNavigateToWallet,
+                            onNavigateToRewardPoints = onNavigateToRewardPoints,
+                            onNavigateToVouchers = onNavigateToVouchers
+                        )
+                    }
                 }
 
-                item {
-                    ProfileMenuSection(
-                        title = "Đơn hàng và ưu đãi",
-                        items = listOf(
+                if (!isShipper && !isMerchant) {
+                    item {
+                        val menuItems = listOf(
                             ProfileMenuItem(
                                 icon = Icons.AutoMirrored.Filled.ReceiptLong,
                                 iconColor = AmberTertiary,
@@ -247,71 +251,155 @@ fun ProfileScreen(
                                 onClick = onNavigateToMustTry
                             )
                         )
-                    )
+                        ProfileMenuSection(
+                            title = "Đơn hàng và ưu đãi",
+                            items = menuItems
+                        )
+                    }
                 }
 
                 item {
                     ProfileMenuSection(
                         title = "Tài khoản",
-                        items = listOf(
-                            ProfileMenuItem(
-                                icon = Icons.Default.LocationOn,
-                                iconColor = SuccessGreen,
-                                title = stringResource(R.string.me_address),
-                                subtitle = "Quản lý địa chỉ giao hàng mặc định",
-                                onClick = onNavigateToAddress
-                            ),
-                            ProfileMenuItem(
-                                icon = Icons.Default.Payment,
-                                iconColor = InfoBlue,
-                                title = stringResource(R.string.me_payment),
-                                subtitle = "COD, FoodiePay và ví điện tử",
-                                onClick = onNavigateToPaymentSettings
-                            ),
-                            ProfileMenuItem(
-                                icon = Icons.Default.PersonAdd,
-                                iconColor = MaterialTheme.colorScheme.primary,
-                                title = stringResource(R.string.me_invite),
-                                subtitle = "Nhận voucher khi bạn bè đặt đơn đầu tiên",
-                                onClick = onNavigateToInviteFriends
-                            )
-                        )
+                        items = when {
+                            isShipper -> {
+                                listOf(
+                                    ProfileMenuItem(
+                                        icon = Icons.AutoMirrored.Filled.ReceiptLong,
+                                        iconColor = AmberTertiary,
+                                        title = stringResource(R.string.shipper_delivery_history),
+                                        subtitle = stringResource(R.string.shipper_delivery_history_desc),
+                                        onClick = onNavigateToOrderHistory
+                                    ),
+                                    ProfileMenuItem(
+                                        icon = Icons.Default.LocationOn,
+                                        iconColor = SuccessGreen,
+                                        title = stringResource(R.string.me_address),
+                                        subtitle = "Quản lý địa chỉ giao hàng mặc định",
+                                        onClick = onNavigateToAddress
+                                    ),
+                                    ProfileMenuItem(
+                                        icon = Icons.Default.Payment,
+                                        iconColor = InfoBlue,
+                                        title = stringResource(R.string.me_payment),
+                                        subtitle = "COD, FoodiePay và ví điện tử",
+                                        onClick = onNavigateToPaymentSettings
+                                    )
+                                )
+                            }
+                            isMerchant -> {
+                                listOf(
+                                    ProfileMenuItem(
+                                        icon = Icons.Default.History,
+                                        iconColor = InfoBlue,
+                                        title = stringResource(R.string.activity_history_title),
+                                        subtitle = "Xem thanh toán, điểm thưởng và hoạt động gần đây",
+                                        onClick = onNavigateToActivityHistory
+                                    ),
+                                    ProfileMenuItem(
+                                        icon = Icons.Default.LocationOn,
+                                        iconColor = SuccessGreen,
+                                        title = stringResource(R.string.me_address),
+                                        subtitle = "Quản lý địa chỉ giao hàng mặc định",
+                                        onClick = onNavigateToAddress
+                                    ),
+                                    ProfileMenuItem(
+                                        icon = Icons.Default.Payment,
+                                        iconColor = InfoBlue,
+                                        title = stringResource(R.string.me_payment),
+                                        subtitle = "COD, FoodiePay và ví điện tử",
+                                        onClick = onNavigateToPaymentSettings
+                                    )
+                                )
+                            }
+                            else -> {
+                                listOf(
+                                    ProfileMenuItem(
+                                        icon = Icons.Default.LocationOn,
+                                        iconColor = SuccessGreen,
+                                        title = stringResource(R.string.me_address),
+                                        subtitle = "Quản lý địa chỉ giao hàng mặc định",
+                                        onClick = onNavigateToAddress
+                                    ),
+                                    ProfileMenuItem(
+                                        icon = Icons.Default.Payment,
+                                        iconColor = InfoBlue,
+                                        title = stringResource(R.string.me_payment),
+                                        subtitle = "COD, FoodiePay và ví điện tử",
+                                        onClick = onNavigateToPaymentSettings
+                                    ),
+                                    ProfileMenuItem(
+                                        icon = Icons.Default.PersonAdd,
+                                        iconColor = MaterialTheme.colorScheme.primary,
+                                        title = stringResource(R.string.me_invite),
+                                        subtitle = "Nhận voucher khi bạn bè đặt đơn đầu tiên",
+                                        onClick = onNavigateToInviteFriends
+                                    )
+                                )
+                            }
+                        }
                     )
                 }
 
                 item {
                     ProfileMenuSection(
                         title = "Hỗ trợ và cài đặt",
-                        items = listOf(
-                            ProfileMenuItem(
-                                icon = Icons.Default.Storefront,
-                                iconColor = AmberTertiary,
-                                title = stringResource(R.string.me_shop_owners),
-                                subtitle = "Mở gian hàng và quản lý đơn bán",
-                                onClick = onNavigateToShopOwner
-                            ),
-                            ProfileMenuItem(
-                                icon = Icons.AutoMirrored.Filled.HelpOutline,
-                                iconColor = SuccessGreen,
-                                title = stringResource(R.string.me_help),
-                                subtitle = "Câu hỏi thường gặp và hỗ trợ khách hàng",
-                                onClick = onNavigateToHelpCentre
-                            ),
-                            ProfileMenuItem(
-                                icon = Icons.Default.Settings,
-                                iconColor = InfoBlue,
-                                title = stringResource(R.string.me_settings),
-                                subtitle = "Ngôn ngữ, giao diện và thông báo",
-                                onClick = onNavigateToSettings
-                            ),
-                            ProfileMenuItem(
-                                icon = Icons.Default.Lock,
-                                iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                title = stringResource(R.string.profile_change_password),
-                                subtitle = "Cập nhật mật khẩu đăng nhập",
-                                onClick = onNavigateToChangePassword
+                        items = if (isShipper || isMerchant) {
+                            listOf(
+                                ProfileMenuItem(
+                                    icon = Icons.AutoMirrored.Filled.HelpOutline,
+                                    iconColor = SuccessGreen,
+                                    title = stringResource(R.string.me_help),
+                                    subtitle = "Câu hỏi thường gặp và hỗ trợ khách hàng",
+                                    onClick = onNavigateToHelpCentre
+                                ),
+                                ProfileMenuItem(
+                                    icon = Icons.Default.Settings,
+                                    iconColor = InfoBlue,
+                                    title = stringResource(R.string.me_settings),
+                                    subtitle = "Ngôn ngữ, giao diện và thông báo",
+                                    onClick = onNavigateToSettings
+                                ),
+                                ProfileMenuItem(
+                                    icon = Icons.Default.Lock,
+                                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    title = stringResource(R.string.profile_change_password),
+                                    subtitle = "Cập nhật mật khẩu đăng nhập",
+                                    onClick = onNavigateToChangePassword
+                                )
                             )
-                        )
+                        } else {
+                            listOf(
+                                ProfileMenuItem(
+                                    icon = Icons.Default.Storefront,
+                                    iconColor = AmberTertiary,
+                                    title = stringResource(R.string.me_shop_owners),
+                                    subtitle = "Mở gian hàng và quản lý đơn bán",
+                                    onClick = onNavigateToShopOwner
+                                ),
+                                ProfileMenuItem(
+                                    icon = Icons.AutoMirrored.Filled.HelpOutline,
+                                    iconColor = SuccessGreen,
+                                    title = stringResource(R.string.me_help),
+                                    subtitle = "Câu hỏi thường gặp và hỗ trợ khách hàng",
+                                    onClick = onNavigateToHelpCentre
+                                ),
+                                ProfileMenuItem(
+                                    icon = Icons.Default.Settings,
+                                    iconColor = InfoBlue,
+                                    title = stringResource(R.string.me_settings),
+                                    subtitle = "Ngôn ngữ, giao diện và thông báo",
+                                    onClick = onNavigateToSettings
+                                ),
+                                ProfileMenuItem(
+                                    icon = Icons.Default.Lock,
+                                    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    title = stringResource(R.string.profile_change_password),
+                                    subtitle = "Cập nhật mật khẩu đăng nhập",
+                                    onClick = onNavigateToChangePassword
+                                )
+                            )
+                        }
                     )
                 }
 
@@ -442,6 +530,7 @@ private fun ProfileHeader(
     role: UserRole?,
     onNavigateToEditProfile: () -> Unit
 ) {
+    val isShort = role == UserRole.SHIPPER || role == UserRole.MERCHANT
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -451,9 +540,14 @@ private fun ProfileHeader(
                 )
             )
             .statusBarsPadding()
-            .padding(start = 18.dp, top = 16.dp, end = 18.dp, bottom = 44.dp)
+            .padding(
+                start = 18.dp,
+                top = if (isShort) 12.dp else 16.dp,
+                end = 18.dp,
+                bottom = if (isShort) 16.dp else 44.dp
+            )
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(if (isShort) 14.dp else 22.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -462,25 +556,27 @@ private fun ProfileHeader(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.profile_header_title),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = if (isShort) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
-                    Text(
-                        text = "Quản lý tài khoản FoodieNow",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.82f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    if (!isShort) {
+                        Text(
+                            text = "Quản lý tài khoản FoodieNow",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.82f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
                 Surface(
                     shape = CircleShape,
                     color = Color.White.copy(alpha = 0.18f),
                     contentColor = Color.White
                 ) {
-                    IconButton(onClick = onNavigateToEditProfile, modifier = Modifier.size(44.dp)) {
-                        Icon(Icons.Default.Edit, contentDescription = "Chỉnh sửa hồ sơ")
+                    IconButton(onClick = onNavigateToEditProfile, modifier = Modifier.size(if (isShort) 38.dp else 44.dp)) {
+                        Icon(Icons.Default.Edit, contentDescription = "Chỉnh sửa hồ sơ", modifier = Modifier.size(if (isShort) 20.dp else 24.dp))
                     }
                 }
             }
@@ -490,11 +586,11 @@ private fun ProfileHeader(
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ProfileAvatar(fullName = fullName, avatarUrl = avatarUrl)
+                ProfileAvatar(fullName = fullName, avatarUrl = avatarUrl, size = if (isShort) 56.dp else 72.dp)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = fullName,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = if (isShort) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         maxLines = 1,
@@ -507,7 +603,7 @@ private fun ProfileHeader(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(if (isShort) 4.dp else 8.dp))
                     RoleBadge(role = role)
                 }
             }
@@ -516,7 +612,7 @@ private fun ProfileHeader(
 }
 
 @Composable
-private fun ProfileAvatar(fullName: String, avatarUrl: String?) {
+private fun ProfileAvatar(fullName: String, avatarUrl: String?, size: androidx.compose.ui.unit.Dp = 72.dp) {
     val initials = remember(fullName) {
         fullName
             .trim()
@@ -530,7 +626,7 @@ private fun ProfileAvatar(fullName: String, avatarUrl: String?) {
 
     Box(
         modifier = Modifier
-            .size(72.dp)
+            .size(size)
             .clip(CircleShape)
             .background(Color.White),
         contentAlignment = Alignment.Center
@@ -545,7 +641,7 @@ private fun ProfileAvatar(fullName: String, avatarUrl: String?) {
         } else {
             Text(
                 text = initials,
-                style = MaterialTheme.typography.headlineSmall,
+                style = if (size < 72.dp) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )

@@ -202,7 +202,7 @@ fun AppNavigation() {
                     }
                 },
                 onNavigateToOrderHistory = {
-                    navController.navigate(Screen.OrderHistory.route) {
+                    navController.navigate("order_detail/$orderId") {
                         popUpTo(Screen.CustomerHome.route) { inclusive = false }
                     }
                 }
@@ -303,7 +303,8 @@ fun AppNavigation() {
 
         composable(route = Screen.Wallet.route) {
             com.example.foodienow.feature.profile.WalletScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToPaymentSettings = { navController.navigate("payment_settings_screen") }
             )
         }
 
@@ -422,6 +423,10 @@ fun AppNavigation() {
                 onBack = { navController.popBackStack() },
                 onNavigateToOrderDetail = { orderId ->
                     navController.navigate("order_detail/$orderId")
+                },
+                onNavigateToCart = { navController.navigate(Screen.Payment.route) },
+                onNavigateToFoodDetail = { food ->
+                    navController.navigate("food_detail/${food.id}")
                 },
                 initialTab = tab
             )

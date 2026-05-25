@@ -210,7 +210,7 @@ private fun HomeTopSection(
                 )
             )
             .statusBarsPadding()
-            .padding(start = 18.dp, top = 8.dp, end = 18.dp, bottom = 14.dp)
+            .padding(start = 18.dp, top = 2.dp, end = 18.dp, bottom = 10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -240,7 +240,7 @@ private fun HomeTopSection(
             )
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -471,8 +471,7 @@ private fun CategoriesSection(
                         repeat(2) {
                             Box(
                                 modifier = Modifier
-                                    .width(112.dp)
-                                    .height(42.dp)
+                                    .size(76.dp)
                                     .clip(MaterialTheme.shapes.large)
                                     .shimmerEffect()
                             )
