@@ -1,5 +1,6 @@
 package com.example.foodienow.feature.main
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -7,12 +8,17 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -22,20 +28,27 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
+import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.feature.customer_home.CustomerHomeScreen
 import com.example.foodienow.feature.notification.NotificationScreen
+import com.example.foodienow.feature.notification.NotificationViewModel
 import com.example.foodienow.feature.order_history.OrderHistoryScreen
+import com.example.foodienow.feature.order_history.OrderHistoryViewModel
 import com.example.foodienow.feature.profile.ProfileScreen
 import com.example.foodienow.core.navigation.Screen
 
@@ -46,10 +59,22 @@ fun CustomerMainScreen(
     onNavigateToFoodDetail: (Food) -> Unit,
     onNavigateToCategory: (String, String) -> Unit,
     onNavigateToChatList: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    notificationViewModel: NotificationViewModel = hiltViewModel(),
+    orderHistoryViewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var orderHistoryInitialTab by rememberSaveable { mutableIntStateOf(0) }
+
+    val notificationState by notificationViewModel.uiState.collectAsState()
+    val orderHistoryState by orderHistoryViewModel.uiState.collectAsState()
+
+    val activeStatuses = setOf(
+        OrderStatus.PENDING,
+        OrderStatus.PREPARING,
+        OrderStatus.DRIVER_ASSIGNED,
+        OrderStatus.DELIVERING
+    )
 
     Scaffold(
         bottomBar = {
@@ -73,8 +98,27 @@ fun CustomerMainScreen(
 
                     tabs.forEach { (icon, labelRes, index) ->
                         val selected = selectedTab == index
+                        val showBadge = when (index) {
+                            1 -> orderHistoryState.orders.any { it.status in activeStatuses }
+                            2 -> notificationState.unreadCount > 0
+                            else -> false
+                        }
                         NavigationBarItem(
-                            icon = { Icon(icon, contentDescription = stringResource(labelRes)) },
+                            icon = {
+                                Box {
+                                    Icon(icon, contentDescription = stringResource(labelRes))
+                                    if (showBadge) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .offset(x = 5.dp, y = (-3).dp)
+                                                .size(7.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.error)
+                                        )
+                                    }
+                                }
+                            },
                             label = {
                                 Text(
                                     text = stringResource(labelRes),
@@ -125,10 +169,12 @@ fun CustomerMainScreen(
                     },
                     onNavigateToCart = { rootNavController.navigate(Screen.Payment.route) },
                     onNavigateToFoodDetail = onNavigateToFoodDetail,
-                    initialTab = orderHistoryInitialTab
+                    initialTab = orderHistoryInitialTab,
+                    viewModel = orderHistoryViewModel
                 )
                 2 -> NotificationScreen(
-                    onBack = { selectedTab = 0 }
+                    onBack = { selectedTab = 0 },
+                    viewModel = notificationViewModel
                 )
                 3 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
