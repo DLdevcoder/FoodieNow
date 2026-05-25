@@ -98,6 +98,7 @@ private enum class OrdersTab(
 fun OrderHistoryScreen(
     onBack: () -> Unit,
     onNavigateToOrderDetail: (String) -> Unit,
+    onNavigateToTracking: (String) -> Unit,
     onNavigateToCart: () -> Unit = {},
     onNavigateToFoodDetail: (Food) -> Unit = {},
     initialTab: Int = 0,
@@ -181,6 +182,7 @@ fun OrderHistoryScreen(
                         emptyTitle = "Chưa có đơn đang giao",
                         emptySubtitle = "Các đơn đã thanh toán và đang được chuẩn bị, lấy hàng hoặc giao đến bạn sẽ xuất hiện tại đây.",
                         onNavigateToOrderDetail = onNavigateToOrderDetail,
+                        onNavigateToTracking = onNavigateToTracking,
                         onReorder = null,
                         modifier = Modifier.weight(1f)
                     )
@@ -199,6 +201,7 @@ fun OrderHistoryScreen(
                         emptyTitle = "Chưa có lịch sử đơn hàng",
                         emptySubtitle = "Những đơn đã giao thành công hoặc đã hủy sẽ được lưu tại đây.",
                         onNavigateToOrderDetail = onNavigateToOrderDetail,
+                        onNavigateToTracking = null,
                         onReorder = onReorder,
                         modifier = Modifier.weight(1f)
                     )
@@ -572,6 +575,7 @@ private fun OrdersListTab(
     emptyTitle: String,
     emptySubtitle: String,
     onNavigateToOrderDetail: (String) -> Unit,
+    onNavigateToTracking: ((String) -> Unit)?, // THÊM THAM SỐ
     onReorder: ((String) -> Unit)?,
     modifier: Modifier = Modifier
 ) {
@@ -597,6 +601,7 @@ private fun OrdersListTab(
             OrderCardItem(
                 order = order,
                 onNavigateToOrderDetail = onNavigateToOrderDetail,
+                onNavigateToTracking = onNavigateToTracking,
                 onReorder = onReorder
             )
         }
@@ -605,11 +610,11 @@ private fun OrdersListTab(
         }
     }
 }
-
 @Composable
 private fun OrderCardItem(
     order: Order,
     onNavigateToOrderDetail: (String) -> Unit,
+    onNavigateToTracking: ((String) -> Unit)?,
     onReorder: ((String) -> Unit)?
 ) {
     val style = order.status.toOrderStatusStyle()
@@ -726,27 +731,42 @@ private fun OrderCardItem(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = { order.id?.let(onNavigateToOrderDetail) },
-                        shape = MaterialTheme.shapes.medium,
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Text("Chi tiết", fontWeight = FontWeight.Bold)
-                    }
-                    if (onReorder != null && order.status == OrderStatus.COMPLETED) {
+                    // Logic phân nhánh hiển thị nút bấm
+                    if (onNavigateToTracking != null) {
+                        // 1. Nếu ở tab "Đang giao": Chỉ hiển thị nút Theo dõi
                         Button(
-                            onClick = { order.id?.let(onReorder) },
+                            onClick = { order.id?.let(onNavigateToTracking) },
                             shape = MaterialTheme.shapes.medium,
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                         ) {
-                            Text("Đặt lại", fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
+                            Text("Theo dõi", fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        // 2. Nếu ở tab "Lịch sử": Hiển thị Chi tiết và Đặt lại
+                        OutlinedButton(
+                            onClick = { order.id?.let(onNavigateToOrderDetail) },
+                            shape = MaterialTheme.shapes.medium,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text("Chi tiết", fontWeight = FontWeight.Bold)
+                        }
+
+                        if (onReorder != null && order.status == OrderStatus.COMPLETED) {
+                            Button(
+                                onClick = { order.id?.let(onReorder) },
+                                shape = MaterialTheme.shapes.medium,
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Text("Đặt lại", fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         }
                     }
                 }

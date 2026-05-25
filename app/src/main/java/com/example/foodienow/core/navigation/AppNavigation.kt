@@ -49,6 +49,7 @@ import com.example.foodienow.feature.customer_home.components.SearchScreen
 import com.example.foodienow.feature.main.ShipperMainScreen
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.feature.category_detail.CategoryDetailScreen
+import com.example.foodienow.feature.customer_tracking.CustomerTrackingScreen
 
 @Composable
 fun AppNavigation() {
@@ -424,12 +425,32 @@ fun AppNavigation() {
                 onNavigateToOrderDetail = { orderId ->
                     navController.navigate("order_detail/$orderId")
                 },
+                onNavigateToTracking = { orderId ->
+                    navController.navigate("customer_tracking/$orderId")
+                },
                 onNavigateToCart = { navController.navigate(Screen.Payment.route) },
                 onNavigateToFoodDetail = { food ->
                     navController.navigate("food_detail/${food.id}")
                 },
                 initialTab = tab
             )
+        }
+
+        composable(
+            route = "customer_tracking/{orderId}",
+            arguments = listOf(
+                navArgument("orderId") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId")
+
+            if (orderId != null) {
+                CustomerTrackingScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
 
         composable(
