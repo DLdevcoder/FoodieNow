@@ -406,5 +406,13 @@
     <string name="notification_title_wallet_transaction">Balance Update</string>
     <string name="notification_body_wallet_transaction">%1$s</string>
     <string name="notification_title_payment_success">Payment Successful</string>
-    <string name="notification_body_payment_success">Order %1$s paid. You earned %2$s FoodieCoins.</string>
+    <string name="notification_body_payment_success">Payment successful. You earned %1$s FoodieCoins.</string>
+    <string name="notification_body_order_updated">Your order has been updated.</string>
+    <string name="notification_title_order_driver_assigned">Shipper Assigned</string>
+    <string name="notification_body_order_driver_assigned">A shipper is heading to the restaurant to pick up your order.</string>
+    <string name="notification_title_shipper_new_order">New Delivery Available</string>
+    <string name="notification_body_shipper_new_order">A new order is ready for delivery. Tap to accept!</string>
+    <string name="notification_title_order_cancelled_shipper">Order Cancelled</string>
+    <string name="notification_body_order_cancelled_shipper">An order assigned to you has been cancelled.</string>
+    <string name="notification_title_new_chat_message">New Message</string>
 </resources>

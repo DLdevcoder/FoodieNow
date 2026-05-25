@@ -23,6 +23,7 @@ interface NotificationPayload {
     user_id: string;
     title: string;
     message: string;
+    channel: string;
     is_read: boolean;
     created_at: string;
   };
@@ -36,7 +37,11 @@ serve(async (req) => {
       return new Response(JSON.stringify({ message: "Ignored" }), { status: 200 });
     }
 
-    const { user_id, title, message } = payload.record;
+    const { user_id, title, message, channel } = payload.record;
+
+    if (channel === "tab_only") {
+      return new Response(JSON.stringify({ message: "Ignored tab_only channel" }), { status: 200 });
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -57,10 +62,6 @@ serve(async (req) => {
 
     const fcmResult = await admin.messaging().send({
       token: fcmToken,
-      notification: {
-        title: title,
-        body: message,
-      },
       data: {
         title: title,
         body: message,

@@ -413,5 +413,13 @@ sẽ xuất hiện tại đây</string>
     <string name="notification_title_wallet_transaction">Biến động số dư</string>
     <string name="notification_body_wallet_transaction">%1$s</string>
     <string name="notification_title_payment_success">Thanh toán thành công</string>
-    <string name="notification_body_payment_success">Đơn hàng %1$s đã thanh toán. Bạn được cộng %2$s FoodieCoins.</string>
+    <string name="notification_body_payment_success">Thanh toán thành công. Bạn được cộng %1$s FoodieCoins.</string>
+    <string name="notification_body_order_updated">Đơn hàng của bạn đã có cập nhật mới.</string>
+    <string name="notification_title_order_driver_assigned">Tài xế đã nhận đơn</string>
+    <string name="notification_body_order_driver_assigned">Tài xế đang di chuyển đến cửa hàng để nhận đơn của bạn.</string>
+    <string name="notification_title_shipper_new_order">Đơn hàng mới cần giao</string>
+    <string name="notification_body_shipper_new_order">Có một đơn hàng mới đang chờ tài xế. Bấm để nhận đơn!</string>
+    <string name="notification_title_order_cancelled_shipper">Đơn hàng đã hủy</string>
+    <string name="notification_body_order_cancelled_shipper">Đơn hàng bạn nhận giao đã bị hủy.</string>
+    <string name="notification_title_new_chat_message">Tin nhắn mới</string>
 </resources>

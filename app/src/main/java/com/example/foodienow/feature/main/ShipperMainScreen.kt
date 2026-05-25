@@ -1,5 +1,6 @@
 package com.example.foodienow.feature.main
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -7,7 +8,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Home
@@ -16,29 +20,40 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.feature.notification.NotificationScreen
+import com.example.foodienow.feature.notification.NotificationViewModel
 import com.example.foodienow.feature.order_history.OrderHistoryScreen
 import com.example.foodienow.feature.profile.ProfileScreen
 import com.example.foodienow.feature.shipper.ShipperEarningsScreen
 import com.example.foodienow.feature.shipper.ShipperHomeScreen
+import com.example.foodienow.feature.shipper.ShipperViewModel
 
 @Composable
 fun ShipperMainScreen(
     rootNavController: NavController,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    shipperViewModel: ShipperViewModel = hiltViewModel(),
+    notificationViewModel: NotificationViewModel = hiltViewModel()
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var shipperHomeInitialTab by rememberSaveable { mutableIntStateOf(0) }
+
+    val shipperState by shipperViewModel.uiState.collectAsState()
+    val notificationState by notificationViewModel.uiState.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -62,8 +77,27 @@ fun ShipperMainScreen(
 
                     tabs.forEach { (icon, labelRes, index) ->
                         val selected = selectedTab == index
+                        val showBadge = when (index) {
+                            0 -> shipperState.availableOrders.isNotEmpty() || shipperState.activeOrders.isNotEmpty()
+                            2 -> notificationState.unreadCount > 0
+                            else -> false
+                        }
                         NavigationBarItem(
-                            icon = { Icon(icon, contentDescription = stringResource(labelRes)) },
+                            icon = {
+                                Box {
+                                    Icon(icon, contentDescription = stringResource(labelRes))
+                                    if (showBadge) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .offset(x = 5.dp, y = (-3).dp)
+                                                .size(7.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.error)
+                                        )
+                                    }
+                                }
+                            },
                             label = {
                                 Text(
                                     text = stringResource(labelRes),
@@ -98,6 +132,7 @@ fun ShipperMainScreen(
         ) {
             when (selectedTab) {
                 0 -> ShipperHomeScreen(
+                    viewModel = shipperViewModel,
                     initialTabIndex = shipperHomeInitialTab,
                     onLogout = onLogout,
                     onNavigateToTracking = { orderId ->
@@ -108,7 +143,10 @@ fun ShipperMainScreen(
                     onBack = { selectedTab = 0 },
                     onNavigateToPaymentSettings = { rootNavController.navigate("payment_settings_screen") }
                 )
-                2 -> NotificationScreen(onBack = { selectedTab = 0 })
+                2 -> NotificationScreen(
+                    onBack = { selectedTab = 0 },
+                    viewModel = notificationViewModel
+                )
                 3 -> ProfileScreen(
                     onBack = { selectedTab = 0 },
                     onNavigateToOrderHistory = {
