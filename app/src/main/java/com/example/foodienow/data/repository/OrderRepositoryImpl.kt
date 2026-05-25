@@ -1,9 +1,11 @@
 package com.example.foodienow.data.repository
 
+import com.example.foodienow.domain.model.Address
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderItemResponse
 import com.example.foodienow.domain.model.OrderItemUiModel
 import com.example.foodienow.domain.model.OrderStatus
+import com.example.foodienow.domain.model.Store
 import com.example.foodienow.domain.repository.OrderRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
@@ -25,11 +27,52 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun createOrder(order: Order): Result<Order> {
         return try {
+            var updatedOrder = order
+            if (order.merchantLat == null || order.merchantLng == null) {
+                if (order.merchantId != null) {
+                    val store = supabaseClient.postgrest["stores"]
+                        .select { filter { eq("id", order.merchantId) } }
+                        .decodeSingleOrNull<Store>()
+
+                    if (store != null) {
+                        val ownerAddresses = supabaseClient.postgrest["addresses"]
+                            .select { filter { eq("user_id", store.ownerId) } }
+                            .decodeList<Address>()
+                        val storeAddress = ownerAddresses.firstOrNull { it.isDefault } ?: ownerAddresses.firstOrNull()
+
+                        if (storeAddress != null) {
+                            updatedOrder = updatedOrder.copy(
+                                merchantLat = storeAddress.latitude,
+                                merchantLng = storeAddress.longitude
+                            )
+                        }
+                    }
+                }
+            }
+            if (updatedOrder.deliveryLat == null || updatedOrder.deliveryLng == null) {
+                val addressList = supabaseClient.postgrest["addresses"]
+                    .select {
+                        filter {
+                            eq("user_id", order.customerId)
+                            eq("detail", order.deliveryAddress)
+                        }
+                    }
+                    .decodeList<Address>()
+
+                val customerAddress = addressList.firstOrNull()
+                if (customerAddress != null) {
+                    updatedOrder = updatedOrder.copy(
+                        deliveryLat = customerAddress.latitude,
+                        deliveryLng = customerAddress.longitude
+                    )
+                }
+            }
             val insertedOrder = supabaseClient.postgrest["orders"]
-                .insert(order) {
+                .insert(updatedOrder) {
                     select()
                 }
                 .decodeSingle<Order>()
+
             Result.success(insertedOrder)
         } catch (e: Exception) {
             Result.failure(e)
@@ -284,6 +327,51 @@ class OrderRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    override suspend fun confirmShipperDelivery(orderId: String): Result<Unit> {
+        return try {
+            // Cập nhật cờ của shipper
+            supabaseClient.postgrest["orders"].update(
+                { set("shipper_confirmed", true) }
+            ) { filter { eq("id", orderId) } }
+
+            // Gọi hàm kiểm tra để đóng đơn
+            checkAndCompleteOrder(orderId)
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun confirmCustomerReceipt(orderId: String): Result<Unit> {
+        return try {
+            // Cập nhật cờ của khách hàng
+            supabaseClient.postgrest["orders"].update(
+                { set("customer_confirmed", true) }
+            ) { filter { eq("id", orderId) } }
+
+            // Gọi hàm kiểm tra để đóng đơn
+            checkAndCompleteOrder(orderId)
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun checkAndCompleteOrder(orderId: String): Result<Unit> {
+        return try {
+            val order = getOrderById(orderId)
+
+            if (order != null && order.shipperConfirmed && order.customerConfirmed) {
+                updateOrderStatus(orderId, OrderStatus.COMPLETED)
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 }

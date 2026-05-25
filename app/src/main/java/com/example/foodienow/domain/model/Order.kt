@@ -33,5 +33,7 @@ data class Order(
     @SerialName("delivery_lng") val deliveryLng: Double? = null,
     @SerialName("shipper_lat") val shipperLat: Double? = null,
     @SerialName("shipper_lng") val shipperLng: Double? = null,
-    val otherItemsCount: Int? = null
+    val otherItemsCount: Int? = null,
+    @SerialName("shipper_confirmed") val shipperConfirmed: Boolean = false,
+    @SerialName("customer_confirmed") val customerConfirmed: Boolean = false
 )

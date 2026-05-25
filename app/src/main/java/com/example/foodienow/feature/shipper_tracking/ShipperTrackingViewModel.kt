@@ -92,7 +92,6 @@ class ShipperTrackingViewModel @Inject constructor(
 
     private val httpClient = HttpClient(OkHttp)
     private val json = Json { ignoreUnknownKeys = true }
-
     private val goongApiKey = BuildConfig.GOONG_API_KEY
 
     init {
@@ -114,15 +113,9 @@ class ShipperTrackingViewModel @Inject constructor(
     fun updateShipperLocation(lat: Double, lng: Double) {
         viewModelScope.launch {
             try {
-                // 1. Cập nhật vị trí GPS lên Supabase
                 orderRepository.updateShipperLocation(orderId, lat, lng)
+                _currentOrder.update { it?.copy(shipperLat = lat, shipperLng = lng) }
 
-                // 2. Cập nhật State nội bộ
-                _currentOrder.update {
-                    it?.copy(shipperLat = lat, shipperLng = lng)
-                }
-
-                // 3. Nếu đang đi giao hàng, tính lại đoạn đường từ vị trí mới đến khách hàng
                 val currentOrderVal = _currentOrder.value
                 if (currentOrderVal?.status == OrderStatus.DELIVERING) {
                     val custLat = currentOrderVal.deliveryLat
@@ -133,6 +126,15 @@ class ShipperTrackingViewModel @Inject constructor(
                             destination = "$custLat,$custLng"
                         )
                     }
+                } else if (currentOrderVal?.status == OrderStatus.DRIVER_ASSIGNED) {
+                    val storeLat = currentOrderVal.merchantLat
+                    val storeLng = currentOrderVal.merchantLng
+                    if (storeLat != null && storeLng != null) {
+                        _routeToStore.value = getRoutePolyline(
+                            origin = "$lat,$lng",
+                            destination = "$storeLat,$storeLng"
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -140,7 +142,6 @@ class ShipperTrackingViewModel @Inject constructor(
         }
     }
 
-    // Sửa lại hàm này để logic rõ ràng hơn với DRIVER_ASSIGNED
     private fun fetchRoutesBasedOnStatus(order: Order) {
         viewModelScope.launch {
             if (goongApiKey.isBlank()) return@launch
@@ -155,7 +156,7 @@ class ShipperTrackingViewModel @Inject constructor(
             try {
                 when (order.status) {
                     OrderStatus.DELIVERING -> {
-                        // Đã nhận hàng: Bỏ đoạn đường đến cửa hàng, chỉ vẽ đoạn đến khách hàng
+                        // LUỒNG MỚI: Xóa đường đến quán, VẼ ĐƯỜNG MỚI TỪ SHIPPER ĐẾN KHÁCH HÀNG
                         _routeToStore.value = emptyList()
                         _routeToCustomer.value = getRoutePolyline(
                             origin = "$shipperLat,$shipperLng",
@@ -163,7 +164,7 @@ class ShipperTrackingViewModel @Inject constructor(
                         )
                     }
                     OrderStatus.DRIVER_ASSIGNED -> {
-                        // Đang đi lấy hàng: Vẽ cả 2 chặng
+                        // LUỒNG CŨ: Vẽ 2 chặng
                         _routeToStore.value = getRoutePolyline(
                             origin = "$shipperLat,$shipperLng",
                             destination = "$storeLat,$storeLng"
@@ -174,7 +175,6 @@ class ShipperTrackingViewModel @Inject constructor(
                         )
                     }
                     else -> {
-                        // Các trạng thái khác không vẽ đường
                         _routeToStore.value = emptyList()
                         _routeToCustomer.value = emptyList()
                     }
@@ -186,34 +186,32 @@ class ShipperTrackingViewModel @Inject constructor(
         }
     }
 
-    // Thêm hàm hoàn thành đơn hàng từ màn hình Tracking
-    fun completeOrder(onSuccess: () -> Unit) {
+    fun confirmOrderPickedUp() {
         viewModelScope.launch {
             try {
-                // Cập nhật trạng thái COMPLETED lên Supabase
-                val result = orderRepository.updateOrderStatus(orderId, OrderStatus.COMPLETED)
-                if (result.isSuccess) {
-                    _currentOrder.update { it?.copy(status = OrderStatus.COMPLETED) }
-                    // Gọi callback để tự động đóng màn hình bản đồ
-                    onSuccess()
-                }
+                orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
+                _currentOrder.update { it?.copy(status = OrderStatus.DELIVERING) }
+
+                // Khi đổi sang DELIVERING, hàm này sẽ được gọi lại để xóa đường cũ, vẽ đường mới
+                _currentOrder.value?.let { fetchRoutesBasedOnStatus(it) }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
-    fun confirmOrderPickedUp() {
+    fun confirmDelivery(onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
-                // Đổi trạng thái đơn hàng trên Supabase
-                orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
+                val result = orderRepository.confirmShipperDelivery(orderId)
+                if (result.isSuccess) {
+                    _currentOrder.update { it?.copy(shipperConfirmed = true) }
 
-                // Cập nhật State
-                _currentOrder.update { it?.copy(status = OrderStatus.DELIVERING) }
-
-                // Vẽ lại cấu trúc đường mới theo trạng thái DELIVERING
-                _currentOrder.value?.let { fetchRoutesBasedOnStatus(it) }
+                    val latestOrder = orderRepository.getOrderById(orderId)
+                    if (latestOrder?.status == OrderStatus.COMPLETED) {
+                        onSuccess()
+                    }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
