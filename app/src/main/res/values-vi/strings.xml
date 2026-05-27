@@ -191,7 +191,7 @@
     <string name="merchant_orders_action_cancel">Từ chối</string>
     <string name="merchant_orders_customer_name">Khách hàng: %1$s</string>
     <string name="merchant_status_display_pending">Chờ xác nhận</string>
-    <string name="merchant_status_display_preparing">Đang nấu (Chờ tài xế nhận)</string>
+    <string name="merchant_status_display_preparing">Đang nấu</string>
     <string name="merchant_status_display_driver_assigned">Tài xế đang đến lấy hàng</string>
     <string name="merchant_status_display_delivering">Tài xế đang đi giao</string>
     <string name="merchant_status_display_completed">Giao thành công</string>

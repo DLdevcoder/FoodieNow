@@ -14,5 +14,7 @@ data class Store(
     @SerialName("closing_time") val closingTime: String? = null,
     @SerialName("is_active") val isActive: Boolean = true,
     val rating: Double = 0.0,
-    @SerialName("review_count") val reviewCount: Int = 0
+    @SerialName("review_count") val reviewCount: Int = 0,
+    @SerialName("lat") val lat: Double? = null,
+    @SerialName("lng") val lng: Double? = null
 )

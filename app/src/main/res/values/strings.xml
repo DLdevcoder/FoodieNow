@@ -269,7 +269,7 @@
     <string name="merchant_orders_action_cancel">Reject</string>
     <string name="merchant_orders_customer_name">Customer: %1$s</string>
     <string name="merchant_status_display_pending">Pending confirmation</string>
-    <string name="merchant_status_display_preparing">Preparing (Waiting for driver)</string>
+    <string name="merchant_status_display_preparing">Preparing</string>
     <string name="merchant_status_display_driver_assigned">Driver is arriving</string>
     <string name="merchant_status_display_delivering">Driver is delivering</string>
     <string name="merchant_status_display_completed">Delivered successfully</string>

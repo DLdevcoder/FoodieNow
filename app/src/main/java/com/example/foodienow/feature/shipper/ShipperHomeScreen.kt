@@ -282,7 +282,6 @@ private fun OrderList(
         }
     }
 }
-
 @Composable
 private fun ShipperOrderCard(
     order: Order,
@@ -338,8 +337,6 @@ private fun ShipperOrderCard(
             }
 
             Spacer(modifier = Modifier.height(4.dp))
-
-            // Xử lý hiển thị nút bấm
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
@@ -363,11 +360,21 @@ private fun ShipperOrderCard(
                         }
                         OrderStatus.DRIVER_ASSIGNED -> {
                             OutlinedButton(
+                                onClick = { order.id?.let { viewModel.cancelOrder(it) } },
+                                modifier = Modifier.padding(end = 8.dp),
+                                shape = MaterialTheme.shapes.medium,
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = Color(0xFFD32F2F)
+                                )
+                            ) {
+                                Text("Hủy đơn")
+                            }
+                            OutlinedButton(
                                 onClick = onNavigateToMap,
                                 modifier = Modifier.padding(end = 8.dp),
                                 shape = MaterialTheme.shapes.medium
                             ) {
-                                Text("Xem Bản đồ")
+                                Text("Bản đồ")
                             }
                             Button(
                                 onClick = { order.id?.let { viewModel.markAsDelivering(it) } },
@@ -382,7 +389,7 @@ private fun ShipperOrderCard(
                                 modifier = Modifier.padding(end = 8.dp),
                                 shape = MaterialTheme.shapes.medium
                             ) {
-                                Text("Xem Bản đồ")
+                                Text("Bản đồ")
                             }
 
                             val isConfirmed = order.shipperConfirmed
