@@ -28,45 +28,55 @@ class OrderRepositoryImpl @Inject constructor(
     override suspend fun createOrder(order: Order): Result<Order> {
         return try {
             var updatedOrder = order
+
+            // 1. TÌM TỌA ĐỘ QUÁN ĂN (LẤY TỪ CỘT lat VÀ lng CỦA BẢNG STORES)
             if (order.merchantLat == null || order.merchantLng == null) {
                 if (order.merchantId != null) {
+                    android.util.Log.d("OrderRepository", "Bắt đầu tìm tọa độ cho quán: ${order.merchantId}")
+
                     val store = supabaseClient.postgrest["stores"]
                         .select { filter { eq("id", order.merchantId) } }
                         .decodeSingleOrNull<Store>()
 
-                    if (store != null) {
-                        val ownerAddresses = supabaseClient.postgrest["addresses"]
-                            .select { filter { eq("user_id", store.ownerId) } }
-                            .decodeList<Address>()
-                        val storeAddress = ownerAddresses.firstOrNull { it.isDefault } ?: ownerAddresses.firstOrNull()
-
-                        if (storeAddress != null) {
-                            updatedOrder = updatedOrder.copy(
-                                merchantLat = storeAddress.latitude,
-                                merchantLng = storeAddress.longitude
-                            )
-                        }
+                    if (store == null) {
+                        android.util.Log.e("OrderRepository", "Lỗi: Query bảng stores trả về null")
+                    } else if (store.lat == null || store.lng == null) {
+                        android.util.Log.e("OrderRepository", "Lỗi: Tìm thấy quán '${store.name}' nhưng cột lat=${store.lat}, lng=${store.lng}")
+                    } else {
+                        android.util.Log.d("OrderRepository", "Thành công: Lấy được tọa độ quán (${store.lat}, ${store.lng})")
+                        updatedOrder = updatedOrder.copy(
+                            merchantLat = store.lat,
+                            merchantLng = store.lng
+                        )
                     }
                 }
             }
+
+            // 2. TÌM TỌA ĐỘ KHÁCH HÀNG
             if (updatedOrder.deliveryLat == null || updatedOrder.deliveryLng == null) {
-                val addressList = supabaseClient.postgrest["addresses"]
-                    .select {
-                        filter {
-                            eq("user_id", order.customerId)
-                            eq("detail", order.deliveryAddress)
+                try {
+                    val addressList = supabaseClient.postgrest["addresses"]
+                        .select {
+                            filter {
+                                eq("user_id", order.customerId)
+                                eq("detail", order.deliveryAddress)
+                            }
                         }
-                    }
-                    .decodeList<Address>()
+                        .decodeList<Address>()
 
-                val customerAddress = addressList.firstOrNull()
-                if (customerAddress != null) {
-                    updatedOrder = updatedOrder.copy(
-                        deliveryLat = customerAddress.latitude,
-                        deliveryLng = customerAddress.longitude
-                    )
+                    val customerAddress = addressList.firstOrNull()
+                    if (customerAddress != null) {
+                        updatedOrder = updatedOrder.copy(
+                            deliveryLat = customerAddress.latitude, // Lưu ý: Nếu bảng addresses dùng 'lat', hãy sửa chỗ này thành customerAddress.lat
+                            deliveryLng = customerAddress.longitude
+                        )
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("OrderRepository", "Lỗi tìm tọa độ khách: ${e.message}")
                 }
             }
+
+            // 3. LƯU ĐƠN HÀNG
             val insertedOrder = supabaseClient.postgrest["orders"]
                 .insert(updatedOrder) {
                     select()
@@ -74,7 +84,9 @@ class OrderRepositoryImpl @Inject constructor(
                 .decodeSingle<Order>()
 
             Result.success(insertedOrder)
+
         } catch (e: Exception) {
+            android.util.Log.e("OrderRepository", "Lỗi tạo đơn hàng: ", e)
             Result.failure(e)
         }
     }
@@ -153,7 +165,6 @@ class OrderRepositoryImpl @Inject constructor(
                 .select {
                     filter {
                         eq("status", OrderStatus.PREPARING.name)
-                        // eq("shipper_id", null) - Nếu Supabase của bạn hỗ trợ is null trực tiếp
                     }
                 }
                 .decodeList<Order>()
@@ -217,7 +228,7 @@ class OrderRepositoryImpl @Inject constructor(
             supabaseClient.postgrest["orders"].update(
                 {
                     set("shipper_id", shipperId)
-                    set("status", OrderStatus.DRIVER_ASSIGNED.name) // Đẩy thẳng lên trạng thái tài xế đang đến
+                    set("status", OrderStatus.DRIVER_ASSIGNED.name)
                 }
             ) {
                 filter { eq("id", orderId) }
@@ -332,12 +343,10 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun confirmShipperDelivery(orderId: String): Result<Unit> {
         return try {
-            // Cập nhật cờ của shipper
             supabaseClient.postgrest["orders"].update(
                 { set("shipper_confirmed", true) }
             ) { filter { eq("id", orderId) } }
 
-            // Gọi hàm kiểm tra để đóng đơn
             checkAndCompleteOrder(orderId)
 
             Result.success(Unit)
@@ -348,12 +357,10 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun confirmCustomerReceipt(orderId: String): Result<Unit> {
         return try {
-            // Cập nhật cờ của khách hàng
             supabaseClient.postgrest["orders"].update(
                 { set("customer_confirmed", true) }
             ) { filter { eq("id", orderId) } }
 
-            // Gọi hàm kiểm tra để đóng đơn
             checkAndCompleteOrder(orderId)
 
             Result.success(Unit)
@@ -371,6 +378,64 @@ class OrderRepositoryImpl @Inject constructor(
             }
             Result.success(Unit)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun cancelOrderShipper(orderId: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest["orders"].update(
+                {
+                    set("status", OrderStatus.PREPARING.name)
+                    set("shipper_id", null as String?)
+                    set("shipper_lat", null as Double?)
+                    set("shipper_lng", null as Double?)
+                }
+            ) {
+                filter { eq("id", orderId) }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // --- HÀM MỚI ---
+    override suspend fun merchantAcceptOrderWithLocation(orderId: String, merchantId: String): Result<Unit> {
+        return try {
+            val store = supabaseClient.postgrest["stores"]
+                .select { filter { eq("id", merchantId) } }
+                .decodeSingleOrNull<Store>()
+
+            var lat: Double? = null
+            var lng: Double? = null
+
+            if (store?.ownerId != null) {
+                val ownerAddresses = supabaseClient.postgrest["addresses"]
+                    .select { filter { eq("user_id", store.ownerId) } }
+                    .decodeList<Address>()
+                val storeAddress = ownerAddresses.firstOrNull { it.isDefault } ?: ownerAddresses.firstOrNull()
+
+                if (storeAddress != null) {
+                    lat = storeAddress.latitude
+                    lng = storeAddress.longitude
+                }
+            }
+
+            supabaseClient.postgrest["orders"].update(
+                {
+                    set("status", OrderStatus.PREPARING.name)
+                    if (lat != null && lng != null) {
+                        set("merchant_lat", lat)
+                        set("merchant_lng", lng)
+                    }
+                }
+            ) {
+                filter { eq("id", orderId) }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            android.util.Log.e("OrderRepository", "Lỗi khi Merchant nhận đơn: ", e)
             Result.failure(e)
         }
     }

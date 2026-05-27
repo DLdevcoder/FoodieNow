@@ -18,7 +18,8 @@ import javax.inject.Inject
 data class MerchantOrdersUiState(
     val isLoading: Boolean = false,
     val orders: List<Order> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val currentMerchantId: String? = null
 )
 
 @HiltViewModel
@@ -42,8 +43,10 @@ class MerchantOrdersViewModel @Inject constructor(
                 val merchantId = currentUser?.id
 
                 if (merchantId != null) {
+                    // Lưu lại ID để dùng lúc xác nhận đơn
+                    _uiState.update { it.copy(currentMerchantId = merchantId) }
+
                     orderRepository.getMerchantOrders(merchantId).collect { orderList ->
-                        // Sắp xếp đơn hàng mới nhất lên đầu
                         val sortedOrders = orderList.sortedByDescending { it.createdAt }
                         _uiState.update { it.copy(isLoading = false, orders = sortedOrders) }
                     }
@@ -52,6 +55,25 @@ class MerchantOrdersViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
+    }
+
+    fun acceptOrder(orderId: String) {
+        viewModelScope.launch {
+            val merchantId = _uiState.value.currentMerchantId ?: return@launch
+
+            _uiState.update { currentState ->
+                val updatedOrders = currentState.orders.map { order ->
+                    if (order.id == orderId) order.copy(status = OrderStatus.PREPARING) else order
+                }
+                currentState.copy(orders = updatedOrders)
+            }
+
+            val result = orderRepository.merchantAcceptOrderWithLocation(orderId, merchantId)
+
+            if (result.isFailure) {
+                loadOrders()
             }
         }
     }
