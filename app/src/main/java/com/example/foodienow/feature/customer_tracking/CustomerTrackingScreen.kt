@@ -103,11 +103,21 @@ fun CustomerTrackingScreen(
         // Vẽ đường khi đang trong 2 trạng thái cần thiết
         if (currentOrder.status == OrderStatus.DRIVER_ASSIGNED || currentOrder.status == OrderStatus.DELIVERING) {
 
-            // 1. Cập nhật đường đi
+            // 1. Cập nhật đường đi với màu sắc tùy theo trạng thái
             activePolyline?.let { map.removePolyline(it) }
             if (routePoints.isNotEmpty()) {
+                // DRIVER_ASSIGNED: Màu nhạt (Opacity 50%) - DELIVERING: Màu đậm chuẩn
+                val polylineColor = if (currentOrder.status == OrderStatus.DRIVER_ASSIGNED) {
+                    AndroidColor.parseColor("#80EE4D2D") // 80 là Hex alpha cho 50% opacity
+                } else {
+                    AndroidColor.parseColor("#EE4D2D")
+                }
+
                 activePolyline = map.addPolyline(
-                    PolylineOptions().addAll(routePoints).color(AndroidColor.parseColor("#EE4D2D")).width(6f)
+                    PolylineOptions()
+                        .addAll(routePoints)
+                        .color(polylineColor)
+                        .width(6f)
                 )
             }
 
@@ -139,12 +149,11 @@ fun CustomerTrackingScreen(
     LaunchedEffect(isMapReady, order?.shipperLat, order?.shipperLng, order?.status) {
         if (!isMapReady) return@LaunchedEffect
         val map = mapLibreMapInstance ?: return@LaunchedEffect
-        val lat = order?.shipperLat ?: return@LaunchedEffect
-        val lng = order?.shipperLng ?: return@LaunchedEffect
         val currentOrder = order ?: return@LaunchedEffect
 
-        if (currentOrder.status == OrderStatus.DELIVERING) {
-            val currentPos = LatLng(lat, lng)
+        // Chỉ vẽ Shipper khi trạng thái là DELIVERING và có tọa độ
+        if (currentOrder.status == OrderStatus.DELIVERING && currentOrder.shipperLat != null && currentOrder.shipperLng != null) {
+            val currentPos = LatLng(currentOrder.shipperLat, currentOrder.shipperLng)
 
             if (shipperMarker != null) {
                 shipperMarker?.position = currentPos
@@ -154,7 +163,7 @@ fun CustomerTrackingScreen(
                 shipperMarker = map.addMarker(opts)
             }
         } else {
-            // Nếu trạng thái quay về (hoặc vẫn đang là) DRIVER_ASSIGNED, ẩn/xóa marker của tài xế
+            // Nếu không phải DELIVERING thì ẩn tài xế
             shipperMarker?.let { map.removeMarker(it) }
             shipperMarker = null
         }
@@ -176,7 +185,6 @@ fun CustomerTrackingScreen(
             if (currentOrder == null) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
-                // Luôn render bản đồ
                 AndroidView(
                     factory = { mapView },
                     modifier = Modifier.fillMaxSize(),
@@ -201,8 +209,17 @@ fun CustomerTrackingScreen(
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
+
+                        // Thay đổi Text theo trạng thái
+                        val statusText = when (currentOrder.status) {
+                            OrderStatus.DRIVER_ASSIGNED -> "Tài xế đang đến nhà hàng lấy đơn"
+                            OrderStatus.DELIVERING -> "Tài xế đang trên đường giao đến bạn"
+                            OrderStatus.COMPLETED -> "Đơn hàng đã giao thành công"
+                            else -> "Đang xử lý đơn hàng"
+                        }
+
                         Text(
-                            text = "Tài xế đang trên đường giao đến bạn",
+                            text = statusText,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
@@ -213,13 +230,12 @@ fun CustomerTrackingScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // NÚT XÁC NHẬN CHO KHÁCH HÀNG
                         val isCustomerConfirmed = currentOrder.customerConfirmed
 
                         Button(
                             onClick = { viewModel.confirmReceipt(onSuccess = onBack) },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = !isCustomerConfirmed,
+                            enabled = !isCustomerConfirmed && (currentOrder.status == OrderStatus.DELIVERING || currentOrder.status == OrderStatus.COMPLETED),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isCustomerConfirmed) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
                                 contentColor = if (isCustomerConfirmed) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
