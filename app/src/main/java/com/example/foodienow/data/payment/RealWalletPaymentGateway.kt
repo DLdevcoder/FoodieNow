@@ -3,6 +3,7 @@ package com.example.foodienow.data.payment
 import com.example.foodienow.domain.model.WalletProvider
 import com.example.foodienow.domain.payment.WalletChargeResult
 import com.example.foodienow.domain.payment.WalletPaymentGateway
+import com.example.foodienow.domain.payment.WalletWithdrawResult
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -145,6 +146,28 @@ class RealWalletPaymentGateway @Inject constructor() : WalletPaymentGateway {
         val secureHash = hmacSHA512(vnpHashSecret, hashData.toString())
         query.append("&vnp_SecureHash=").append(secureHash)
         return "$vnpUrl?${query.toString()}"
+    }
+
+    override suspend fun withdraw(
+        provider: WalletProvider,
+        amount: Long,
+        transactionId: String,
+        customerId: String
+    ): Result<WalletWithdrawResult> = withContext(Dispatchers.IO) {
+        try {
+            if (amount <= 0) {
+                return@withContext Result.failure(IllegalArgumentException("Amount must be positive"))
+            }
+            kotlinx.coroutines.delay(1000)
+            Result.success(
+                WalletWithdrawResult(
+                    transactionId = transactionId,
+                    message = "Rút tiền thành công về ví ${provider.name}"
+                )
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
 }

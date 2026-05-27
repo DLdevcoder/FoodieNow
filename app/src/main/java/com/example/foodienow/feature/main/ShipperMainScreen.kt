@@ -25,6 +25,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -45,8 +48,10 @@ import com.example.foodienow.feature.shipper.ShipperViewModel
 @Composable
 fun ShipperMainScreen(
     rootNavController: NavController,
-    initialHomeTab: Int = 0, // THÊM THAM SỐ NÀY
-    onLogout: () -> Unit
+    initialHomeTab: Int = 0,
+    onLogout: () -> Unit,
+    shipperViewModel: ShipperViewModel = hiltViewModel(),
+    notificationViewModel: NotificationViewModel = hiltViewModel()
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var shipperHomeInitialTab by rememberSaveable(initialHomeTab) { mutableIntStateOf(initialHomeTab) }
@@ -58,6 +63,31 @@ fun ShipperMainScreen(
 
     val shipperState by shipperViewModel.uiState.collectAsState()
     val notificationState by notificationViewModel.uiState.collectAsState()
+
+    var hasViewedOrders by remember { mutableStateOf(selectedTab == 0) }
+    var hasViewedNotifications by remember { mutableStateOf(selectedTab == 2) }
+
+    var lastShipperOrdersMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    val currentShipperOrdersMap = (shipperState.availableOrders + shipperState.activeOrders)
+        .associate { (it.id ?: "") to it.status.name }
+
+    LaunchedEffect(currentShipperOrdersMap) {
+        val hasChanges = currentShipperOrdersMap.any { (id, status) ->
+            lastShipperOrdersMap[id] != status
+        }
+        if (hasChanges) {
+            hasViewedOrders = false
+        }
+        lastShipperOrdersMap = currentShipperOrdersMap
+    }
+
+    var lastUnreadCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(notificationState.unreadCount) {
+        if (notificationState.unreadCount > lastUnreadCount) {
+            hasViewedNotifications = false
+        }
+        lastUnreadCount = notificationState.unreadCount
+    }
 
     Scaffold(
         bottomBar = {
@@ -82,8 +112,8 @@ fun ShipperMainScreen(
                     tabs.forEach { (icon, labelRes, index) ->
                         val selected = selectedTab == index
                         val showBadge = when (index) {
-                            0 -> shipperState.availableOrders.isNotEmpty() || shipperState.activeOrders.isNotEmpty()
-                            2 -> notificationState.unreadCount > 0
+                            0 -> currentShipperOrdersMap.isNotEmpty() && !hasViewedOrders && selectedTab != 0
+                            2 -> notificationState.unreadCount > 0 && !hasViewedNotifications && selectedTab != 2
                             else -> false
                         }
                         NavigationBarItem(
@@ -114,6 +144,10 @@ fun ShipperMainScreen(
                                 if (index == 0) {
                                     // Khi bấm vào lại nút Home thì reset về tab Chờ nhận (0)
                                     shipperHomeInitialTab = 0
+                                    hasViewedOrders = true
+                                }
+                                if (index == 2) {
+                                    hasViewedNotifications = true
                                 }
                             },
                             alwaysShowLabel = true,

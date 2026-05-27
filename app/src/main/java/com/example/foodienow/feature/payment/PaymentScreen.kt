@@ -158,13 +158,17 @@ fun PaymentScreen(
             PaymentMethodCatalog.optionIdFor(PaymentMethod.WALLET, provider) in uiState.configuredPaymentOptionIds
         }
     }
-    val availablePaymentMethods = remember(uiState.configuredPaymentOptionIds) {
+    val availablePaymentMethods = remember(uiState.configuredPaymentOptionIds, uiState.userRole) {
         PaymentMethod.entries.filter { method ->
-            when (method) {
-                PaymentMethod.COD,
-                PaymentMethod.FOODIE_PAY -> true
-                PaymentMethod.WALLET -> WalletProvider.entries.any { provider ->
-                    PaymentMethodCatalog.optionIdFor(PaymentMethod.WALLET, provider) in uiState.configuredPaymentOptionIds
+            if (uiState.userRole == com.example.foodienow.domain.model.UserRole.ADMIN && method == PaymentMethod.COD) {
+                false
+            } else {
+                when (method) {
+                    PaymentMethod.COD,
+                    PaymentMethod.FOODIE_PAY -> true
+                    PaymentMethod.WALLET -> WalletProvider.entries.any { provider ->
+                        PaymentMethodCatalog.optionIdFor(PaymentMethod.WALLET, provider) in uiState.configuredPaymentOptionIds
+                    }
                 }
             }
         }
@@ -178,27 +182,45 @@ fun PaymentScreen(
     LaunchedEffect(
         uiState.paymentSettingsLoaded,
         uiState.defaultPaymentMethod,
-        uiState.defaultWalletProvider
+        uiState.defaultWalletProvider,
+        uiState.userRole
     ) {
         if (uiState.paymentSettingsLoaded && !hasUserSelectedPaymentMethod) {
-            selectedMethod = uiState.defaultPaymentMethod
+            val defMethod = if (uiState.userRole == com.example.foodienow.domain.model.UserRole.ADMIN && uiState.defaultPaymentMethod == PaymentMethod.COD) {
+                PaymentMethod.FOODIE_PAY
+            } else {
+                uiState.defaultPaymentMethod
+            }
+            selectedMethod = defMethod
             selectedProvider = uiState.defaultWalletProvider
         }
     }
 
-    LaunchedEffect(uiState.configuredPaymentOptionIds, selectedMethod, selectedProvider) {
+    LaunchedEffect(uiState.configuredPaymentOptionIds, selectedMethod, selectedProvider, uiState.userRole) {
+        var nextMethod = selectedMethod
+        if (uiState.userRole == com.example.foodienow.domain.model.UserRole.ADMIN && nextMethod == PaymentMethod.COD) {
+            nextMethod = PaymentMethod.FOODIE_PAY
+        }
         val selectedOptionId = PaymentMethodCatalog.optionIdFor(
-            method = selectedMethod,
-            provider = if (selectedMethod == PaymentMethod.WALLET) selectedProvider else null
+            method = nextMethod,
+            provider = if (nextMethod == PaymentMethod.WALLET) selectedProvider else null
         )
         if (selectedOptionId !in uiState.configuredPaymentOptionIds) {
-            selectedMethod = uiState.defaultPaymentMethod
+            val defMethod = if (uiState.userRole == com.example.foodienow.domain.model.UserRole.ADMIN && uiState.defaultPaymentMethod == PaymentMethod.COD) {
+                PaymentMethod.FOODIE_PAY
+            } else {
+                uiState.defaultPaymentMethod
+            }
+            selectedMethod = defMethod
             selectedProvider = uiState.defaultWalletProvider
-        } else if (
-            selectedMethod == PaymentMethod.WALLET &&
-            selectedProvider !in availableWalletProviders
-        ) {
-            selectedProvider = availableWalletProviders.firstOrNull() ?: uiState.defaultWalletProvider
+        } else {
+            selectedMethod = nextMethod
+            if (
+                selectedMethod == PaymentMethod.WALLET &&
+                selectedProvider !in availableWalletProviders
+            ) {
+                selectedProvider = availableWalletProviders.firstOrNull() ?: uiState.defaultWalletProvider
+            }
         }
     }
 
@@ -226,7 +248,9 @@ fun PaymentScreen(
         subtotal = subtotal,
         voucherDiscount = discountAmount,
         rewardPointsAvailable = uiState.rewardPointsAvailable,
-        useRewardPoints = useRewardPoints
+        useRewardPoints = useRewardPoints,
+        baseDeliveryFee = uiState.baseDeliveryFee,
+        freeDeliveryThreshold = uiState.freeDeliveryThreshold
     )
     val deliveryFee = totals.deliveryFee
     val pointsDiscount = totals.pointsDiscount

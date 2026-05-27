@@ -6,6 +6,8 @@ import com.example.foodienow.data.repository.PaymentSettingsRepository
 import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
+import com.example.foodienow.domain.payment.WalletPaymentGateway
+import com.example.foodienow.domain.model.WalletProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,7 +48,8 @@ data class MerchantEarningsUiState(
 class MerchantEarningsViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val authRepository: AuthRepository,
-    private val paymentSettingsRepository: PaymentSettingsRepository
+    private val paymentSettingsRepository: PaymentSettingsRepository,
+    private val walletPaymentGateway: WalletPaymentGateway
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MerchantEarningsUiState())
@@ -161,38 +164,79 @@ class MerchantEarningsViewModel @Inject constructor(
     }
 
     fun withdraw(amount: Long, walletId: String) {
+        if (!_uiState.value.linkedWallets.contains(walletId)) {
+            _uiState.update { it.copy(error = "Ví nhận tiền chưa được liên kết.") }
+            return
+        }
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isWithdrawing = true) }
-            kotlinx.coroutines.delay(1500)
-            val walletName = when (walletId) {
-                "momo" -> "MoMo"
-                "zalopay" -> "ZaloPay"
-                "vnpay" -> "VNPAY"
-                "paypal" -> "PayPal"
-                else -> walletId.uppercase()
+            _uiState.update { it.copy(isWithdrawing = true, error = null) }
+            
+            val user = authRepository.getAuthState().firstOrNull()
+            if (user == null) {
+                _uiState.update { it.copy(isWithdrawing = false, error = "Vui lòng đăng nhập lại.") }
+                return@launch
             }
-            authRepository.updateBalance(-amount).onSuccess { updatedUser ->
-                _uiState.update { state ->
-                    val newTransaction = MerchantTransaction(
-                        id = java.util.UUID.randomUUID().toString(),
-                        title = "Rút tiền về ví $walletName",
-                        amount = amount,
-                        date = Date(),
-                        isIncome = false
-                    )
-                    state.copy(
-                        recentTransactions = listOf(newTransaction) + state.recentTransactions,
-                        isWithdrawing = false,
-                        withdrawSuccess = true,
-                        lastWithdrawalAmount = amount,
-                        lastWithdrawalWallet = walletName
-                    )
+
+            if (amount > user.balance) {
+                _uiState.update { it.copy(isWithdrawing = false, error = "Số dư không đủ để thực hiện rút tiền.") }
+                return@launch
+            }
+
+            val provider = when (walletId.lowercase()) {
+                "momo" -> WalletProvider.MOMO
+                "zalopay" -> WalletProvider.ZALOPAY
+                "vnpay" -> WalletProvider.VNPAY
+                "paypal" -> WalletProvider.PAYPAL
+                else -> WalletProvider.MOMO
+            }
+
+            val withdrawResult = walletPaymentGateway.withdraw(
+                provider = provider,
+                amount = amount,
+                transactionId = "TXN-${System.currentTimeMillis()}",
+                customerId = user.id
+            )
+
+            withdrawResult.onSuccess { gatewayRes ->
+                val walletName = when (walletId) {
+                    "momo" -> "MoMo"
+                    "zalopay" -> "ZaloPay"
+                    "vnpay" -> "VNPAY"
+                    "paypal" -> "PayPal"
+                    else -> walletId.uppercase()
+                }
+                authRepository.updateBalance(-amount).onSuccess { updatedUser ->
+                    _uiState.update { state ->
+                        val newTransaction = MerchantTransaction(
+                            id = gatewayRes.transactionId,
+                            title = "Rút tiền về ví $walletName",
+                            amount = amount,
+                            date = Date(),
+                            isIncome = false
+                        )
+                        state.copy(
+                            recentTransactions = listOf(newTransaction) + state.recentTransactions,
+                            isWithdrawing = false,
+                            withdrawSuccess = true,
+                            lastWithdrawalAmount = amount,
+                            lastWithdrawalWallet = walletName,
+                            currentBalance = updatedUser.balance
+                        )
+                    }
+                }.onFailure { error ->
+                    _uiState.update { state ->
+                        state.copy(
+                            isWithdrawing = false,
+                            error = "Rút tiền thành công nhưng lỗi cập nhật số dư: ${error.message}"
+                        )
+                    }
                 }
             }.onFailure { error ->
                 _uiState.update { state ->
                     state.copy(
                         isWithdrawing = false,
-                        error = error.message
+                        error = "Giao dịch rút tiền thất bại: ${error.message}"
                     )
                 }
             }

@@ -42,6 +42,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,6 +80,7 @@ import com.example.foodienow.core.designsystem.theme.PromoGradientStart
 import com.example.foodienow.core.designsystem.theme.SuccessGreen
 import com.example.foodienow.domain.model.Profile
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     onBack: () -> Unit,
@@ -98,10 +105,42 @@ fun EditProfileScreen(
 
     Scaffold(
         topBar = {
-            FoodieTopAppBar(
-                title = "Chỉnh sửa hồ sơ",
-                onBack = onBack
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(PromoGradientStart, MaterialTheme.colorScheme.primary, PromoGradientEnd)
+                        )
+                    )
+            ) {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = "Chỉnh sửa hồ sơ",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                    ),
+                    modifier = Modifier.statusBarsPadding()
+                )
+            }
         },
         containerColor = FoodieCream
     ) { paddingValues ->

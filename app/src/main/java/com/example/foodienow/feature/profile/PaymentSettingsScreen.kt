@@ -70,6 +70,7 @@ import com.example.foodienow.core.designsystem.theme.OrangePrimary
 import com.example.foodienow.core.designsystem.theme.SuccessGreen
 import com.example.foodienow.core.designsystem.theme.ErrorRed
 import com.example.foodienow.domain.payment.PaymentMethodCatalog
+import com.example.foodienow.domain.model.UserRole
 
 data class PaymentSettingItem(
     val id: String,
@@ -91,8 +92,8 @@ fun PaymentSettingsScreen(
     var setupTarget by remember { mutableStateOf<PaymentSettingItem?>(null) }
     var removeTarget by remember { mutableStateOf<PaymentSettingItem?>(null) }
 
-    val paymentMethods = remember {
-        listOf(
+    val paymentMethods = remember(uiState.userRole) {
+        val all = listOf(
             PaymentSettingItem(
                 id = PaymentMethodCatalog.COD_ID,
                 title = "Thanh toán tiền mặt",
@@ -136,12 +137,20 @@ fun PaymentSettingsScreen(
                 requiresSetup = true
             )
         )
+        if (uiState.userRole == UserRole.ADMIN) {
+            all.filter { it.id != PaymentMethodCatalog.COD_ID }
+        } else {
+            all
+        }
     }
 
-    val defaultMethodId = PaymentSettingsSelectionMapper.toOptionId(
+    var defaultMethodId = PaymentSettingsSelectionMapper.toOptionId(
         method = settings.defaultMethod,
         provider = settings.defaultProvider
     )
+    if (uiState.userRole == UserRole.ADMIN && defaultMethodId == PaymentMethodCatalog.COD_ID) {
+        defaultMethodId = PaymentMethodCatalog.FOODIE_PAY_ID
+    }
 
     Scaffold(
         containerColor = FoodieCream,

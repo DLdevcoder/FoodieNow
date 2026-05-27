@@ -33,6 +33,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -66,6 +69,9 @@ fun CustomerMainScreen(
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var orderHistoryInitialTab by rememberSaveable { mutableIntStateOf(0) }
 
+    var hasViewedOrders by remember { mutableStateOf(selectedTab == 1) }
+    var hasViewedNotifications by remember { mutableStateOf(selectedTab == 2) }
+
     val notificationState by notificationViewModel.uiState.collectAsState()
     val orderHistoryState by orderHistoryViewModel.uiState.collectAsState()
 
@@ -75,6 +81,29 @@ fun CustomerMainScreen(
         OrderStatus.DRIVER_ASSIGNED,
         OrderStatus.DELIVERING
     )
+
+    var lastOrdersMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    val currentOrdersMap = orderHistoryState.orders
+        .filter { it.status in activeStatuses }
+        .associate { (it.id ?: "") to it.status.name }
+
+    LaunchedEffect(currentOrdersMap) {
+        val hasChanges = currentOrdersMap.any { (id, status) ->
+            lastOrdersMap[id] != status
+        }
+        if (hasChanges) {
+            hasViewedOrders = false
+        }
+        lastOrdersMap = currentOrdersMap
+    }
+
+    var lastUnreadCount by remember { mutableIntStateOf(0) }
+    LaunchedEffect(notificationState.unreadCount) {
+        if (notificationState.unreadCount > lastUnreadCount) {
+            hasViewedNotifications = false
+        }
+        lastUnreadCount = notificationState.unreadCount
+    }
 
     Scaffold(
         bottomBar = {
@@ -99,8 +128,8 @@ fun CustomerMainScreen(
                     tabs.forEach { (icon, labelRes, index) ->
                         val selected = selectedTab == index
                         val showBadge = when (index) {
-                            1 -> orderHistoryState.orders.any { it.status in activeStatuses }
-                            2 -> notificationState.unreadCount > 0
+                            1 -> currentOrdersMap.isNotEmpty() && !hasViewedOrders && selectedTab != 1
+                            2 -> notificationState.unreadCount > 0 && !hasViewedNotifications && selectedTab != 2
                             else -> false
                         }
                         NavigationBarItem(
@@ -130,6 +159,10 @@ fun CustomerMainScreen(
                                 selectedTab = index
                                 if (index == 1) {
                                     orderHistoryInitialTab = 0
+                                    hasViewedOrders = true
+                                }
+                                if (index == 2) {
+                                    hasViewedNotifications = true
                                 }
                             },
                             alwaysShowLabel = true,

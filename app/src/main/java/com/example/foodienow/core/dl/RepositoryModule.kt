@@ -11,7 +11,9 @@ import com.example.foodienow.data.repository.PaymentRepositoryImpl
 import com.example.foodienow.data.repository.ProfileRepositoryImpl
 import com.example.foodienow.data.repository.VoucherRepositoryImpl
 import com.example.foodienow.data.repository.ReviewRepositoryImpl
+import com.example.foodienow.data.repository.AdminRepositoryImpl
 import com.example.foodienow.domain.repository.AuthRepository
+import com.example.foodienow.domain.repository.AdminRepository
 import com.example.foodienow.domain.repository.CartRepository
 import com.example.foodienow.domain.repository.ChatRepository
 import com.example.foodienow.domain.repository.CustomerFoodRepository
@@ -67,6 +69,12 @@ abstract class RepositoryModule {
     abstract fun bindProfileRepository(
         impl: ProfileRepositoryImpl
     ): ProfileRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAdminRepository(
+        impl: AdminRepositoryImpl
+    ): AdminRepository
 
     @Binds
     @Singleton

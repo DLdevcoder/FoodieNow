@@ -246,6 +246,7 @@
     <string name="activity_history_review_title_with_food">Reviewed: %1$s</string>
     <string name="activity_history_review_subtitle">%1$d ★ | Comment: %2$s</string>
     <string name="activity_history_wallet_top_up_title">Wallet Top Up</string>
+    <string name="activity_history_wallet_refund_title">Refund to Wallet</string>
     <string name="activity_history_wallet_payment_title">Wallet Payment</string>
     <string name="activity_history_wallet_subtitle">%1$s | Amount: %2$s</string>
     <string name="activity_history_section_recent">Recent</string>

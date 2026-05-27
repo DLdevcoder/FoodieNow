@@ -18,6 +18,7 @@ import com.example.foodienow.domain.repository.PaymentLineItem
 import com.example.foodienow.domain.repository.PaymentRepository
 import com.example.foodienow.domain.repository.ProfileRepository
 import com.example.foodienow.domain.repository.VoucherRepository
+import com.example.foodienow.domain.model.SystemSetting
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +53,10 @@ data class PaymentUiState(
     val selectedLat: Double? = null,
     val selectedLng: Double? = null,
     val selectedDetail: String = "",
-    val isResolving: Boolean = false
+    val isResolving: Boolean = false,
+    val baseDeliveryFee: Long = 15_000L,
+    val freeDeliveryThreshold: Long = 100_000L,
+    val userRole: com.example.foodienow.domain.model.UserRole? = null
 )
 
 data class PendingPaymentData(
@@ -100,11 +104,11 @@ class PaymentViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.getAuthState().collect { user ->
                 if (user == null) {
-                    _uiState.update { it.copy(rewardPointsAvailable = 0) }
+                    _uiState.update { it.copy(rewardPointsAvailable = 0, userRole = null) }
                     return@collect
                 }
 
-                _uiState.update { it.copy(rewardPointsAvailable = user.rewardPoints) }
+                _uiState.update { it.copy(rewardPointsAvailable = user.rewardPoints, userRole = user.role) }
 
                 runCatching {
                     profileRepository.getProfile(user.id).first()
@@ -151,6 +155,19 @@ class PaymentViewModel @Inject constructor(
             paymentSettingsRepository.refreshSettings()
                 .onFailure {
                     _uiState.update { state -> state.copy(paymentSettingsLoaded = true) }
+                }
+        }
+        viewModelScope.launch {
+            paymentRepository.getSystemSettings()
+                .onSuccess { settings ->
+                    val baseFee = settings.find { it.key == "base_delivery_fee" }?.value?.toLong() ?: 15_000L
+                    val threshold = settings.find { it.key == "free_delivery_threshold" }?.value?.toLong() ?: 100_000L
+                    _uiState.update {
+                        it.copy(
+                            baseDeliveryFee = baseFee,
+                            freeDeliveryThreshold = threshold
+                        )
+                    }
                 }
         }
     }
@@ -201,6 +218,16 @@ class PaymentViewModel @Inject constructor(
                         it.copy(
                             isProcessing = false,
                             errorMessage = "Phien dang nhap khong hop le. Vui long dang nhap lai."
+                        )
+                    }
+                    return@launch
+                }
+
+                if (sessionUser.role == com.example.foodienow.domain.model.UserRole.ADMIN && method == PaymentMethod.COD) {
+                    _uiState.update {
+                        it.copy(
+                            isProcessing = false,
+                            errorMessage = "Admin không được sử dụng phương thức thanh toán bằng tiền mặt (COD)."
                         )
                     }
                     return@launch
