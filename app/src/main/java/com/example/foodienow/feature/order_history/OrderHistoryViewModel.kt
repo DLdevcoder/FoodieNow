@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Order
+import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -82,21 +83,15 @@ class OrderHistoryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // 1. Get items of the past order
                 val orderItems = orderRepository.getOrderItemsByOrderId(orderId)
-                
-                // 2. Fetch each food and add to cart
                 for (item in orderItems) {
                     try {
                         val food = customerFoodRepository.getFoodById(item.foodId)
                         cartRepository.addToCart(food, item.quantity)
                     } catch (e: Exception) {
-                        // Ignore individual item failure or handle it
                         e.printStackTrace()
                     }
                 }
-                
-                // 3. Trigger success callback
                 onSuccess()
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorResId = R.string.error_load_order_history) }
@@ -109,6 +104,30 @@ class OrderHistoryViewModel @Inject constructor(
     fun updateQuantity(food: Food, quantity: Int) {
         viewModelScope.launch {
             cartRepository.updateQuantity(food, quantity)
+        }
+    }
+
+    fun cancelOrder(order: Order, reason: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                // Xử lý logic nối chuỗi ghi chú
+                val currentNote = order.note
+                val finalNote = if (currentNote.isNullOrBlank()) {
+                    "Lý do hủy: $reason"
+                } else {
+                    "Lý do hủy: $reason (Ghi chú gốc: $currentNote)"
+                }
+                order.id?.let { orderId ->
+                    orderRepository.cancelOrderWithReason(orderId, finalNote)
+                }
+
+                loadOrders()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+            }
         }
     }
 

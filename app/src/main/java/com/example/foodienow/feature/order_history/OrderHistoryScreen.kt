@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,13 +43,16 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -120,6 +124,54 @@ fun OrderHistoryScreen(
     }
     val cartItems = uiState.cartItems
 
+    var orderToCancel by remember { mutableStateOf<Order?>(null) }
+    var cancelReason by remember { mutableStateOf("") }
+
+    if (orderToCancel != null) {
+        AlertDialog(
+            onDismissRequest = {
+                orderToCancel = null
+                cancelReason = ""
+            },
+            title = { Text(text = "Hủy đơn hàng") },
+            text = {
+                Column {
+                    Text(text = "Vui lòng cho biết lý do bạn muốn hủy đơn hàng này:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = cancelReason,
+                        onValueChange = { cancelReason = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Ví dụ: Đổi ý, đặt nhầm món...") },
+                        maxLines = 3
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.cancelOrder(orderToCancel!!, cancelReason)
+                        orderToCancel = null
+                        cancelReason = ""
+                    },
+                    enabled = cancelReason.isNotBlank()
+                ) {
+                    Text("Xác nhận hủy", color = ErrorRed)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        orderToCancel = null
+                        cancelReason = ""
+                    }
+                ) {
+                    Text("Đóng")
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -184,6 +236,7 @@ fun OrderHistoryScreen(
                         onNavigateToOrderDetail = onNavigateToOrderDetail,
                         onNavigateToTracking = onNavigateToTracking,
                         onReorder = null,
+                        onCancelClick = { order -> orderToCancel = order },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -203,6 +256,7 @@ fun OrderHistoryScreen(
                         onNavigateToOrderDetail = onNavigateToOrderDetail,
                         onNavigateToTracking = null,
                         onReorder = onReorder,
+                        onCancelClick = null,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -567,7 +621,6 @@ private fun CartFoodCard(
         }
     }
 }
-
 @Composable
 private fun OrdersListTab(
     orders: List<Order>,
@@ -575,8 +628,9 @@ private fun OrdersListTab(
     emptyTitle: String,
     emptySubtitle: String,
     onNavigateToOrderDetail: (String) -> Unit,
-    onNavigateToTracking: ((String) -> Unit)?, // THÊM THAM SỐ
+    onNavigateToTracking: ((String) -> Unit)?,
     onReorder: ((String) -> Unit)?,
+    onCancelClick: ((Order) -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     if (orders.isEmpty()) {
@@ -602,7 +656,8 @@ private fun OrdersListTab(
                 order = order,
                 onNavigateToOrderDetail = onNavigateToOrderDetail,
                 onNavigateToTracking = onNavigateToTracking,
-                onReorder = onReorder
+                onReorder = onReorder,
+                onCancelClick = onCancelClick
             )
         }
         item {
@@ -610,12 +665,14 @@ private fun OrdersListTab(
         }
     }
 }
+
 @Composable
 private fun OrderCardItem(
     order: Order,
     onNavigateToOrderDetail: (String) -> Unit,
     onNavigateToTracking: ((String) -> Unit)?,
-    onReorder: ((String) -> Unit)?
+    onReorder: ((String) -> Unit)?,
+    onCancelClick: ((Order) -> Unit)?
 ) {
     val style = order.status.toOrderStatusStyle()
 
@@ -624,6 +681,7 @@ private fun OrderCardItem(
         onClick = { order.id?.let(onNavigateToOrderDetail) }
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
+            // Khối Header, Divider, Detail của OrderCardItem được giữ nguyên
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -733,18 +791,27 @@ private fun OrderCardItem(
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Logic phân nhánh hiển thị nút bấm
                     if (onNavigateToTracking != null) {
-                        // 1. Nếu ở tab "Đang giao": Chỉ hiển thị nút Theo dõi
-                        Button(
-                            onClick = { order.id?.let(onNavigateToTracking) },
-                            shape = MaterialTheme.shapes.medium,
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                        ) {
-                            Text("Theo dõi", fontWeight = FontWeight.Bold)
+                        if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.PENDING) {
+                            OutlinedButton(
+                                onClick = { onCancelClick?.invoke(order) },
+                                shape = MaterialTheme.shapes.medium,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Text("Hủy đơn", fontWeight = FontWeight.Bold)
+                            }
+                        } else {
+                            Button(
+                                onClick = { order.id?.let(onNavigateToTracking) },
+                                shape = MaterialTheme.shapes.medium,
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Text("Theo dõi", fontWeight = FontWeight.Bold)
+                            }
                         }
                     } else {
-                        // 2. Nếu ở tab "Lịch sử": Hiển thị Chi tiết và Đặt lại
+                        // TAB LỊCH SỬ
                         OutlinedButton(
                             onClick = { order.id?.let(onNavigateToOrderDetail) },
                             shape = MaterialTheme.shapes.medium,
@@ -774,7 +841,6 @@ private fun OrderCardItem(
         }
     }
 }
-
 @Composable
 private fun OrdersLoadingState(modifier: Modifier = Modifier) {
     LazyColumn(

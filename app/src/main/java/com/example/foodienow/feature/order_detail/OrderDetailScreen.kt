@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.foodienow.domain.model.OrderItemUiModel
+import com.example.foodienow.domain.model.OrderStatus
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -74,6 +75,7 @@ fun OrderDetailScreen(
                     items(uiState.orderItems) { item ->
                         OrderItemCard(
                             item = item,
+                            orderStatus = uiState.orderStatus,
                             onReviewClick = { onNavigateToReview(item.orderId, item.foodId) }
                         )
                     }
@@ -86,6 +88,7 @@ fun OrderDetailScreen(
 @Composable
 fun OrderItemCard(
     item: OrderItemUiModel,
+    orderStatus: OrderStatus?,
     onReviewClick: () -> Unit
 ) {
     val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
@@ -131,6 +134,7 @@ fun OrderItemCard(
             OutlinedButton(
                 onClick = onReviewClick,
                 shape = RoundedCornerShape(8.dp),
+                enabled = orderStatus == OrderStatus.COMPLETED, // Chỉ cho phép đánh giá nếu đơn đã hoàn thành
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Đánh giá", fontWeight = FontWeight.Bold, fontSize = 12.sp)

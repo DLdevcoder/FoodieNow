@@ -207,6 +207,9 @@ class PaymentViewModel @Inject constructor(
             }
             return
         }
+        val currentState = _uiState.value
+        val finalLat = deliveryLat ?: currentState.selectedLat ?: currentState.selectedAddress?.latitude
+        val finalLng = deliveryLng ?: currentState.selectedLng ?: currentState.selectedAddress?.longitude
 
         viewModelScope.launch {
             try {
@@ -309,8 +312,9 @@ class PaymentViewModel @Inject constructor(
                                         amount = amount,
                                         usedRewardPoints = usedRewardPoints,
                                         voucherCode = voucherCode,
-                                        deliveryLat = deliveryLat,
-                                        deliveryLng = deliveryLng,
+                                        deliveryLat = finalLat,
+                                        deliveryLng = finalLng,
+
                                         transactionId = charge.transactionId
                                     )
                                 )
@@ -326,8 +330,9 @@ class PaymentViewModel @Inject constructor(
                             amount = amount,
                             usedRewardPoints = usedRewardPoints,
                             voucherCode = voucherCode,
-                            deliveryLat = deliveryLat,
-                            deliveryLng = deliveryLng,
+                            deliveryLat = finalLat,
+                            deliveryLng = finalLng,
+
                             transactionId = charge?.transactionId,
                             user = user,
                             cartItems = cartItems
@@ -540,7 +545,9 @@ class PaymentViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 selectedAddress = address,
-                defaultAddress = address.detail
+                defaultAddress = address.detail,
+                selectedLat = address.latitude,
+                selectedLng = address.longitude
             )
         }
     }
