@@ -93,6 +93,7 @@ private data class NotificationStyle(
 @Composable
 fun NotificationScreen(
     onBack: () -> Unit,
+    onNavigateToDestination: (String) -> Unit = {},
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -199,7 +200,8 @@ fun NotificationScreen(
                                     },
                                     onDelete = {
                                         notification.id?.let(viewModel::deleteNotification)
-                                    }
+                                    },
+                                    onNavigateToDestination = onNavigateToDestination
                                 )
                             }
                         }
@@ -450,7 +452,7 @@ private fun NotificationSkeletonCard() {
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = FoodieNowTheme.elevation.card
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -498,7 +500,8 @@ private fun NotificationSkeletonCard() {
 private fun SwipeableNotificationCard(
     notification: AppNotification,
     onMarkAsRead: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onNavigateToDestination: (String) -> Unit
 ) {
     val currentNotification by rememberUpdatedState(notification)
 
@@ -566,7 +569,10 @@ private fun SwipeableNotificationCard(
         content = {
             NotificationCardContent(
                 notification = notification,
-                onCardClick = { if (!notification.isRead) onMarkAsRead() },
+                onCardClick = {
+                    if (!notification.isRead) onMarkAsRead()
+                    NotificationLocalizationHelper.getDestinationRoute(notification)?.let(onNavigateToDestination)
+                },
                 onDelete = onDelete
             )
         }
@@ -594,8 +600,8 @@ private fun NotificationCardContent(
         } else {
             MaterialTheme.colorScheme.surface
         },
-        tonalElevation = FoodieNowTheme.elevation.card,
-        shadowElevation = if (isUnread) 2.dp else 1.dp
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
@@ -656,19 +662,19 @@ private fun NotificationCardContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.16f))
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                VoucherBadge(
-                    label = style.label,
-                    containerColor = style.color.copy(alpha = 0.9f)
-                )
+                if (style.label != "Thanh toán") {
+                    VoucherBadge(
+                        label = style.label,
+                        containerColor = style.color.copy(alpha = 0.9f)
+                    )
+                }
                 Text(
                     text = formatTimestamp(context, notification.createdAt),
                     style = MaterialTheme.typography.labelMedium,
@@ -718,7 +724,7 @@ private fun resolveNotificationStyle(notification: AppNotification): Notificatio
     val titleKey = notification.title
 
     return when {
-        titleKey == "TXT_ORDER_CANCELLED" ->
+        titleKey == "TXT_ORDER_CANCELLED" || titleKey == "TXT_ORDER_CANCELLED_SHIPPER" ->
             NotificationStyle(ErrorRed, Icons.Default.WarningAmber, "Hủy đơn")
 
         titleKey == "TXT_PAYMENT_SUCCESS" || titleKey == "TXT_WALLET_TRANSACTION" ->
@@ -729,6 +735,12 @@ private fun resolveNotificationStyle(notification: AppNotification): Notificatio
             titleKey == "TXT_ORDER_DELIVERING" ||
             titleKey == "TXT_ORDER_COMPLETED" ->
             NotificationStyle(InfoBlue, Icons.Default.ShoppingBag, "Đơn hàng")
+
+        titleKey == "TXT_ORDER_DRIVER_ASSIGNED" || titleKey == "TXT_SHIPPER_NEW_ORDER" ->
+            NotificationStyle(InfoBlue, Icons.Default.Moped, "Giao hàng")
+
+        titleKey == "TXT_NEW_CHAT_MESSAGE" ->
+            NotificationStyle(AmberTertiary, Icons.Default.Campaign, "Tin nhắn")
 
         titleKey == "TXT_NEW_REVIEW" ->
             NotificationStyle(SuccessGreen, Icons.Default.CheckCircleOutline, "Đánh giá")

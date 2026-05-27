@@ -24,15 +24,24 @@ data class NotificationUiState(
     val isLoading: Boolean = true,
     val notifications: List<AppNotification> = emptyList(),
     val errorMessage: String? = null,
-    val filterType: NotificationFilter = NotificationFilter.ALL
+    val filterType: NotificationFilter = NotificationFilter.ALL,
+    val deletedIds: Set<String> = emptySet(),
+    val readIds: Set<String> = emptySet()
 ) {
-    val unreadCount: Int = notifications.count { !it.isRead }
+    val processedNotifications: List<AppNotification>
+        get() = notifications
+            .filter { it.id !in deletedIds }
+            .map {
+                if (it.id in readIds) it.copy(isRead = true) else it
+            }
+
+    val unreadCount: Int = processedNotifications.count { !it.isRead }
     
     val filteredNotifications: List<AppNotification>
         get() = if (filterType == NotificationFilter.UNREAD) {
-            notifications.filter { !it.isRead }
+            processedNotifications.filter { !it.isRead }
         } else {
-            notifications
+            processedNotifications
         }
 }
 
@@ -79,11 +88,17 @@ class NotificationViewModel @Inject constructor(
                     }
                 }
                 .collect { notifications ->
-                    _uiState.update {
-                        it.copy(
+                    _uiState.update { state ->
+                        state.copy(
                             isLoading = false,
                             notifications = notifications,
-                            errorMessage = null
+                            errorMessage = null,
+                            readIds = state.readIds.filter { id ->
+                                notifications.any { it.id == id && !it.isRead }
+                            }.toSet(),
+                            deletedIds = state.deletedIds.filter { id ->
+                                notifications.any { it.id == id }
+                            }.toSet()
                         )
                     }
                 }
@@ -95,58 +110,31 @@ class NotificationViewModel @Inject constructor(
     }
 
     fun markAsRead(id: String) {
+        _uiState.update { state ->
+            state.copy(readIds = state.readIds + id)
+        }
         viewModelScope.launch {
             notificationRepository.markAsRead(id)
-                // Ignore failure to prevent hiding the whole list with an error state
         }
     }
 
     fun markAllAsRead() {
         val userId = currentUserId ?: return
+        val unreadIds = _uiState.value.notifications.filter { !it.isRead }.mapNotNull { it.id }
+        _uiState.update { state ->
+            state.copy(readIds = state.readIds + unreadIds)
+        }
         viewModelScope.launch {
             notificationRepository.markAllAsRead(userId)
         }
     }
 
     fun deleteNotification(id: String) {
+        _uiState.update { state ->
+            state.copy(deletedIds = state.deletedIds + id)
+        }
         viewModelScope.launch {
             notificationRepository.deleteNotification(id)
-        }
-    }
-
-    // Dành cho mục đích test Realtime
-    fun sendTestNotification() {
-        val userId = currentUserId ?: return
-        viewModelScope.launch {
-            val testNotifications = listOf(
-                AppNotification(
-                    userId = userId,
-                    title = "Đơn hàng đã xác nhận",
-                    message = "Nhà hàng đã nhận đơn và đang chuẩn bị món cho bạn.",
-                    createdAt = java.time.Instant.now().toString()
-                ),
-                AppNotification(
-                    userId = userId,
-                    title = "Tài xế đang giao",
-                    message = "Tài xế Nguyễn Văn A đang trên đường giao món đến bạn.",
-                    createdAt = java.time.Instant.now().toString()
-                ),
-                AppNotification(
-                    userId = userId,
-                    title = "Nhà hàng hết món",
-                    message = "Quán hiện đã hết Gà rán, vui lòng chọn món khác thay thế.",
-                    createdAt = java.time.Instant.now().toString()
-                ),
-                AppNotification(
-                    userId = userId,
-                    title = "Giảm giá 30%",
-                    message = "Voucher đặc biệt giảm 30% cho đơn hàng tiếp theo của bạn!",
-                    createdAt = java.time.Instant.now().toString()
-                )
-            )
-            // Lấy ngẫu nhiên 1 cái để test các style khác nhau
-            val randomNotif = testNotifications.random()
-            notificationRepository.createNotification(randomNotif)
         }
     }
 }
