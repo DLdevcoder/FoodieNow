@@ -9,6 +9,7 @@ import com.example.foodienow.domain.model.Store
 import com.example.foodienow.domain.repository.OrderRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.channel
@@ -164,7 +165,7 @@ class OrderRepositoryImpl @Inject constructor(
             supabaseClient.postgrest["orders"]
                 .select {
                     filter {
-                        eq("status", OrderStatus.PREPARING.name)
+                        eq("status", OrderStatus.WAITING_SHIPPER.name)
                     }
                 }
                 .decodeList<Order>()
@@ -197,7 +198,7 @@ class OrderRepositoryImpl @Inject constructor(
                 .select {
                     filter {
                         eq("shipper_id", shipperId)
-                        isIn("status", listOf(OrderStatus.DRIVER_ASSIGNED.name, OrderStatus.DELIVERING.name))
+                        eq("status", OrderStatus.DELIVERING.name)
                     }
                 }
                 .decodeList<Order>()
@@ -224,19 +225,7 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
     override suspend fun acceptOrder(orderId: String, shipperId: String): Result<Unit> {
-        return try {
-            supabaseClient.postgrest["orders"].update(
-                {
-                    set("shipper_id", shipperId)
-                    set("status", OrderStatus.DRIVER_ASSIGNED.name)
-                }
-            ) {
-                filter { eq("id", orderId) }
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return shipperAcceptOrder(orderId, shipperId)
     }
 
     override suspend fun updateOrderStatus(orderId: String, newStatus: OrderStatus): Result<Unit> {
@@ -262,7 +251,17 @@ class OrderRepositoryImpl @Inject constructor(
                 .select {
                     filter {
                         eq("shipper_id", shipperId)
-                        isIn("status", listOf(OrderStatus.COMPLETED.name, OrderStatus.CANCELLED.name))
+                        isIn(
+                            "status",
+                            listOf(
+                                OrderStatus.COMPLETED.name,
+                                OrderStatus.CANCELLED_BY_CUSTOMER.name,
+                                OrderStatus.CANCELLED_BY_STORE.name,
+                                OrderStatus.NO_SHIPPER_FOUND.name,
+                                OrderStatus.PAYMENT_FAILED.name,
+                                OrderStatus.DELIVERY_TIMEOUT.name
+                            )
+                        )
                     }
                 }
                 .decodeList<Order>()
@@ -374,7 +373,7 @@ class OrderRepositoryImpl @Inject constructor(
             val order = getOrderById(orderId)
 
             if (order != null && order.shipperConfirmed && order.customerConfirmed) {
-                updateOrderStatus(orderId, OrderStatus.COMPLETED)
+                shipperCompleteDelivery(orderId)
             }
             Result.success(Unit)
         } catch (e: Exception) {
@@ -383,24 +382,9 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
     override suspend fun cancelOrderShipper(orderId: String): Result<Unit> {
-        return try {
-            supabaseClient.postgrest["orders"].update(
-                {
-                    set("status", OrderStatus.PREPARING.name)
-                    set("shipper_id", null as String?)
-                    set("shipper_lat", null as Double?)
-                    set("shipper_lng", null as Double?)
-                }
-            ) {
-                filter { eq("id", orderId) }
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return shipperCancelOrder(orderId)
     }
 
-    // --- HÀM MỚI ---
     override suspend fun merchantAcceptOrderWithLocation(orderId: String, merchantId: String): Result<Unit> {
         return try {
             val store = supabaseClient.postgrest["stores"]
@@ -424,7 +408,6 @@ class OrderRepositoryImpl @Inject constructor(
 
             supabaseClient.postgrest["orders"].update(
                 {
-                    set("status", OrderStatus.PREPARING.name)
                     if (lat != null && lng != null) {
                         set("merchant_lat", lat)
                         set("merchant_lng", lng)
@@ -433,28 +416,128 @@ class OrderRepositoryImpl @Inject constructor(
             ) {
                 filter { eq("id", orderId) }
             }
-            Result.success(Unit)
+            storeConfirmOrder(orderId)
         } catch (e: Exception) {
             android.util.Log.e("OrderRepository", "Lỗi khi Merchant nhận đơn: ", e)
             Result.failure(e)
         }
     }
 
-    override suspend fun cancelOrderWithReason(orderId: String, reason: String): Result<Unit> {
+    override suspend fun cancelOrderWithReason(orderId: String, reason: String, cancelledBy: String): Result<Unit> {
         return try {
-            val cancelNote = "Lý do hủy: $reason"
-
-            supabaseClient.postgrest["orders"].update(
-                {
-                    set("status", OrderStatus.CANCELLED.name)
-                    set("note", cancelNote)
-                }
-            ) {
-                filter { eq("id", orderId) }
-            }
+            supabaseClient.postgrest.rpc(
+                function = "handle_order_cancellation_v3",
+                parameters = mapOf(
+                    "p_order_id" to orderId,
+                    "p_cancelled_by" to cancelledBy,
+                    "p_reason" to reason
+                )
+            )
             Result.success(Unit)
         } catch (e: Exception) {
             android.util.Log.e("OrderRepository", "Lỗi khi hủy đơn: ", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun storeConfirmOrder(orderId: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest.rpc(
+                function = "store_confirm_order",
+                parameters = mapOf("p_order_id" to orderId)
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun storeRejectOrder(orderId: String, reason: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest.rpc(
+                function = "store_reject_order",
+                parameters = mapOf(
+                    "p_order_id" to orderId,
+                    "p_reason" to reason
+                )
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun storeMarkReady(orderId: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest.rpc(
+                function = "store_mark_ready",
+                parameters = mapOf("p_order_id" to orderId)
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun shipperAcceptOrder(orderId: String, shipperId: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest.rpc(
+                function = "shipper_accept_order",
+                parameters = mapOf(
+                    "p_order_id" to orderId,
+                    "p_shipper_id" to shipperId
+                )
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun shipperCancelOrder(orderId: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest.rpc(
+                function = "shipper_cancel_order",
+                parameters = mapOf("p_order_id" to orderId)
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun shipperCompleteDelivery(orderId: String): Result<Unit> {
+        return try {
+            updateOrderStatus(orderId, OrderStatus.COMPLETED)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun confirmOnlinePayment(orderId: String, transactionId: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest.rpc(
+                function = "handle_bank_transfer_payment_v2",
+                parameters = mapOf(
+                    "p_order_id" to orderId,
+                    "p_transaction_id" to transactionId
+                )
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun handlePaymentFailure(orderId: String): Result<Unit> {
+        return try {
+            supabaseClient.postgrest.rpc(
+                function = "handle_payment_failure",
+                parameters = mapOf("p_order_id" to orderId)
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

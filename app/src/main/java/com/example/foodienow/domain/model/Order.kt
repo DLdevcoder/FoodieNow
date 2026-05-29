@@ -5,12 +5,59 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class OrderStatus {
-    PENDING,          // 1. Khách mới đặt, chờ CHỦ QUÁN xác nhận. (Tài xế KHÔNG thấy đơn này).
-    PREPARING,        // 2. Chủ quán ĐÃ XÁC NHẬN và đang nấu. Hệ thống bắt đầu đẩy đơn ra cho Tài xế.
-    DRIVER_ASSIGNED,  // 3. Tài xế ĐÃ NHẬN ĐƠN và đang trên đường đến quán lấy đồ.
-    DELIVERING,       // 4. Tài xế bấm "Đã lấy hàng" và đang trên đường giao cho khách.
-    COMPLETED,        // 5. Giao hàng thành công.
-    CANCELLED         // 6. Đơn bị hủy (bởi Khách, Chủ quán, hoặc Hệ thống do không tìm được tài xế).
+    WAITING_PAYMENT,
+    WAITING_STORE_CONFIRMATION,
+    PREPARING,
+    WAITING_SHIPPER,
+    DELIVERING,
+    COMPLETED,
+    CANCELLED_BY_CUSTOMER,
+    CANCELLED_BY_STORE,
+    NO_SHIPPER_FOUND,
+    PAYMENT_FAILED,
+    DELIVERY_TIMEOUT;
+
+    val isTerminal: Boolean
+        get() = this in listOf(
+            COMPLETED,
+            CANCELLED_BY_CUSTOMER,
+            CANCELLED_BY_STORE,
+            NO_SHIPPER_FOUND,
+            PAYMENT_FAILED,
+            DELIVERY_TIMEOUT
+        )
+
+    val isActive: Boolean
+        get() = !isTerminal
+
+    val canCustomerCancel: Boolean
+        get() = this in listOf(
+            WAITING_PAYMENT,
+            WAITING_STORE_CONFIRMATION,
+            PREPARING,
+            WAITING_SHIPPER
+        )
+
+    val canMerchantCancel: Boolean
+        get() = this in listOf(
+            WAITING_STORE_CONFIRMATION,
+            PREPARING
+        )
+
+    val displayNameVi: String
+        get() = when (this) {
+            WAITING_PAYMENT -> "Đợi thanh toán"
+            WAITING_STORE_CONFIRMATION -> "Đợi cửa hàng xác nhận"
+            PREPARING -> "Đang chuẩn bị"
+            WAITING_SHIPPER -> "Chờ shipper"
+            DELIVERING -> "Đang vận chuyển"
+            COMPLETED -> "Hoàn thành"
+            CANCELLED_BY_CUSTOMER -> "Khách hàng hủy"
+            CANCELLED_BY_STORE -> "Cửa hàng hủy"
+            NO_SHIPPER_FOUND -> "Không tìm được shipper"
+            PAYMENT_FAILED -> "Thanh toán thất bại"
+            DELIVERY_TIMEOUT -> "Quá thời gian giao"
+        }
 }
 
 @Serializable
@@ -20,7 +67,7 @@ data class Order(
     @SerialName("merchant_id") val merchantId: String? = null,
     @SerialName("shipper_id") val shipperId: String? = null,
     @SerialName("total_price") val totalPrice: Long,
-    val status: OrderStatus = OrderStatus.PENDING,
+    val status: OrderStatus = OrderStatus.WAITING_STORE_CONFIRMATION,
     @SerialName("delivery_address") val deliveryAddress: String,
     val note: String? = null,
     @SerialName("created_at") val createdAt: String? = null,
@@ -35,5 +82,7 @@ data class Order(
     @SerialName("shipper_lng") val shipperLng: Double? = null,
     val otherItemsCount: Int? = null,
     @SerialName("shipper_confirmed") val shipperConfirmed: Boolean = false,
-    @SerialName("customer_confirmed") val customerConfirmed: Boolean = false
+    @SerialName("customer_confirmed") val customerConfirmed: Boolean = false,
+    @SerialName("cancelled_by") val cancelledBy: String? = null,
+    @SerialName("cancellation_reason") val cancellationReason: String? = null
 )

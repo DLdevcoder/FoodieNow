@@ -165,7 +165,7 @@ class ShipperViewModel @Inject constructor(
                     availableOrders = state.availableOrders.filter { it.id != orderId }
                 )
             }
-            val result = orderRepository.acceptOrder(orderId, shipperId)
+            val result = orderRepository.shipperAcceptOrder(orderId, shipperId)
 
             if (result.isFailure) {
                 Log.e("ShipperApp", "Lỗi nhận đơn: ", result.exceptionOrNull())
@@ -174,33 +174,19 @@ class ShipperViewModel @Inject constructor(
         }
     }
 
-    // XỬ LÝ HỦY ĐƠN CHO SHIPPER
     fun cancelOrder(orderId: String) {
         viewModelScope.launch {
-            // Thêm vào danh sách đen ngay lập tức để UI không tự động quét lại
             _cancelledOrderIds.update { it + orderId }
 
-            // Xóa khỏi UI ngay cho mượt
             _uiState.update { state ->
                 state.copy(activeOrders = state.activeOrders.filter { it.id != orderId })
             }
 
-            val result = orderRepository.cancelOrderShipper(orderId)
+            val result = orderRepository.shipperCancelOrder(orderId)
             if (result.isFailure) {
                 Log.e("ShipperApp", "Lỗi hủy đơn: ", result.exceptionOrNull())
-                // Gỡ khỏi blacklist nếu hủy lỗi để app hoạt động bình thường
                 _cancelledOrderIds.update { it - orderId }
                 _uiState.update { it.copy(error = "Lỗi hủy đơn. Vui lòng thử lại.") }
-            }
-        }
-    }
-
-    fun markAsDelivering(orderId: String) {
-        viewModelScope.launch {
-            val result = orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
-            if (result.isFailure) {
-                Log.e("ShipperApp", "Lỗi chuyển trạng thái đang giao: ", result.exceptionOrNull())
-                _uiState.update { it.copy(error = "Lỗi cập nhật trạng thái. Vui lòng thử lại.") }
             }
         }
     }

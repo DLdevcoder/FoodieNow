@@ -28,6 +28,30 @@ object NotificationLocalizationHelper {
                         context.getString(R.string.notification_body_order_preparing)
                     )
                 }
+                "ORDER_WAITING_PAYMENT" -> {
+                    Pair(
+                        "Đơn hàng chờ thanh toán",
+                        "Đơn hàng của bạn đang chờ thanh toán online."
+                    )
+                }
+                "ORDER_WAITING_STORE_CONFIRMATION" -> {
+                    Pair(
+                        "Đơn hàng chờ xác nhận",
+                        "Đơn hàng đang chờ cửa hàng xác nhận."
+                    )
+                }
+                "ORDER_WAITING_SHIPPER" -> {
+                    Pair(
+                        "Đang tìm shipper",
+                        "Hệ thống đang tìm tài xế giao hàng cho bạn."
+                    )
+                }
+                "ORDER_PAYMENT_FAILED" -> {
+                    Pair(
+                        "Thanh toán thất bại",
+                        "Đơn hàng thanh toán thất bại hoặc quá hạn."
+                    )
+                }
                 "ORDER_DRIVER_ASSIGNED" -> {
                     Pair(
                         context.getString(R.string.notification_title_order_driver_assigned),
@@ -106,6 +130,10 @@ object NotificationLocalizationHelper {
         val defaultTitle = when (titleKey) {
             "TXT_ORDER_NEW" -> context.getString(R.string.notification_title_order_new)
             "TXT_ORDER_PREPARING" -> context.getString(R.string.notification_title_order_preparing)
+            "TXT_ORDER_WAITING_PAYMENT" -> "Đơn hàng chờ thanh toán"
+            "TXT_ORDER_WAITING_STORE_CONFIRMATION" -> "Đơn hàng chờ xác nhận"
+            "TXT_ORDER_WAITING_SHIPPER" -> "Đang tìm shipper"
+            "TXT_ORDER_PAYMENT_FAILED" -> "Thanh toán thất bại"
             "TXT_ORDER_DRIVER_ASSIGNED" -> context.getString(R.string.notification_title_order_driver_assigned)
             "TXT_ORDER_DELIVERING" -> context.getString(R.string.notification_title_order_delivering)
             "TXT_ORDER_COMPLETED" -> context.getString(R.string.notification_title_order_completed)
@@ -127,6 +155,10 @@ object NotificationLocalizationHelper {
 
         val defaultBody = when (titleKey) {
             "TXT_ORDER_PREPARING" -> context.getString(R.string.notification_body_order_preparing)
+            "TXT_ORDER_WAITING_PAYMENT" -> "Đơn hàng của bạn đang chờ thanh toán online."
+            "TXT_ORDER_WAITING_STORE_CONFIRMATION" -> "Đơn hàng đang chờ cửa hàng xác nhận."
+            "TXT_ORDER_WAITING_SHIPPER" -> "Hệ thống đang tìm tài xế giao hàng cho bạn."
+            "TXT_ORDER_PAYMENT_FAILED" -> "Đơn hàng thanh toán thất bại hoặc quá hạn."
             "TXT_ORDER_DELIVERING" -> context.getString(R.string.notification_body_order_delivering)
             "TXT_ORDER_COMPLETED" -> context.getString(R.string.notification_body_order_completed)
             "TXT_ORDER_CANCELLED" -> {

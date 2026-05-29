@@ -40,9 +40,9 @@ fun MerchantOrdersTab(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     val tabs = listOf(
-        OrderStatus.PENDING to R.string.merchant_orders_status_pending,
+        OrderStatus.WAITING_STORE_CONFIRMATION to R.string.merchant_orders_status_pending,
         OrderStatus.PREPARING to R.string.merchant_orders_status_preparing,
-        OrderStatus.DRIVER_ASSIGNED to R.string.merchant_orders_status_driver_assigned,
+        OrderStatus.WAITING_SHIPPER to R.string.merchant_orders_status_driver_assigned,
         OrderStatus.DELIVERING to R.string.merchant_orders_status_delivering,
         null to R.string.my_orders_tab_history
     )
@@ -180,7 +180,12 @@ fun MerchantOrdersTab(
         val filteredOrders = uiState.orders
             .filter {
                 if (currentTab.first == null) {
-                    it.status == OrderStatus.COMPLETED || it.status == OrderStatus.CANCELLED
+                    it.status == OrderStatus.COMPLETED ||
+                    it.status == OrderStatus.CANCELLED_BY_CUSTOMER ||
+                    it.status == OrderStatus.CANCELLED_BY_STORE ||
+                    it.status == OrderStatus.NO_SHIPPER_FOUND ||
+                    it.status == OrderStatus.PAYMENT_FAILED ||
+                    it.status == OrderStatus.DELIVERY_TIMEOUT
                 } else {
                     it.status == currentTab.first
                 }
@@ -206,8 +211,9 @@ fun MerchantOrdersTab(
                 items(filteredOrders, key = { it.id ?: it.hashCode() }) { order ->
                     MerchantOrderCard(
                         order = order,
-                        onAccept = { order.id?.let { viewModel.updateOrderStatus(it, OrderStatus.PREPARING) } },
-                        onCancel = { order.id?.let { viewModel.updateOrderStatus(it, OrderStatus.CANCELLED) } }
+                        onAccept = { order.id?.let { viewModel.acceptOrder(it) } },
+                        onCancel = { order.id?.let { viewModel.rejectOrder(it, "Cửa hàng hủy đơn") } },
+                        onMarkReady = { order.id?.let { viewModel.markOrderReady(it) } }
                     )
                 }
             }
@@ -218,7 +224,8 @@ fun MerchantOrdersTab(
 private fun MerchantOrderCard(
     order: Order,
     onAccept: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onMarkReady: () -> Unit
 ) {
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
     val formattedPrice = "${formatter.format(order.totalPrice)} VND"
@@ -256,18 +263,15 @@ private fun MerchantOrderCard(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            val statusDisplay = when (order.status) {
-                OrderStatus.PENDING -> stringResource(R.string.merchant_status_display_pending)
-                OrderStatus.PREPARING -> stringResource(R.string.merchant_status_display_preparing)
-                OrderStatus.DRIVER_ASSIGNED -> stringResource(R.string.merchant_status_display_driver_assigned)
-                OrderStatus.DELIVERING -> stringResource(R.string.merchant_status_display_delivering)
-                OrderStatus.COMPLETED -> stringResource(R.string.merchant_status_display_completed)
-                OrderStatus.CANCELLED -> stringResource(R.string.merchant_status_display_cancelled)
-            }
+            val statusDisplay = order.status.displayNameVi
 
             val statusColor = when (order.status) {
                 OrderStatus.COMPLETED -> Color(0xFF4CAF50)
-                OrderStatus.CANCELLED -> MaterialTheme.colorScheme.error
+                OrderStatus.CANCELLED_BY_CUSTOMER,
+                OrderStatus.CANCELLED_BY_STORE,
+                OrderStatus.NO_SHIPPER_FOUND,
+                OrderStatus.PAYMENT_FAILED,
+                OrderStatus.DELIVERY_TIMEOUT -> MaterialTheme.colorScheme.error
                 else -> MaterialTheme.colorScheme.primary
             }
 
@@ -287,7 +291,7 @@ private fun MerchantOrderCard(
                 )
             }
 
-            if (order.status == OrderStatus.PENDING) {
+            if (order.status == OrderStatus.WAITING_STORE_CONFIRMATION) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -300,6 +304,17 @@ private fun MerchantOrderCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(onClick = onAccept) {
                         Text(stringResource(R.string.merchant_orders_action_accept))
+                    }
+                }
+            } else if (order.status == OrderStatus.PREPARING) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(onClick = onMarkReady) {
+                        Text("Chuẩn bị xong")
                     }
                 }
             }

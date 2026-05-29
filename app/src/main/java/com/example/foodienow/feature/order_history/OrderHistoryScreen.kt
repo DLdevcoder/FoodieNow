@@ -113,15 +113,14 @@ fun OrderHistoryScreen(
     var selectedTab by remember(initialTab) { mutableIntStateOf(initialTab) }
 
     val activeStatuses = setOf(
-        OrderStatus.PENDING,
+        OrderStatus.WAITING_PAYMENT,
+        OrderStatus.WAITING_STORE_CONFIRMATION,
         OrderStatus.PREPARING,
-        OrderStatus.DRIVER_ASSIGNED,
+        OrderStatus.WAITING_SHIPPER,
         OrderStatus.DELIVERING
     )
     val activeOrders = uiState.orders.filter { it.status in activeStatuses }
-    val historyOrders = uiState.orders.filter {
-        it.status == OrderStatus.COMPLETED || it.status == OrderStatus.CANCELLED
-    }
+    val historyOrders = uiState.orders.filter { it.status.isTerminal }
     val cartItems = uiState.cartItems
 
     var orderToCancel by remember { mutableStateOf<Order?>(null) }
@@ -792,7 +791,7 @@ private fun OrderCardItem(
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (onNavigateToTracking != null) {
-                        if (order.status == OrderStatus.PREPARING || order.status == OrderStatus.PENDING) {
+                        if (order.status.canCustomerCancel) {
                             OutlinedButton(
                                 onClick = { onCancelClick?.invoke(order) },
                                 shape = MaterialTheme.shapes.medium,
@@ -906,12 +905,17 @@ private data class OrderStatusStyle(
 
 private fun OrderStatus.toOrderStatusStyle(): OrderStatusStyle {
     return when (this) {
-        OrderStatus.PENDING -> OrderStatusStyle("Chờ xác nhận", AmberTertiary, Icons.Default.AccessTime)
+        OrderStatus.WAITING_PAYMENT -> OrderStatusStyle("Đợi thanh toán", AmberTertiary, Icons.Default.AccessTime)
+        OrderStatus.WAITING_STORE_CONFIRMATION -> OrderStatusStyle("Chờ xác nhận", AmberTertiary, Icons.Default.AccessTime)
         OrderStatus.PREPARING -> OrderStatusStyle("Đang chuẩn bị", AmberTertiary, Icons.AutoMirrored.Filled.Assignment)
-        OrderStatus.DRIVER_ASSIGNED -> OrderStatusStyle("Đã có tài xế", InfoBlue, Icons.Default.LocalShipping)
+        OrderStatus.WAITING_SHIPPER -> OrderStatusStyle("Chờ shipper", InfoBlue, Icons.Default.LocalShipping)
         OrderStatus.DELIVERING -> OrderStatusStyle("Đang giao", InfoBlue, Icons.Default.LocalShipping)
         OrderStatus.COMPLETED -> OrderStatusStyle("Đã giao", SuccessGreen, Icons.Default.CheckCircle)
-        OrderStatus.CANCELLED -> OrderStatusStyle("Đã hủy", ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.CANCELLED_BY_CUSTOMER -> OrderStatusStyle("Khách hàng hủy", ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.CANCELLED_BY_STORE -> OrderStatusStyle("Cửa hàng hủy", ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.NO_SHIPPER_FOUND -> OrderStatusStyle("Không có shipper", ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.PAYMENT_FAILED -> OrderStatusStyle("Thanh toán lỗi", ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.DELIVERY_TIMEOUT -> OrderStatusStyle("Quá giờ giao", ErrorRed, Icons.Default.RemoveShoppingCart)
     }
 }
 

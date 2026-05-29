@@ -350,37 +350,12 @@ private fun ShipperOrderCard(
                     )
                 } else {
                     when (order.status) {
-                        OrderStatus.PREPARING -> {
+                        OrderStatus.WAITING_SHIPPER -> {
                             Button(
                                 onClick = { order.id?.let { viewModel.acceptOrder(it) } },
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text(stringResource(R.string.shipper_action_accept))
-                            }
-                        }
-                        OrderStatus.DRIVER_ASSIGNED -> {
-                            OutlinedButton(
-                                onClick = { order.id?.let { viewModel.cancelOrder(it) } },
-                                modifier = Modifier.padding(end = 8.dp),
-                                shape = MaterialTheme.shapes.medium,
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = Color(0xFFD32F2F)
-                                )
-                            ) {
-                                Text("Hủy đơn")
-                            }
-                            OutlinedButton(
-                                onClick = onNavigateToMap,
-                                modifier = Modifier.padding(end = 8.dp),
-                                shape = MaterialTheme.shapes.medium
-                            ) {
-                                Text("Bản đồ")
-                            }
-                            Button(
-                                onClick = { order.id?.let { viewModel.markAsDelivering(it) } },
-                                shape = MaterialTheme.shapes.medium
-                            ) {
-                                Text("Đã lấy hàng")
                             }
                         }
                         OrderStatus.DELIVERING -> {
@@ -390,20 +365,6 @@ private fun ShipperOrderCard(
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text("Bản đồ")
-                            }
-
-                            val isConfirmed = order.shipperConfirmed
-
-                            Button(
-                                onClick = { order.id?.let { viewModel.completeOrder(it) } },
-                                shape = MaterialTheme.shapes.medium,
-                                enabled = !isConfirmed,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isConfirmed) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
-                                    contentColor = if (isConfirmed) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
-                                )
-                            ) {
-                                Text(if (isConfirmed) "Chờ khách xác nhận" else "Hoàn thành")
                             }
                         }
                         else -> {}

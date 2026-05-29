@@ -233,6 +233,17 @@ class ActivityHistoryViewModelTest {
         override suspend fun confirmShipperDelivery(orderId: String): Result<Unit> = TODO()
         override suspend fun confirmCustomerReceipt(orderId: String): Result<Unit> = TODO()
         override suspend fun checkAndCompleteOrder(orderId: String): Result<Unit> = TODO()
+        override suspend fun cancelOrderShipper(orderId: String): Result<Unit> = TODO()
+        override suspend fun merchantAcceptOrderWithLocation(orderId: String, merchantId: String): Result<Unit> = TODO()
+        override suspend fun cancelOrderWithReason(orderId: String, reason: String, cancelledBy: String): Result<Unit> = TODO()
+        override suspend fun storeConfirmOrder(orderId: String): Result<Unit> = TODO()
+        override suspend fun storeRejectOrder(orderId: String, reason: String): Result<Unit> = TODO()
+        override suspend fun storeMarkReady(orderId: String): Result<Unit> = TODO()
+        override suspend fun shipperAcceptOrder(orderId: String, shipperId: String): Result<Unit> = TODO()
+        override suspend fun shipperCancelOrder(orderId: String): Result<Unit> = TODO()
+        override suspend fun shipperCompleteDelivery(orderId: String): Result<Unit> = TODO()
+        override suspend fun confirmOnlinePayment(orderId: String, transactionId: String): Result<Unit> = TODO()
+        override suspend fun handlePaymentFailure(orderId: String): Result<Unit> = TODO()
     }
 
     private class FakePaymentRepository : PaymentRepository {

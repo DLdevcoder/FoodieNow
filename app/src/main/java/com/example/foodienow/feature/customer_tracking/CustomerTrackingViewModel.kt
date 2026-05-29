@@ -118,8 +118,7 @@ class CustomerTrackingViewModel @Inject constructor(
     private suspend fun calculateRoute(order: Order) {
         if (goongApiKey.isBlank()) return
 
-        // Vẽ tuyến đường từ CỬA HÀNG đến KHÁCH HÀNG trong cả 2 trạng thái
-        if (order.status != OrderStatus.DRIVER_ASSIGNED && order.status != OrderStatus.DELIVERING) {
+        if (order.status != OrderStatus.DELIVERING) {
             _routePoints.value = emptyList()
             return
         }

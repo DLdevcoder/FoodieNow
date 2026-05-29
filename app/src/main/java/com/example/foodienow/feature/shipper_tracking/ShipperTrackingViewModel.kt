@@ -90,6 +90,9 @@ class ShipperTrackingViewModel @Inject constructor(
     private val _routeToCustomer = MutableStateFlow<List<LatLng>>(emptyList())
     val routeToCustomer: StateFlow<List<LatLng>> = _routeToCustomer.asStateFlow()
 
+    private val _isPickedUp = MutableStateFlow(false)
+    val isPickedUp: StateFlow<Boolean> = _isPickedUp.asStateFlow()
+
     private val httpClient = HttpClient(OkHttp)
     private val json = Json { ignoreUnknownKeys = true }
     private val goongApiKey = BuildConfig.GOONG_API_KEY
@@ -118,22 +121,24 @@ class ShipperTrackingViewModel @Inject constructor(
 
                 val currentOrderVal = _currentOrder.value
                 if (currentOrderVal?.status == OrderStatus.DELIVERING) {
-                    val custLat = currentOrderVal.deliveryLat
-                    val custLng = currentOrderVal.deliveryLng
-                    if (custLat != null && custLng != null) {
-                        _routeToCustomer.value = getRoutePolyline(
-                            origin = "$lat,$lng",
-                            destination = "$custLat,$custLng"
-                        )
-                    }
-                } else if (currentOrderVal?.status == OrderStatus.DRIVER_ASSIGNED) {
-                    val storeLat = currentOrderVal.merchantLat
-                    val storeLng = currentOrderVal.merchantLng
-                    if (storeLat != null && storeLng != null) {
-                        _routeToStore.value = getRoutePolyline(
-                            origin = "$lat,$lng",
-                            destination = "$storeLat,$storeLng"
-                        )
+                    if (_isPickedUp.value) {
+                        val custLat = currentOrderVal.deliveryLat
+                        val custLng = currentOrderVal.deliveryLng
+                        if (custLat != null && custLng != null) {
+                            _routeToCustomer.value = getRoutePolyline(
+                                origin = "$lat,$lng",
+                                destination = "$custLat,$custLng"
+                            )
+                        }
+                    } else {
+                        val storeLat = currentOrderVal.merchantLat
+                        val storeLng = currentOrderVal.merchantLng
+                        if (storeLat != null && storeLng != null) {
+                            _routeToStore.value = getRoutePolyline(
+                                origin = "$lat,$lng",
+                                destination = "$storeLat,$storeLng"
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -154,17 +159,14 @@ class ShipperTrackingViewModel @Inject constructor(
             val custLng = order.deliveryLng ?: return@launch
 
             try {
-                when (order.status) {
-                    OrderStatus.DELIVERING -> {
-                        // LUỒNG MỚI: Xóa đường đến quán, VẼ ĐƯỜNG MỚI TỪ SHIPPER ĐẾN KHÁCH HÀNG
+                if (order.status == OrderStatus.DELIVERING) {
+                    if (_isPickedUp.value) {
                         _routeToStore.value = emptyList()
                         _routeToCustomer.value = getRoutePolyline(
                             origin = "$shipperLat,$shipperLng",
                             destination = "$custLat,$custLng"
                         )
-                    }
-                    OrderStatus.DRIVER_ASSIGNED -> {
-                        // LUỒNG CŨ: Vẽ 2 chặng
+                    } else {
                         _routeToStore.value = getRoutePolyline(
                             origin = "$shipperLat,$shipperLng",
                             destination = "$storeLat,$storeLng"
@@ -174,10 +176,9 @@ class ShipperTrackingViewModel @Inject constructor(
                             destination = "$custLat,$custLng"
                         )
                     }
-                    else -> {
-                        _routeToStore.value = emptyList()
-                        _routeToCustomer.value = emptyList()
-                    }
+                } else {
+                    _routeToStore.value = emptyList()
+                    _routeToCustomer.value = emptyList()
                 }
             } catch (e: Exception) {
                 Log.e("GoongAPI", "Lỗi tìm đường: ${e.message}")
@@ -189,10 +190,7 @@ class ShipperTrackingViewModel @Inject constructor(
     fun confirmOrderPickedUp() {
         viewModelScope.launch {
             try {
-                orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
-                _currentOrder.update { it?.copy(status = OrderStatus.DELIVERING) }
-
-                // Khi đổi sang DELIVERING, hàm này sẽ được gọi lại để xóa đường cũ, vẽ đường mới
+                _isPickedUp.value = true
                 _currentOrder.value?.let { fetchRoutesBasedOnStatus(it) }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -211,6 +209,19 @@ class ShipperTrackingViewModel @Inject constructor(
                     if (latestOrder?.status == OrderStatus.COMPLETED) {
                         onSuccess()
                     }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun cancelDelivery(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = orderRepository.shipperCancelOrder(orderId)
+                if (result.isSuccess) {
+                    onSuccess()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

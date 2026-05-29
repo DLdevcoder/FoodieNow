@@ -66,7 +66,7 @@ fun MerchantMainScreen(
 
     var lastPendingOrdersMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     val currentPendingOrdersMap = ordersState.orders
-        .filter { it.status == OrderStatus.PENDING }
+        .filter { it.status == OrderStatus.WAITING_STORE_CONFIRMATION }
         .associate { (it.id ?: "") to it.status.name }
 
     LaunchedEffect(currentPendingOrdersMap) {

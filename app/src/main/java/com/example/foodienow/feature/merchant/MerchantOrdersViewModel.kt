@@ -78,6 +78,38 @@ class MerchantOrdersViewModel @Inject constructor(
         }
     }
 
+    fun rejectOrder(orderId: String, reason: String) {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                val updatedOrders = currentState.orders.map { order ->
+                    if (order.id == orderId) order.copy(status = OrderStatus.CANCELLED_BY_STORE) else order
+                }
+                currentState.copy(orders = updatedOrders)
+            }
+
+            val result = orderRepository.cancelOrderWithReason(orderId, reason, "MERCHANT")
+            if (result.isFailure) {
+                loadOrders()
+            }
+        }
+    }
+
+    fun markOrderReady(orderId: String) {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                val updatedOrders = currentState.orders.map { order ->
+                    if (order.id == orderId) order.copy(status = OrderStatus.WAITING_SHIPPER) else order
+                }
+                currentState.copy(orders = updatedOrders)
+            }
+
+            val result = orderRepository.storeMarkReady(orderId)
+            if (result.isFailure) {
+                loadOrders()
+            }
+        }
+    }
+
     fun updateOrderStatus(orderId: String, newStatus: OrderStatus) {
         viewModelScope.launch {
             _uiState.update { currentState ->

@@ -76,9 +76,10 @@ fun CustomerMainScreen(
     val orderHistoryState by orderHistoryViewModel.uiState.collectAsState()
 
     val activeStatuses = setOf(
-        OrderStatus.PENDING,
+        OrderStatus.WAITING_PAYMENT,
+        OrderStatus.WAITING_STORE_CONFIRMATION,
         OrderStatus.PREPARING,
-        OrderStatus.DRIVER_ASSIGNED,
+        OrderStatus.WAITING_SHIPPER,
         OrderStatus.DELIVERING
     )
 

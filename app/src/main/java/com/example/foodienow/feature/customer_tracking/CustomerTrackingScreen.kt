@@ -100,19 +100,10 @@ fun CustomerTrackingScreen(
         val map = mapLibreMapInstance ?: return@LaunchedEffect
         val currentOrder = order ?: return@LaunchedEffect
 
-        // Vẽ đường khi đang trong 2 trạng thái cần thiết
-        if (currentOrder.status == OrderStatus.DRIVER_ASSIGNED || currentOrder.status == OrderStatus.DELIVERING) {
-
-            // 1. Cập nhật đường đi với màu sắc tùy theo trạng thái
+        if (currentOrder.status == OrderStatus.DELIVERING) {
             activePolyline?.let { map.removePolyline(it) }
             if (routePoints.isNotEmpty()) {
-                // DRIVER_ASSIGNED: Màu nhạt (Opacity 50%) - DELIVERING: Màu đậm chuẩn
-                val polylineColor = if (currentOrder.status == OrderStatus.DRIVER_ASSIGNED) {
-                    AndroidColor.parseColor("#80EE4D2D") // 80 là Hex alpha cho 50% opacity
-                } else {
-                    AndroidColor.parseColor("#EE4D2D")
-                }
-
+                val polylineColor = AndroidColor.parseColor("#EE4D2D")
                 activePolyline = map.addPolyline(
                     PolylineOptions()
                         .addAll(routePoints)
@@ -210,10 +201,8 @@ fun CustomerTrackingScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
 
-                        // Thay đổi Text theo trạng thái
                         val statusText = when (currentOrder.status) {
-                            OrderStatus.DRIVER_ASSIGNED -> "Tài xế đang đến nhà hàng lấy đơn"
-                            OrderStatus.DELIVERING -> "Tài xế đang trên đường giao đến bạn"
+                            OrderStatus.DELIVERING -> "Tài xế đang giao đơn hàng"
                             OrderStatus.COMPLETED -> "Đơn hàng đã giao thành công"
                             else -> "Đang xử lý đơn hàng"
                         }

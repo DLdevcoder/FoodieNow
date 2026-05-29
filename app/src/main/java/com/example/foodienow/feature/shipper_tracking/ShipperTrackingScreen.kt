@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -70,6 +71,7 @@ fun ShipperTrackingScreen(
     val order by viewModel.currentOrder.collectAsState()
     val routeToStore by viewModel.routeToStore.collectAsState()
     val routeToCustomer by viewModel.routeToCustomer.collectAsState()
+    val isPickedUp by viewModel.isPickedUp.collectAsState()
 
     var hasLocationPermission by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
@@ -152,7 +154,7 @@ fun ShipperTrackingScreen(
         // --- QUẢN LÝ CHẶNG ĐẾN KHÁCH HÀNG (MÀU CAM/XÁM) ---
         polylineToCustomer?.let { map.removePolyline(it) }
         if (routeToCustomer.isNotEmpty()) {
-            val routeColor = if (order?.status == OrderStatus.DRIVER_ASSIGNED) "#9AA0A6" else "#EE4D2D"
+            val routeColor = if (!isPickedUp) "#9AA0A6" else "#EE4D2D"
             polylineToCustomer = map.addPolyline(
                 PolylineOptions()
                     .addAll(routeToCustomer)
@@ -238,32 +240,48 @@ fun ShipperTrackingScreen(
 
                             val isShipperConfirmed = currentOrder.shipperConfirmed
 
-                            Button(
-                                onClick = {
-                                    when (currentOrder.status) {
-                                        OrderStatus.DELIVERING -> viewModel.confirmDelivery(onSuccess = onBack)
-                                        OrderStatus.DRIVER_ASSIGNED -> viewModel.confirmOrderPickedUp()
-                                        else -> {}
+                            if (!isPickedUp) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    OutlinedButton(
+                                        onClick = { viewModel.cancelDelivery(onSuccess = onBack) },
+                                        modifier = Modifier.weight(1f),
+                                        shape = MaterialTheme.shapes.medium,
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = Color(0xFFD32F2F)
+                                        )
+                                    ) {
+                                        Text("Hủy đơn")
                                     }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = if (currentOrder.status == OrderStatus.DELIVERING) !isShipperConfirmed else true,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (isShipperConfirmed && currentOrder.status == OrderStatus.DELIVERING)
-                                        MaterialTheme.colorScheme.surfaceVariant
-                                    else MaterialTheme.colorScheme.primary,
-                                    contentColor = if (isShipperConfirmed && currentOrder.status == OrderStatus.DELIVERING)
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    else MaterialTheme.colorScheme.onPrimary
-                                )
-                            ) {
-                                Text(
-                                    text = when {
-                                        currentOrder.status == OrderStatus.DELIVERING && isShipperConfirmed -> "Chờ khách xác nhận..."
-                                        currentOrder.status == OrderStatus.DELIVERING -> "Xác nhận đã giao hàng"
-                                        else -> "Đã lấy hàng"
+                                    Button(
+                                        onClick = { viewModel.confirmOrderPickedUp() },
+                                        modifier = Modifier.weight(1f),
+                                        shape = MaterialTheme.shapes.medium
+                                    ) {
+                                        Text("Đã lấy hàng")
                                     }
-                                )
+                                }
+                            } else {
+                                Button(
+                                    onClick = { viewModel.confirmDelivery(onSuccess = onBack) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    enabled = !isShipperConfirmed,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isShipperConfirmed)
+                                            MaterialTheme.colorScheme.surfaceVariant
+                                        else MaterialTheme.colorScheme.primary,
+                                        contentColor = if (isShipperConfirmed)
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        else MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = MaterialTheme.shapes.medium
+                                ) {
+                                    Text(
+                                        text = if (isShipperConfirmed) "Chờ khách xác nhận..." else "Xác nhận đã giao hàng"
+                                    )
+                                }
                             }
                         }
                     }

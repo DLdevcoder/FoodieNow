@@ -41,5 +41,13 @@ interface OrderRepository {
     suspend fun checkAndCompleteOrder(orderId: String): Result<Unit>
     suspend fun cancelOrderShipper(orderId: String): Result<Unit>
     suspend fun merchantAcceptOrderWithLocation(orderId: String, merchantId: String): Result<Unit>
-    suspend fun cancelOrderWithReason(orderId: String, reason: String): Result<Unit>
+    suspend fun cancelOrderWithReason(orderId: String, reason: String, cancelledBy: String): Result<Unit>
+    suspend fun storeConfirmOrder(orderId: String): Result<Unit>
+    suspend fun storeRejectOrder(orderId: String, reason: String): Result<Unit>
+    suspend fun storeMarkReady(orderId: String): Result<Unit>
+    suspend fun shipperAcceptOrder(orderId: String, shipperId: String): Result<Unit>
+    suspend fun shipperCancelOrder(orderId: String): Result<Unit>
+    suspend fun shipperCompleteDelivery(orderId: String): Result<Unit>
+    suspend fun confirmOnlinePayment(orderId: String, transactionId: String): Result<Unit>
+    suspend fun handlePaymentFailure(orderId: String): Result<Unit>
 }

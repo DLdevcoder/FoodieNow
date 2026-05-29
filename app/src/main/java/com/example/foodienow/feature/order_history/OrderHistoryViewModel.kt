@@ -111,7 +111,6 @@ class OrderHistoryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Xử lý logic nối chuỗi ghi chú
                 val currentNote = order.note
                 val finalNote = if (currentNote.isNullOrBlank()) {
                     "Lý do hủy: $reason"
@@ -119,7 +118,7 @@ class OrderHistoryViewModel @Inject constructor(
                     "Lý do hủy: $reason (Ghi chú gốc: $currentNote)"
                 }
                 order.id?.let { orderId ->
-                    orderRepository.cancelOrderWithReason(orderId, finalNote)
+                    orderRepository.cancelOrderWithReason(orderId, finalNote, "CUSTOMER")
                 }
 
                 loadOrders()
