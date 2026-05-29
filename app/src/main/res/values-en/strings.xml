@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FoodieNow</string>
+    <string name="common_back">Back</string>
+    <string name="good_morning">Good morning ☀️</string>
+    <string name="good_afternoon">Good afternoon ⛅</string>
+    <string name="good_evening">Good evening 🌙</string>
+    <string name="auth_checking_session">Checking session...</string>
+    <string name="auth_login_title">Sign In</string>
+    <string name="auth_login_subtitle">Welcome back, please sign in to continue.</string>
+    <string name="auth_register_title">Register</string>
+    <string name="auth_register_subtitle">Create a new account to get started.</string>
+    <string name="auth_email_label">Email</string>
+    <string name="auth_password_label">Password</string>
+    <string name="auth_confirm_password_label">Confirm Password</string>
+    <string name="auth_role_label">Account Type</string>
+    <string name="auth_hide_password">Hide password</string>
+    <string name="auth_show_password">Show password</string>
+    <string name="auth_hide_confirm_password">Hide confirm password</string>
+    <string name="auth_show_confirm_password">Show confirm password</string>
+    <string name="auth_login_button">Sign In</string>
+    <string name="auth_create_account_button">Create Account</string>
+    <string name="auth_forgot_password_action">Forgot password?</string>
+    <string name="auth_register_action">Don\'t have an account? Sign up</string>
+    <string name="auth_back_to_login_action">Already have an account? Sign in</string>
+    <string name="auth_back_to_login">Back to sign in</string>
+    <string name="auth_try_again_in_seconds">Try again in %1$ds</string>
+    <string name="auth_error_empty_email_password">Email and password cannot be empty.</string>
+    <string name="auth_error_invalid_email">Invalid email address.</string>
+    <string name="auth_error_password_min_length">Password must be at least 6 characters.</string>
+    <string name="auth_error_password_mismatch">Confirm password does not match.</string>
+
+    <string name="auth_verify_title">Verify Account</string>
+    <string name="auth_verify_subtitle">Verify your email to get full access.</string>
+    <string name="auth_verify_sent_to">Verification email sent to:</string>
+    <string name="auth_verify_instruction">Please check your email and click the verification link, then log in.</string>
+    <string name="auth_verify_resend">Resend verification email</string>
+    <string name="auth_verify_back_to_login">I have verified my email, back to login</string>
+
+    <string name="auth_forgot_password_title">Reset Password</string>
+    <string name="auth_forgot_password_subtitle">Enter your email to receive a password reset link.</string>
+    <string name="auth_forgot_password_send">Send recovery email</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="profile_account_information">Account information</string>
+    <string name="profile_name_value">Name: %1$s</string>
+    <string name="profile_email_value">Email: %1$s</string>
+    <string name="profile_role_value">Role: %1$s</string>
+    <string name="profile_name_label">Full name</string>
+    <string name="profile_phone_label">Phone</string>
+    <string name="profile_address_label">Address</string>
+    <string name="profile_save_button">Save profile</string>
+    <string name="profile_logout">Log out</string>
+
+    <string name="payment_title">Payment</string>
+    <string name="payment_order_information">Order information</string>
+    <string name="payment_subtotal">Subtotal: %1$s</string>
+    <string name="payment_delivery_fee">Delivery fee: %1$s</string>
+    <string name="payment_total">Total: %1$s</string>
+    <string name="payment_method_title">Payment method</string>
+    <string name="payment_method_cod">Cash on delivery</string>
+    <string name="payment_method_card">Bank card</string>
+    <string name="payment_method_wallet">E-wallet (Sandbox)</string>
+    <string name="payment_method_foodie_pay">FoodiePay Wallet</string>
+    <string name="payment_wallet_method_with_provider">E-wallet (%1$s)</string>
+    <string name="payment_wallet_provider_title">Select sandbox wallet</string>
+    <string name="payment_wallet_provider_zalopay">ZaloPay</string>
+    <string name="payment_wallet_provider_momo">MoMo</string>
+    <string name="payment_wallet_provider_vnpay">VNPAY</string>
+    <string name="payment_wallet_provider_paypal">PayPal</string>
+    <string name="payment_wallet_provider_google">Google Play</string>
+    <string name="payment_delivery_address_label">Delivery address</string>
+    <string name="payment_note_label">Note (optional)</string>
+    <string name="payment_processing">Processing</string>
+    <string name="payment_confirm_button">Confirm payment</string>
+    <string name="payment_voucher_title">Discount code</string>
+    <string name="payment_voucher_hint">Enter code (e.g. GIAMGIA20K)</string>
+    <string name="payment_voucher_apply">Apply</string>
+    <string name="payment_voucher_discount">Voucher discount: -%1$s</string>
+    <string name="payment_reward_title">Use FoodieCoins</string>
+    <string name="payment_reward_detail">You have %1$d points (save %2$s)</string>
+    <string name="payment_reward_discount">FoodieCoins: -%1$s</string>
+    <string name="payment_confirm_dialog_title">Confirm payment</string>
+    <string name="payment_confirm_dialog_message">Are you sure you want to pay for this order?</string>
+    <string name="payment_confirm_dialog_method">Method: %1$s</string>
+    <string name="payment_confirm_dialog_total">Total: %1$s</string>
+    <string name="payment_confirm_dialog_address">Address: %1$s</string>
+    <string name="payment_confirm_dialog_confirm">Confirm</string>
+    <string name="payment_confirm_dialog_cancel">Cancel</string>
+    <string name="payment_result_success_title">Payment successful!</string>
+    <string name="payment_result_success_subtitle">Your order has been recorded</string>
+    <string name="payment_result_detail_title">Order details</string>
+    <string name="payment_result_order_id">Order ID</string>
+    <string name="payment_result_total">Total</string>
+    <string name="payment_result_method">Method</string>
+    <string name="payment_result_status">Status</string>
+    <string name="payment_result_status_paid">Paid ✅</string>
+    <string name="payment_result_view_order">View order</string>
+    <string name="payment_result_go_home">Back to home</string>
+
+    <!-- Payment Result - Failure -->
+    <string name="payment_result_failure_title">Payment failed</string>
+    <string name="payment_result_failure_subtitle">Something went wrong with your payment</string>
+    <string name="payment_result_status_failed">Failed ❌</string>
+    <string name="payment_result_try_again">Try again</string>
+    <string name="payment_result_failure_reason">Reason</string>
+
+    <!-- Payment ViewModel messages (moved from hardcoded Vietnamese) -->
+    <string name="payment_vm_error_empty_address">Delivery address cannot be empty.</string>
+    <string name="payment_vm_error_invalid_session">Session expired. Please sign in again.</string>
+    <string name="payment_vm_error_select_wallet">Please select an e-wallet provider.</string>
+    <string name="payment_vm_error_insufficient_balance">Insufficient FoodiePay balance. Please top up.</string>
+    <string name="payment_vm_error_create_order">Could not create order.</string>
+    <string name="payment_vm_error_payment_failed">Payment failed. Order has been cancelled.</string>
+    <string name="payment_vm_error_wallet_failed">Wallet transaction failed. Order has been cancelled.</string>
+    <string name="payment_vm_error_foodiepay_deduct">FoodiePay deduction error.</string>
+    <string name="payment_vm_success">Payment successful.</string>
+    <string name="payment_vm_notify_success_title">Payment successful</string>
+    <string name="payment_vm_notify_success_message">Order %1$s paid. You earned %2$d FoodieCoins.</string>
+    <string name="payment_vm_notify_failure_title">Payment failed</string>
+    <string name="payment_vm_notify_failure_message">Order %1$s cancelled due to transaction error.</string>
+    <string name="payment_vm_notify_failure_refund_suffix"> Amount refunded to FoodiePay.</string>
+    <string name="payment_vm_refund_description">Refund for order %1$s</string>
+    <string name="payment_vm_payment_description">Payment for order</string>
+    <string name="payment_vm_method_cod">Cash on delivery (COD)</string>
+    <string name="payment_vm_method_card">Bank card</string>
+    <string name="payment_vm_method_wallet">E-wallet</string>
+    <string name="payment_vm_method_foodie_pay">FoodiePay</string>
+
+    <!-- Delivery Fee Config -->
+    <string name="payment_free_delivery_threshold">Free delivery for orders over %1$s</string>
+
+    <string name="notification_loading">Loading notifications…</string>
+    <string name="notification_error_title">Cannot load notifications</string>
+    <string name="notification_error_retry">Retry</string>
+    <string name="notification_empty_title">No notifications yet</string>
+    <string name="notification_empty_subtitle">Order and promotion notifications\nwill appear here</string>
+    <string name="notification_unread_count">%1$d unread notifications</string>
+    <string name="notification_section_recent">Recent</string>
+    <string name="notification_count_badge">%1$d notifications</string>
+    <string name="notification_mark_read">Mark as read</string>
+    <string name="notification_delete">Delete</string>
+    <string name="notification_mark_all_read">Mark all as read</string>
+    <string name="notification_filter_all">All</string>
+    <string name="notification_filter_unread">Unread</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_back_content_desc">Back</string>
+    <string name="settings_push_notifications">Push notifications</string>
+    <string name="settings_dark_mode">Dark mode</string>
+    <string name="settings_use_english">Use English</string>
+    <string name="notification_all_caught_up">All caught up</string>
+    <string name="notification_unread_label">Unread</string>
+    <string name="notification_empty_unread_title">No unread notifications</string>
+    <string name="notification_empty_unread_subtitle">You have read all recent updates.</string>
+    <string name="notification_time_just_now">Just now</string>
+    <string name="notification_time_minutes_ago">%1$d min ago</string>
+    <string name="notification_time_hours_ago">%1$d hr ago</string>
+    <string name="notification_time_days_ago">%1$d d ago</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_unread_count">Unread: %1$d</string>
+    <string name="notifications_mark_all_read">Mark all as read</string>
+    <string name="order_history_title">Order history</string>
+    <string name="order_history_empty">No orders yet.</string>
+    <string name="order_history_time_unknown">Unknown time</string>
+    <string name="order_history_order_title">Order #%1$s</string>
+    <string name="order_card_title_no_id">Order</string>
+    <string name="order_food_name_with_others">%1$s and %2$d other items</string>
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_vietnamese">Vietnamese</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_title">Theme</string>
+
+    <string name="role_customer">Customer</string>
+    <string name="role_merchant">Merchant</string>
+    <string name="role_shipper">Shipper</string>
+
+    <string name="nav_cart">Cart</string>
+    <string name="nav_merchant_home">Merchant Home</string>
+    <string name="nav_shipper_home">Shipper Home</string>
+
+    <string name="home_search_placeholder">What are you craving?</string>
+    <string name="home_search_cancel">Cancel</string>
+    <string name="home_search_action">Search</string>
+    <string name="home_nav_home">Home</string>
+    <string name="home_nav_cart">Cart</string>
+    <string name="home_nav_notifications">Notifications</string>
+    <string name="home_nav_profile">Profile</string>
+    <string name="home_search_results">Search results</string>
+    <string name="home_search_empty">No matching dishes found.</string>
+    <string name="home_recommendations">Recommendations</string>
+
+    <string name="cart_title">Your cart</string>
+    <string name="cart_total_label">Total</string>
+    <string name="cart_checkout">Checkout</string>
+    <string name="cart_empty">Your cart is empty.</string>
+    <string name="cart_decrease">Decrease</string>
+    <string name="cart_increase">Increase</string>
+
+    <string name="food_add_to_cart">Add to cart</string>
+    <string name="food_detail_title">Food details</string>
+    <string name="food_detail_add_to_cart">Add to cart</string>
+    <string name="food_detail_sold_count">Sold %1$s</string>
+    <string name="food_detail_store_hint">View store</string>
+    <string name="food_detail_section_title">About this dish</string>
+    <string name="food_detail_no_description">Description not available.</string>
+    <string name="food_detail_reviews_title">Reviews</string>
+    <string name="food_detail_reviews_view_all">View all &gt;</string>
+    <string name="food_detail_write_review">Write a review</string>
+    <string name="food_detail_no_reviews">No reviews yet.</string>
+    <string name="food_detail_image_desc">Food image</string>
+
+    <string name="rating_dialog_title">Rate this dish</string>
+    <string name="rating_dialog_placeholder">How was this dish?</string>
+    <string name="rating_dialog_submit">Submit</string>
+    <string name="rating_dialog_cancel">Cancel</string>
+    <string name="rating_star_content_desc">Star %1$d</string>
+
+    <string name="bottomsheet_image_desc">Image of %1$s</string>
+    <string name="bottomsheet_no_description">No description available.</string>
+    <string name="bottomsheet_decrease">Decrease</string>
+    <string name="bottomsheet_increase">Increase</string>
+    <string name="bottomsheet_add_to_cart_total">Add %1$d to cart - %2$s</string>
+
+    <string name="food_reviews_title">All reviews</string>
+    <string name="food_reviews_empty">No reviews yet.</string>
+
+    <string name="activity_history_title">Activity history</string>
+    <string name="activity_history_subtitle_count">%1$d recent activities</string>
+    <string name="activity_history_subtitle_empty">Track your orders, payments and reviews</string>
+    <string name="activity_filter_all">All</string>
+    <string name="activity_filter_orders">Orders</string>
+    <string name="activity_filter_finance">Finance</string>
+    <string name="activity_filter_reviews">Reviews</string>
+    <string name="activity_history_empty">No activities yet.</string>
+    <string name="activity_history_time_unknown">Unknown time</string>
+    <string name="activity_history_order_title">Order #%1$s</string>
+    <string name="activity_history_payment_title">Payment #%1$s</string>
+    <string name="activity_history_payment_title_no_id">Payment</string>
+    <string name="activity_history_payment_subtitle">Order #%1$s | %2$s | %3$s</string>
+    <string name="activity_history_payment_subtitle_no_id">%1$s | %2$s</string>
+    <string name="activity_history_item_subtitle">Status: %1$s | Total: %2$s</string>
+    <string name="error_load_activity_history">Unable to load activity history.</string>
+    <string name="activity_history_review_title">Food Review</string>
+    <string name="activity_history_review_title_with_food">Reviewed: %1$s</string>
+    <string name="activity_history_review_subtitle">%1$d ★ | Comment: %2$s</string>
+    <string name="activity_history_wallet_top_up_title">Wallet Top Up</string>
+    <string name="activity_history_wallet_refund_title">Refund to Wallet</string>
+    <string name="activity_history_wallet_payment_title">Wallet Payment</string>
+    <string name="activity_history_wallet_subtitle">%1$s | Amount: %2$s</string>
+    <string name="activity_history_section_recent">Recent</string>
+    <string name="activity_history_count_badge">%1$d activities</string>
+    <string name="order_history_item_subtitle">Status: %1$s | Total: %2$s</string>
+
+    <string name="error_no_session">No active session found.</string>
+    <string name="error_load_order_history">Unable to load order history.</string>
+
+    <!-- Merchant Orders -->
+    <string name="merchant_orders_status_pending">Pending</string>
+    <string name="merchant_orders_status_preparing">Preparing</string>
+    <string name="merchant_orders_status_driver_assigned">Awaiting Pickup</string>
+    <string name="merchant_orders_status_delivering">Delivering</string>
+    <string name="merchant_orders_status_completed">Completed</string>
+    <string name="merchant_orders_status_cancelled">Cancelled</string>
+    <string name="merchant_orders_empty">No orders in this status.</string>
+    <string name="merchant_orders_action_accept">Accept Order</string>
+    <string name="merchant_orders_action_ready">Mark as Ready</string>
+    <string name="merchant_orders_action_cancel">Reject</string>
+    <string name="merchant_orders_customer_name">Customer: %1$s</string>
+    <string name="merchant_status_display_pending">Pending confirmation</string>
+    <string name="merchant_status_display_preparing">Preparing</string>
+    <string name="merchant_status_display_driver_assigned">Driver is arriving</string>
+    <string name="merchant_status_display_delivering">Driver is delivering</string>
+    <string name="merchant_status_display_completed">Delivered successfully</string>
+    <string name="merchant_status_display_cancelled">Cancelled</string>
+    <string name="merchant_orders_status_history">History</string>
+
+    <!-- FoodieNow UI Strings -->
+    <!-- Bottom Navigation -->
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_orders">My Orders</string>
+    <string name="bottom_nav_likes">Likes</string>
+    <string name="bottom_nav_notifications">Notifications</string>
+    <string name="bottom_nav_me">Me</string>
+
+    <!-- Home Tab -->
+    <string name="home_search_hint">What are you craving?</string>
+    <string name="home_category_1">Rice</string>
+    <string name="home_category_2">Noodles</string>
+    <string name="home_category_3">Milk Tea</string>
+    <string name="home_category_4">Snacks</string>
+    <string name="home_category_5">Fast Food</string>
+    <string name="home_category_6">Healthy</string>
+    <string name="home_category_7">Pizza</string>
+    <string name="home_category_8">Promotions</string>
+    <string name="home_section_good_meal">Good Meal - Good Deal</string>
+    <string name="home_section_must_try">Our Recommendations</string>
+    <string name="home_section_collections">Collections</string>
+    <string name="home_section_flash_sale">FLASH SALE</string>
+    <string name="home_see_all">See All ></string>
+    <string name="home_free_shipping">Free shipping</string>
+    <string name="home_save_up_to">Save up to 50%</string>
+
+    <!-- My Orders Tab -->
+    <string name="my_orders_title">My Orders</string>
+    <string name="my_orders_tab_ongoing">Ongoing</string>
+    <string name="my_orders_tab_deals">Vouchers</string>
+    <string name="my_orders_tab_history">History</string>
+    <string name="my_orders_tab_rate">To Rate</string>
+    <string name="my_orders_tab_cancelled">Cancelled</string>
+    <string name="my_orders_empty_title">Have you ordered?</string>
+    <string name="my_orders_empty_desc">Confirmed items which are currently being prepared and delivered will show up here so you can track your delivery!</string>
+    <string name="my_orders_you_may_also_like">You May Also Like</string>
+
+    <!-- Notifications Tab -->
+    <string name="notifications_tab_title">Notification</string>
+    <string name="notifications_news">News</string>
+    <string name="notifications_news_desc">No News yet</string>
+    <string name="notifications_order_updates">Order Updates</string>
+    <string name="notifications_order_updates_desc">No updates yet</string>
+    <string name="notifications_promotions">Promotions</string>
+
+    <!-- Me Tab -->
+    <string name="me_must_try">Top Recommendations</string>
+    <string name="me_vouchers">My Vouchers</string>
+    <string name="me_vouchers_count">1 Voucher</string>
+    <string name="me_coins">Reward Points</string>
+    <string name="me_coins_count">200 Points</string>
+    <string name="me_payment">Payment</string>
+    <string name="me_address">Address</string>
+    <string name="me_invite">Invite Friends</string>
+    <string name="me_shop_owners">For Shop Owners</string>
+    <string name="me_help">Help Centre</string>
+    <string name="me_settings">Settings</string>
+
+    <!-- Shipper -->
+    <string name="shipper_tab_available">Ready Orders</string>
+    <string name="shipper_tab_active">Delivering</string>
+    <string name="shipper_empty_available">No available orders.</string>
+    <string name="shipper_empty_active">You have no active orders.</string>
+    <string name="shipper_action_accept">Accept</string>
+    <string name="shipper_action_complete">Complete</string>
+    <string name="shipper_nav_home">Home</string>
+    <string name="shipper_nav_orders">Orders</string>
+    <string name="shipper_nav_earnings">Earnings</string>
+    <string name="shipper_nav_profile">Profile</string>
+    <string name="shipper_earnings_title">My Earnings</string>
+    <string name="shipper_earnings_today">Today\'s Earnings</string>
+    <string name="shipper_earnings_week">This Week</string>
+    <string name="shipper_earnings_month">This Month</string>
+    <string name="shipper_tab_completed">History</string>
+    <string name="shipper_empty_completed">No orders have been completed yet</string>
+    <string name="shipper_delivery_history">Delivery History</string>
+    <string name="shipper_delivery_history_desc">View completed delivery orders</string>
+
+    <string name="profile_unnamed">Not updated yet</string>
+    <string name="profile_unnamed_email">Email not updated</string>
+    <string name="profile_header_title">Personal Profile</string>
+    <string name="profile_wallet_foodiepay">FoodiePay Wallet</string>
+    <string name="profile_foodiecoins">FoodieCoins</string>
+    <string name="profile_vouchers">Vouchers</string>
+    <string name="profile_vouchers_count">%1$s vouchers</string>
+    <string name="profile_change_password">Change password</string>
+    <string name="profile_logout_btn">Log out</string>
+    <string name="feature_under_development">Feature under development</string>
+
+    <string name="cart_clear_dialog_title">Create new cart?</string>
+    <string name="cart_clear_dialog_desc">Adding this item will clear items from the previous restaurant in your cart. Do you want to continue?</string>
+    <string name="cart_clear_dialog_confirm">Yes</string>
+    <string name="cart_clear_dialog_cancel">Cancel</string>
+    <string name="error_prefix">Error: %1$s</string>
+
+    <string name="merchant_food_title_add">Add food</string>
+    <string name="merchant_food_title_edit">Edit food</string>
+    <string name="merchant_food_image_desc">Food image</string>
+    <string name="merchant_food_select_image">Tap to select food image</string>
+    <string name="merchant_food_name_label">Food name</string>
+    <string name="merchant_food_price_label">Price (VND)</string>
+    <string name="merchant_food_category_label">Category (Tag)</string>
+    <string name="merchant_food_custom_category_label">Enter your custom category</string>
+    <string name="merchant_food_description_label">Description</string>
+    <string name="merchant_food_save_button">SAVE FOOD</string>
+
+    <string name="category_rice">Rice</string>
+    <string name="category_pho">Pho</string>
+    <string name="category_noodles">Noodles</string>
+    <string name="category_drinks">Drinks</string>
+    <string name="category_snacks">Snacks</string>
+    <string name="category_other">Other</string>
+
+    <string name="error_empty_food_fields">Please enter name and price.</string>
+    <string name="error_empty_category">Please select or enter a category.</string>
+    <string name="error_save_food_failed">An error occurred while saving.</string>
+    <!-- Localized Notifications -->
+    <string name="notification_title_order_new">New Order!</string>
+    <string name="notification_body_order_new">You have a new order of %1$s. Please check!</string>
+    <string name="notification_title_order_preparing">Order Confirmed</string>
+    <string name="notification_body_order_preparing">The restaurant is preparing your order.</string>
+    <string name="notification_title_order_delivering">Order Delivering!</string>
+    <string name="notification_body_order_delivering">Shipper is delivering your order. Keep your phone nearby.</string>
+    <string name="notification_title_order_completed">Order Completed</string>
+    <string name="notification_body_order_completed">Order delivered successfully. Thanks for using FoodieNow!</string>
+    <string name="notification_title_order_cancelled">Order Cancelled</string>
+    <string name="notification_body_order_cancelled">Your order has been cancelled.</string>
+    <string name="notification_title_new_review">New Review!</string>
+    <string name="notification_body_new_review">Customer rated %1$s stars for %2$s.</string>
+    <string name="notification_title_wallet_transaction">Balance Update</string>
+    <string name="notification_body_wallet_transaction">%1$s</string>
+    <string name="notification_title_payment_success">Payment Successful</string>
+    <string name="notification_body_payment_success">Payment successful. You earned %1$s FoodieCoins.</string>
+    <string name="notification_body_order_updated">Your order has been updated.</string>
+    <string name="notification_title_order_driver_assigned">Shipper Assigned</string>
+    <string name="notification_body_order_driver_assigned">A shipper is heading to the restaurant to pick up your order.</string>
+    <string name="notification_title_shipper_new_order">New Delivery Available</string>
+    <string name="notification_body_shipper_new_order">A new order is ready for delivery. Tap to accept!</string>
+    <string name="notification_title_order_cancelled_shipper">Order Cancelled</string>
+    <string name="notification_body_order_cancelled_shipper">An order assigned to you has been cancelled.</string>
+    <string name="notification_title_new_chat_message">New Message</string>
+</resources>

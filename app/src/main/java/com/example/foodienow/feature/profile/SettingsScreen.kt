@@ -38,10 +38,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
-import com.example.foodienow.domain.model.AppLanguage
 import com.example.foodienow.domain.model.ThemeMode
 import com.example.foodienow.feature.settings.UiPreferencesViewModel
 
@@ -55,7 +55,12 @@ fun SettingsScreen(
     val uiPreferences by viewModel.uiPreferences.collectAsState()
 
     val darkModeEnabled = uiPreferences.themeMode == ThemeMode.DARK
-    val englishLanguage = uiPreferences.appLanguage == AppLanguage.ENGLISH
+    val currentLocales = remember { AppCompatDelegate.getApplicationLocales() }
+    val englishLanguage = if (currentLocales.isEmpty) {
+        Locale.getDefault().language == "en"
+    } else {
+        currentLocales.get(0)?.language == "en"
+    }
 
     Scaffold(
         topBar = {
@@ -112,10 +117,9 @@ fun SettingsScreen(
                     title = stringResource(R.string.settings_use_english),
                     checked = englishLanguage,
                     onCheckedChange = {
-                        val language = if (it) AppLanguage.ENGLISH else AppLanguage.VIETNAMESE
-                        viewModel.setAppLanguage(language)
+                        val localeTag = if (it) "en" else "vi"
                         AppCompatDelegate.setApplicationLocales(
-                            LocaleListCompat.forLanguageTags(language.languageTag)
+                            LocaleListCompat.forLanguageTags(localeTag)
                         )
                     }
                 )
