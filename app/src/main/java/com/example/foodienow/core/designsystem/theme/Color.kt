@@ -1,6 +1,9 @@
 package com.example.foodienow.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.material3.MaterialTheme
 
 val OrangePrimary = Color(0xFFFF5A1F)
 val OrangeOnPrimary = Color(0xFFFFFFFF)
@@ -38,6 +41,15 @@ val DarkSurfaceVariant = Color(0xFF342821)
 val DarkOnSurfaceVariant = Color(0xFFE4D3C6)
 val DarkOutline = Color(0xFF65554B)
 
+val DarkPrimaryContainer = Color(0xFF6B2608)
+val DarkOnPrimaryContainer = Color(0xFFFFDBCF)
+val DarkSecondaryContainer = Color(0xFF005143)
+val DarkOnSecondaryContainer = Color(0xFF9CFCE0)
+val DarkTertiaryContainer = Color(0xFF5E4200)
+val DarkOnTertiaryContainer = Color(0xFFFFE0B2)
+val DarkErrorContainer = Color(0xFF93000A)
+val DarkOnErrorContainer = Color(0xFFFFDAD6)
+
 // Semantic Colors
 val SuccessGreen = Color(0xFF14A66A)
 val OnSuccessGreen = Color(0xFFFFFFFF)
@@ -59,22 +71,72 @@ val PromoGradientStart = Color(0xFFFF5A1F)
 val PromoGradientEnd = Color(0xFFFFB020)
 
 // Brand neutrals and commercial UI accents
-val FoodieCream = LightBackground
-val FoodieCreamSurface = Color(0xFFFFF6EE)
-val FoodieInk = LightOnSurface
-val FoodieMuted = LightOnSurfaceVariant
-val FoodieDivider = LightOutline
+val FoodieCream: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.background
+
+val FoodieCreamSurface: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = if (MaterialTheme.colorScheme.background == DarkBackground) Color(0xFF2C2520) else Color(0xFFFFF6EE)
+
+val FoodieInk: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.onSurface
+
+val FoodieMuted: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.onSurfaceVariant
+
+val FoodieDivider: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.outline
+
 val FoodieDiscount = Color(0xFFE93535)
 val FoodieRating = Color(0xFFFFB020)
 
 // Order Status Colors
-val StatusPendingColor = AmberTertiaryContainer
-val StatusDeliveringColor = InfoBlueContainer
-val StatusCompletedColor = SuccessGreenContainer
-val StatusCancelledColor = ErrorContainer
+val StatusPendingColor: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.tertiaryContainer
+
+val StatusDeliveringColor: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.secondaryContainer
+
+val StatusCompletedColor: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.primaryContainer
+
+val StatusCancelledColor: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.errorContainer
 
 // Legacy aliases for existing screens
-val ColorBackground = LightBackground
-val ColorSurfaceLight = LightSurfaceVariant
-val ColorPrimary = OrangePrimary
-val ColorPrimaryDark = OrangePrimary
+val ColorBackground: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.background
+
+val ColorSurfaceLight: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.surfaceVariant
+
+val ColorPrimary: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.primary
+
+val ColorPrimaryDark: Color
+    @Composable
+    @ReadOnlyComposable
+    get() = MaterialTheme.colorScheme.primary

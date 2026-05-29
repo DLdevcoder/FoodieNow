@@ -69,6 +69,7 @@ import com.example.foodienow.core.designsystem.components.FoodieSearchPill
 import com.example.foodienow.core.designsystem.components.RatingBadge
 import com.example.foodienow.core.designsystem.components.VoucherBadge
 import com.example.foodienow.core.designsystem.components.shimmerEffect
+import com.example.foodienow.core.designsystem.theme.DarkBackground
 import com.example.foodienow.core.designsystem.theme.FoodieCream
 import com.example.foodienow.core.designsystem.theme.FoodieDiscount
 import com.example.foodienow.core.designsystem.theme.FoodieRating
@@ -312,7 +313,13 @@ private fun SearchCtaButton(onClick: () -> Unit) {
             .width(54.dp)
             .clip(MaterialTheme.shapes.large)
             .clickable(onClick = onClick)
-        .background(Brush.linearGradient(listOf(Color.White, Color(0xFFFFF1E8)))),
+        .background(
+            if (MaterialTheme.colorScheme.background == DarkBackground) {
+                Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface))
+            } else {
+                Brush.linearGradient(listOf(Color.White, Color(0xFFFFF1E8)))
+            }
+        ),
         contentAlignment = Alignment.Center
     ) {
         Icon(

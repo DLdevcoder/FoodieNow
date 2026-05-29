@@ -22,15 +22,12 @@ import com.example.foodienow.core.designsystem.theme.SuccessGreen
 /**
  * Predefined order status types with associated colors.
  */
-enum class OrderStatus(
-    val containerColor: Color,
-    val contentColor: Color
-) {
-    PENDING(StatusPendingColor, AmberTertiary),
-    PREPARING(StatusPendingColor, AmberTertiary),
-    DELIVERING(StatusDeliveringColor, InfoBlue),
-    COMPLETED(StatusCompletedColor, SuccessGreen),
-    CANCELLED(StatusCancelledColor, ErrorRed)
+enum class OrderStatus {
+    PENDING,
+    PREPARING,
+    DELIVERING,
+    COMPLETED,
+    CANCELLED
 }
 
 /**
@@ -47,14 +44,28 @@ fun StatusChip(
     modifier: Modifier = Modifier
 ) {
     val spacing = FoodieNowTheme.spacing
+    val containerColor = when (status) {
+        OrderStatus.PENDING -> StatusPendingColor
+        OrderStatus.PREPARING -> StatusPendingColor
+        OrderStatus.DELIVERING -> StatusDeliveringColor
+        OrderStatus.COMPLETED -> StatusCompletedColor
+        OrderStatus.CANCELLED -> StatusCancelledColor
+    }
+    val contentColor = when (status) {
+        OrderStatus.PENDING -> AmberTertiary
+        OrderStatus.PREPARING -> AmberTertiary
+        OrderStatus.DELIVERING -> InfoBlue
+        OrderStatus.COMPLETED -> SuccessGreen
+        OrderStatus.CANCELLED -> ErrorRed
+    }
 
     Text(
         text = label,
         style = BadgeTextStyle,
-        color = status.contentColor,
+        color = contentColor,
         modifier = modifier
             .clip(MaterialTheme.shapes.extraSmall)
-            .background(status.containerColor)
+            .background(containerColor)
             .padding(horizontal = spacing.sm, vertical = spacing.xs)
     )
 }

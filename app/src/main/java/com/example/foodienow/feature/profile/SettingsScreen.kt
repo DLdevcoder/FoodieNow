@@ -102,7 +102,7 @@ fun SettingsScreen(
 
                 SettingSwitchItem(
                     icon = Icons.Default.DarkMode,
-                    iconColor = Color(0xFF374151),
+                    iconColor = if (darkModeEnabled) Color(0xFF9CA3AF) else Color(0xFF374151),
                     title = stringResource(R.string.settings_dark_mode),
                     checked = darkModeEnabled,
                     onCheckedChange = {

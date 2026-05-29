@@ -85,7 +85,7 @@ fun AddressBookScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFFF3F4F6))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             if (addresses.isEmpty()) {
                 Column(
@@ -213,7 +213,7 @@ private fun AddAddressFlow(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
     ) {
         Column(
@@ -275,7 +275,7 @@ private fun AddAddressFlow(
                         .fillMaxWidth()
                         .padding(top = 4.dp)
                         .heightIn(max = 200.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
@@ -302,12 +302,12 @@ private fun AddAddressFlow(
                                     text = prediction.description,
                                     fontSize = 14.sp,
                                     maxLines = 2,
-                                    color = Color(0xFF374151)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             if (prediction != predictions.last()) {
                                 HorizontalDivider(
-                                    color = Color(0xFFE5E7EB),
+                                    color = MaterialTheme.colorScheme.outlineVariant,
                                     modifier = Modifier.padding(horizontal = 12.dp)
                                 )
                             }
@@ -375,7 +375,7 @@ private fun AddAddressFlow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
-                        .background(Color(0xFFF3F4F6), RoundedCornerShape(12.dp)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -536,7 +536,7 @@ private fun AddressDetailSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
     ) {
         Column(
@@ -548,7 +548,7 @@ private fun AddressDetailSheet(
                 text = address.title,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -622,7 +622,7 @@ private fun AddressItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

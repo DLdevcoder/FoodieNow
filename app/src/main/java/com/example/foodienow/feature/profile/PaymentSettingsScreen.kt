@@ -324,7 +324,7 @@ private fun PaymentSettingCard(
             color = if (isDefault) OrangePrimary else Color.Transparent
         ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isDefault) FoodieCreamSurface else Color.White
+            containerColor = if (isDefault) FoodieCreamSurface else MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

@@ -132,7 +132,7 @@ fun MerchantEarningsTab(
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
+                                containerColor = MaterialTheme.colorScheme.surface,
                                 contentColor = MaterialTheme.colorScheme.primary
                             ),
                             shape = RoundedCornerShape(8.dp),

@@ -111,29 +111,29 @@ fun WalletScreen(
         containerColor = FoodieCream,
         topBar = {
             TopAppBar(
-                title = { Text("Ví FoodiePay", fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, color = Color(0xFF1F1B18)) },
+                title = { Text("Ví FoodiePay", fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, color = MaterialTheme.colorScheme.onSurface) },
                 navigationIcon = {
                     Box(
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Color.White)
-                            .border(BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.5f)), CircleShape)
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)), CircleShape)
                             .clickable { onBack() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Quay lại",
-                            tint = Color(0xFF1F1B18),
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = FoodieCream,
-                    titleContentColor = Color(0xFF1F1B18)
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -263,8 +263,8 @@ fun WalletScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(18.dp))
-                            .background(Color.White)
-                            .border(BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.4f)), RoundedCornerShape(18.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)), RoundedCornerShape(18.dp))
                             .padding(6.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
@@ -302,7 +302,7 @@ fun WalletScreen(
                             ) {
                                 Text(
                                     text = label,
-                                    color = if (isSelected) Color.White else Color(0xFF5E534B),
+                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
                                     fontSize = 15.sp,
                                     letterSpacing = 0.5.sp
@@ -321,13 +321,13 @@ fun WalletScreen(
                                 text = "Nạp tiền vào ví",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF1F1B18),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 letterSpacing = 0.5.sp
                             )
                             Card(
                                 modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(18.dp)),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
-                                border = BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.5f)),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                                 shape = RoundedCornerShape(18.dp)
                             ) {
                                 Column(
@@ -339,7 +339,7 @@ fun WalletScreen(
                                         text = "Bạn chưa liên kết ví điện tử nào để nạp tiền.",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF5E534B),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = TextAlign.Center
                                     )
                                     Button(
@@ -361,7 +361,7 @@ fun WalletScreen(
                                 text = "Nạp tiền vào ví",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF1F1B18),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 letterSpacing = 0.5.sp
                             )
                             
@@ -377,11 +377,11 @@ fun WalletScreen(
                                             .weight(1f)
                                             .shadow(elevation = if (isSelected) 6.dp else 1.dp, shape = RoundedCornerShape(16.dp))
                                             .clip(RoundedCornerShape(16.dp))
-                                            .background(if (isSelected) OrangePrimary else Color.White)
+                                            .background(if (isSelected) OrangePrimary else MaterialTheme.colorScheme.surface)
                                             .border(
                                                 BorderStroke(
                                                     1.5.dp,
-                                                    if (isSelected) OrangePrimary else Color(0xFFE0D6CD).copy(alpha = 0.6f)
+                                                    if (isSelected) OrangePrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
                                                 ),
                                                 RoundedCornerShape(16.dp)
                                             )
@@ -394,7 +394,7 @@ fun WalletScreen(
                                     ) {
                                         Text(
                                             text = "${preset / 1000}K",
-                                            color = if (isSelected) Color.White else Color(0xFF1F1B18),
+                                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
                                             fontWeight = FontWeight.ExtraBold,
                                             fontSize = 14.sp
                                         )
@@ -429,9 +429,9 @@ fun WalletScreen(
                                     focusedBorderColor = OrangePrimary,
                                     focusedLabelColor = OrangePrimary,
                                     cursorColor = OrangePrimary,
-                                    unfocusedBorderColor = Color(0xFFE0D6CD).copy(alpha = 0.8f),
-                                    focusedContainerColor = Color.White,
-                                    unfocusedContainerColor = Color.White
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                                 )
                             )
                         }
@@ -443,7 +443,7 @@ fun WalletScreen(
                                 text = "Chọn nguồn tiền thanh toán",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF1F1B18),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 letterSpacing = 0.5.sp
                             )
                             
@@ -473,10 +473,10 @@ fun WalletScreen(
                                                 shape = RoundedCornerShape(16.dp)
                                             )
                                             .clip(RoundedCornerShape(16.dp))
-                                            .background(if (isSelected) Color.White else Color.White)
+                                            .background(MaterialTheme.colorScheme.surface)
                                             .border(
                                                 width = if (isSelected) 2.dp else 1.dp,
-                                                color = if (isSelected) OrangePrimary else Color(0xFFE0D6CD).copy(alpha = 0.6f),
+                                                color = if (isSelected) OrangePrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
                                                 shape = RoundedCornerShape(16.dp)
                                             )
                                             .clickable { selectedProvider = provider }
@@ -509,7 +509,7 @@ fun WalletScreen(
                                                 },
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.ExtraBold,
-                                                color = if (isSelected) OrangePrimary else Color(0xFF5E534B)
+                                                color = if (isSelected) OrangePrimary else MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
                                         
@@ -557,9 +557,9 @@ fun WalletScreen(
                                 enabled = !uiState.isProcessing && topUpAmountText.isNotBlank(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = OrangePrimary,
-                                    disabledContainerColor = Color(0xFFE0D6CD),
+                                    disabledContainerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                     contentColor = Color.White,
-                                    disabledContentColor = Color(0xFF9E938A)
+                                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                 ),
                                 shape = RoundedCornerShape(16.dp)
                             ) {
@@ -583,15 +583,15 @@ fun WalletScreen(
                             text = "Rút tiền về ví liên kết",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF1F1B18),
+                            color = MaterialTheme.colorScheme.onSurface,
                             letterSpacing = 0.5.sp
                         )
                         
                         if (uiState.linkedWallets.isEmpty()) {
                             Card(
                                 modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(18.dp)),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
-                                border = BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.5f)),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                                 shape = RoundedCornerShape(18.dp)
                             ) {
                                 Column(
@@ -603,7 +603,7 @@ fun WalletScreen(
                                         text = "Bạn chưa liên kết ví điện tử nào để rút tiền.",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF5E534B),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = TextAlign.Center
                                     )
                                     Button(
@@ -621,7 +621,7 @@ fun WalletScreen(
                                 text = "Chọn ví nhận tiền:",
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 13.sp,
-                                color = Color(0xFF5E534B)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -641,11 +641,11 @@ fun WalletScreen(
                                             .weight(1f)
                                             .shadow(elevation = if (isSelected) 6.dp else 1.dp, shape = RoundedCornerShape(16.dp))
                                             .clip(RoundedCornerShape(16.dp))
-                                            .background(if (isSelected) OrangePrimary else Color.White)
+                                            .background(if (isSelected) OrangePrimary else MaterialTheme.colorScheme.surface)
                                             .border(
                                                 BorderStroke(
                                                     1.5.dp,
-                                                    if (isSelected) OrangePrimary else Color(0xFFE0D6CD).copy(alpha = 0.6f)
+                                                    if (isSelected) OrangePrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
                                                 ),
                                                 RoundedCornerShape(16.dp)
                                             )
@@ -655,7 +655,7 @@ fun WalletScreen(
                                     ) {
                                         Text(
                                             text = name,
-                                            color = if (isSelected) Color.White else Color(0xFF1F1B18),
+                                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
                                             fontWeight = FontWeight.ExtraBold,
                                             fontSize = 13.sp
                                         )
@@ -693,9 +693,9 @@ fun WalletScreen(
                                     focusedBorderColor = OrangePrimary,
                                     focusedLabelColor = OrangePrimary,
                                     cursorColor = OrangePrimary,
-                                    unfocusedBorderColor = Color(0xFFE0D6CD).copy(alpha = 0.8f),
-                                    focusedContainerColor = Color.White,
-                                    unfocusedContainerColor = Color.White
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                                 )
                             )
                             
@@ -769,7 +769,7 @@ fun WalletScreen(
                         text = "Lịch sử giao dịch",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF1F1B18),
+                        color = MaterialTheme.colorScheme.onSurface,
                         letterSpacing = 0.5.sp
                     )
                     Icon(
@@ -786,8 +786,8 @@ fun WalletScreen(
                             .fillMaxWidth()
                             .padding(vertical = 12.dp)
                             .shadow(2.dp, RoundedCornerShape(16.dp)),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        border = BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.4f)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Box(
@@ -798,7 +798,7 @@ fun WalletScreen(
                         ) {
                             Text(
                                 text = "Chưa có lịch sử giao dịch.",
-                                color = Color(0xFF5E534B),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp
                             )
@@ -812,8 +812,8 @@ fun WalletScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(elevation = 3.dp, shape = RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color(0xFFE0D6CD).copy(alpha = 0.3f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(
@@ -848,7 +848,7 @@ fun WalletScreen(
                                 Text(
                                     text = tx.description,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = Color(0xFF1F1B18),
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontSize = 14.sp
                                 )
                                 val badgeText = when (tx.type) {
@@ -887,7 +887,7 @@ fun WalletScreen(
                             
                             Text(
                                 text = dateStr,
-                                color = Color(0xFF5E534B),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -915,7 +915,7 @@ fun WalletScreen(
                     .fillMaxWidth(0.9f)
                     .wrapContentHeight(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Row(
@@ -937,7 +937,7 @@ fun WalletScreen(
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.Black)
+                        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                         Text(text = msg, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }

@@ -99,7 +99,7 @@ fun ShipperHomeScreen(
 
         TabRow(
             selectedTabIndex = selectedTabIndex,
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             indicator = { tabPositions ->
                 if (selectedTabIndex < tabPositions.size) {
                     TabRowDefaults.SecondaryIndicator(
@@ -294,7 +294,7 @@ private fun ShipperOrderCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(

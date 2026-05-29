@@ -80,7 +80,7 @@ fun HelpCentreScreen(onBack: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
                 Button(
@@ -99,7 +99,7 @@ fun HelpCentreScreen(onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF5F5F5))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
@@ -127,7 +127,7 @@ fun FaqCard(faq: FaqItem) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
@@ -149,7 +149,7 @@ fun FaqCard(faq: FaqItem) {
                 Icon(
                     if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             AnimatedVisibility(visible = expanded) {
@@ -157,7 +157,7 @@ fun FaqCard(faq: FaqItem) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = faq.answer,
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

@@ -185,7 +185,7 @@ fun AddEditFoodScreen(
                 ModalBottomSheet(
                     onDismissRequest = { showCategoryBottomSheet = false },
                     sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
                 ) {
                     Column(
@@ -284,7 +284,7 @@ fun CategoryChip(
 ) {
     Surface(
         onClick = onClick,
-        color = if (isSelected) ColorPrimary.copy(alpha = 0.1f) else Color.White,
+        color = if (isSelected) ColorPrimary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface,
         contentColor = if (isSelected) ColorPrimary else Color.Gray,
         border = if (isSelected) BorderStroke(1.dp, ColorPrimary) else BorderStroke(1.dp, Color.LightGray),
         shape = RoundedCornerShape(16.dp),

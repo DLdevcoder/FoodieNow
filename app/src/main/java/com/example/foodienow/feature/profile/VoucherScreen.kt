@@ -70,14 +70,14 @@ fun VoucherScreen(onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF5F5F5)),
+                .background(MaterialTheme.colorScheme.background),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(vouchers) { voucher ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Row(
@@ -97,7 +97,7 @@ fun VoucherScreen(onBack: () -> Unit) {
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(text = voucher.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                            Text(text = voucher.description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                            Text(text = voucher.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(text = voucher.expiryDate, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                         }

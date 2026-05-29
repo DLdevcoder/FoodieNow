@@ -16,16 +16,16 @@ import com.example.foodienow.domain.model.ThemeMode
 private val DarkColorScheme = darkColorScheme(
     primary = OrangePrimary,
     onPrimary = OrangeOnPrimary,
-    primaryContainer = OrangePrimaryContainer,
-    onPrimaryContainer = OrangeOnPrimaryContainer,
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
     secondary = TealSecondary,
     onSecondary = TealOnSecondary,
-    secondaryContainer = TealSecondaryContainer,
-    onSecondaryContainer = TealOnSecondaryContainer,
+    secondaryContainer = DarkSecondaryContainer,
+    onSecondaryContainer = DarkOnSecondaryContainer,
     tertiary = AmberTertiary,
     onTertiary = AmberOnTertiary,
-    tertiaryContainer = AmberTertiaryContainer,
-    onTertiaryContainer = AmberOnTertiaryContainer,
+    tertiaryContainer = DarkTertiaryContainer,
+    onTertiaryContainer = DarkOnTertiaryContainer,
     background = DarkBackground,
     onBackground = DarkOnBackground,
     surface = DarkSurface,
@@ -35,8 +35,8 @@ private val DarkColorScheme = darkColorScheme(
     outline = DarkOutline,
     error = ErrorRed,
     onError = OnError,
-    errorContainer = ErrorContainer,
-    onErrorContainer = OnErrorContainer
+    errorContainer = DarkErrorContainer,
+    onErrorContainer = DarkOnErrorContainer
 )
 
 private val LightColorScheme = lightColorScheme(
