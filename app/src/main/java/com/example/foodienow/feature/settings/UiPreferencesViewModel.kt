@@ -28,5 +28,11 @@ class UiPreferencesViewModel @Inject constructor(
             uiPreferencesDataStore.setThemeMode(themeMode)
         }
     }
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            uiPreferencesDataStore.setNotificationsEnabled(enabled)
+        }
+    }
 }
 

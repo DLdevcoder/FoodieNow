@@ -51,8 +51,8 @@ fun SettingsScreen(
     onBack: () -> Unit,
     viewModel: UiPreferencesViewModel = hiltViewModel()
 ) {
-    var notificationsEnabled by remember { mutableStateOf(true) }
     val uiPreferences by viewModel.uiPreferences.collectAsState()
+    val notificationsEnabled = uiPreferences.notificationsEnabled
 
     val darkModeEnabled = uiPreferences.themeMode == ThemeMode.DARK
     val currentLocales = remember { AppCompatDelegate.getApplicationLocales() }
@@ -96,7 +96,7 @@ fun SettingsScreen(
                     iconColor = Color(0xFFF59E0B),
                     title = stringResource(R.string.settings_push_notifications),
                     checked = notificationsEnabled,
-                    onCheckedChange = { notificationsEnabled = it }
+                    onCheckedChange = { viewModel.setNotificationsEnabled(it) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
 

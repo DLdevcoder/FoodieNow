@@ -7,6 +7,7 @@ enum class ThemeMode {
 }
 
 data class UiPreferences(
-    val themeMode: ThemeMode = ThemeMode.SYSTEM
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val notificationsEnabled: Boolean = true
 )
 

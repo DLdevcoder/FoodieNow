@@ -2,6 +2,7 @@ package com.example.foodienow.data.local
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -29,18 +30,28 @@ class UiPreferencesDataStore @Inject constructor(
         }
     }
 
+    suspend fun setNotificationsEnabled(enabled: Boolean) {
+        context.uiPreferencesDataStore.edit { prefs ->
+            prefs[Keys.NOTIFICATIONS_ENABLED] = enabled
+        }
+    }
+
     private fun Preferences.toUiPreferences(): UiPreferences {
         val themeMode = runCatching {
             ThemeMode.valueOf(this[Keys.THEME_MODE].orEmpty().uppercase())
         }.getOrDefault(ThemeMode.SYSTEM)
 
+        val notificationsEnabled = this[Keys.NOTIFICATIONS_ENABLED] ?: true
+
         return UiPreferences(
-            themeMode = themeMode
+            themeMode = themeMode,
+            notificationsEnabled = notificationsEnabled
         )
     }
 
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
     }
 }
 
