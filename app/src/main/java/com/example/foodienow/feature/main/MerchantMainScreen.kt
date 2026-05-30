@@ -87,10 +87,6 @@ fun MerchantMainScreen(
         lastUnreadCount = notificationState.unreadCount
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.loadUnreadMessageCount()
-    }
-
     Scaffold(
         bottomBar = {
             NavigationBar(

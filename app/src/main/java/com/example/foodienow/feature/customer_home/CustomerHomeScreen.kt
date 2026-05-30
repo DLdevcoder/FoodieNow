@@ -92,11 +92,6 @@ fun CustomerHomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Bổ sung LaunchedEffect để update lại số đếm khi quay lại trang chủ
-    LaunchedEffect(Unit) {
-        viewModel.loadUnreadMessageCount()
-    }
-
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->

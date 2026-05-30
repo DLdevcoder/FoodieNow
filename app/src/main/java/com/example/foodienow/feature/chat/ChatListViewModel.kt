@@ -31,6 +31,7 @@ class ChatListViewModel @Inject constructor(
 
     init {
         loadChats()
+        observeChatChanges()
     }
 
     fun loadChats() {
@@ -44,6 +45,21 @@ class ChatListViewModel @Inject constructor(
                 _uiState.update { it.copy(chats = summaries, isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
+    }
+
+    private fun observeChatChanges() {
+        viewModelScope.launch {
+            val user = authRepository.getAuthState().firstOrNull()
+            val currentUserId = user?.id ?: return@launch
+
+            chatRepository.listenToAnyMessageChanges(currentUserId).collect {
+                try {
+                    val summaries = chatRepository.getChatSummaries(currentUserId)
+                    _uiState.update { it.copy(chats = summaries) }
+                } catch (e: Exception) {
+                }
             }
         }
     }

@@ -56,20 +56,24 @@ class ChatViewModel @Inject constructor(
                 val history = chatRepository.getChatHistory(storeId, currentUserId, receiverId)
                 _uiState.update { it.copy(messages = history, isLoading = false) }
 
-                // Lắng nghe tin nhắn mới qua realtime
                 chatRepository.listenToMessages(storeId).collect { newMessage ->
-                    // Kiểm tra tin nhắn có đúng là của cuộc hội thoại này không
                     val isRelevant = (newMessage.senderId == currentUserId && newMessage.receiverId == receiverId) ||
                             (newMessage.senderId == receiverId && newMessage.receiverId == currentUserId)
 
                     if (isRelevant) {
                         _uiState.update { state ->
-                            // Bỏ qua nếu tin nhắn đã tồn tại (tránh trùng lặp khi tự gửi)
                             if (state.messages.any { it.id == newMessage.id }) {
                                 state
                             } else {
                                 state.copy(messages = state.messages + newMessage)
                             }
+                        }
+                        if (newMessage.senderId == receiverId && newMessage.receiverId == currentUserId && !newMessage.isRead) {
+                            chatRepository.markMessagesAsRead(
+                                storeId = storeId,
+                                partnerId = receiverId,
+                                currentUserId = currentUserId
+                            )
                         }
                     }
                 }
@@ -93,9 +97,6 @@ class ChatViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-//            val tempMessage = newMessage.copy(id = "temp_${System.currentTimeMillis()}")
-//            _uiState.update { it.copy(messages = it.messages + tempMessage) }
-
             chatRepository.sendMessage(newMessage)
         }
     }

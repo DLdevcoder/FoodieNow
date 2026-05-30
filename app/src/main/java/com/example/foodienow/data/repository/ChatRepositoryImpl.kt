@@ -108,19 +108,103 @@ class ChatRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getTotalUnreadCount(userId: String): Int {
-        return try {
-            val result = supabase.postgrest["messages"].select(head = true) {
+    override fun listenToUnreadCount(userId: String): Flow<Int> = channelFlow {
+        var currentCount = 0
+        try {
+            val initialResult = supabase.postgrest["messages"].select(head = true) {
                 filter {
                     eq("receiver_id", userId)
                     eq("is_read", false)
                 }
                 count(io.github.jan.supabase.postgrest.query.Count.EXACT)
             }
-            result.countOrNull()?.toInt() ?: 0
+            currentCount = initialResult.countOrNull()?.toInt() ?: 0
+            send(currentCount)
         } catch (e: Exception) {
             e.printStackTrace()
-            0
+        }
+        val channelName = "unread_count_channel_$userId"
+        val channel = supabase.channel(channelName)
+        val insertFlow = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+            table = "messages"
+            filter = "receiver_id=eq.$userId"
+        }
+        val updateFlow = channel.postgresChangeFlow<PostgresAction.Update>(schema = "public") {
+            table = "messages"
+            filter = "receiver_id=eq.$userId"
+        }
+
+        launch {
+            insertFlow.collect { action ->
+                try {
+                    val message = action.decodeRecord<Message>()
+                    if (message.receiverId == userId && !message.isRead) {
+                        currentCount++
+                        send(currentCount)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        launch {
+            updateFlow.collect { action ->
+                try {
+                    val message = action.decodeRecord<Message>()
+                    val oldRecord = action.oldRecord
+                    val result = supabase.postgrest["messages"].select(head = true) {
+                        filter {
+                            eq("receiver_id", userId)
+                            eq("is_read", false)
+                        }
+                        count(io.github.jan.supabase.postgrest.query.Count.EXACT)
+                    }
+                    val newCount = result.countOrNull()?.toInt() ?: 0
+                    if (newCount != currentCount) {
+                        currentCount = newCount
+                        send(currentCount)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        channel.subscribe()
+
+        awaitClose {
+            launch {
+                supabase.realtime.removeChannel(channel)
+            }
+        }
+    }
+
+    override fun listenToAnyMessageChanges(userId: String): Flow<Unit> = channelFlow {
+        val channelName = "chat_list_changes_$userId"
+        val channel = supabase.channel(channelName)
+        val receiveFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+            table = "messages"
+            filter = "receiver_id=eq.$userId"
+        }
+
+        val sendFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+            table = "messages"
+            filter = "sender_id=eq.$userId"
+        }
+
+        launch {
+            receiveFlow.collect { send(Unit) }
+        }
+
+        launch {
+            sendFlow.collect { send(Unit) }
+        }
+
+        channel.subscribe()
+
+        awaitClose {
+            launch { supabase.realtime.removeChannel(channel) }
         }
     }
 }

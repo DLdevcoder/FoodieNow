@@ -36,23 +36,38 @@ data class HomeUiState(
 class CustomerHomeViewModel @Inject constructor(
     private val foodRepository: CustomerFoodRepository,
     private val addressRepository: MockAddressRepository,
-    // THÊM: Inject ChatRepository và AuthRepository
     private val chatRepository: ChatRepository,
     private val authRepository: AuthRepository,
     private val merchantRepository: MerchantRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
+    private val _unreadCount = MutableStateFlow(0)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    val unreadCount: StateFlow<Int> = _unreadCount.asStateFlow()
 
     init {
         loadRealData()
-        loadUnreadMessageCount()
+        startListeningToUnreadCount()
+    }
+
+    private fun startListeningToUnreadCount() {
+        viewModelScope.launch {
+            try {
+                val user = authRepository.resolveStoredSession()
+                val currentUserId = user?.id ?: return@launch
+                chatRepository.listenToUnreadCount(currentUserId).collect { count ->
+                    _unreadCount.value = count
+                    _uiState.update { it.copy(unreadMessageCount = count) }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun refresh() {
         loadRealData()
-        loadUnreadMessageCount()
     }
 
     private fun loadRealData() {
@@ -94,20 +109,6 @@ class CustomerHomeViewModel @Inject constructor(
                         errorMessage = "Không thể tải dữ liệu lúc này. Vui lòng thử lại sau."
                     )
                 }
-            }
-        }
-    }
-
-    // tải số lượng tin nhắn chưa đọc từ Supabase
-    fun loadUnreadMessageCount() {
-        viewModelScope.launch {
-            try {
-                val user = authRepository.resolveStoredSession()
-                val currentUserId = user?.id ?: return@launch
-                val count = chatRepository.getTotalUnreadCount(currentUserId)
-                _uiState.update { it.copy(unreadMessageCount = count) }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
