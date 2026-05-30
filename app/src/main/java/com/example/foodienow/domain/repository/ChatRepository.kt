@@ -17,5 +17,6 @@ interface ChatRepository {
     suspend fun getChatSummaries(userId: String): List<ChatSummary>
 
     suspend fun markMessagesAsRead(storeId: String, partnerId: String, currentUserId: String)
-    suspend fun getTotalUnreadCount(userId: String): Int
+    fun listenToUnreadCount(userId: String): Flow<Int>
+    fun listenToAnyMessageChanges(userId: String): Flow<Unit>
 }

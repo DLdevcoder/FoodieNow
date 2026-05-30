@@ -42,6 +42,10 @@ class MerchantViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MerchantUiState())
     val uiState: StateFlow<MerchantUiState> = _uiState.asStateFlow()
 
+    // BƯỚC 1: Thêm luồng độc lập quản lý số đếm thông báo
+    private val _unreadCount = MutableStateFlow(0)
+    val unreadCount: StateFlow<Int> = _unreadCount.asStateFlow()
+
     private val _predictions = MutableStateFlow<List<GoongPrediction>>(emptyList())
     val predictions: StateFlow<List<GoongPrediction>> = _predictions.asStateFlow()
 
@@ -56,6 +60,29 @@ class MerchantViewModel @Inject constructor(
 
     private val _isResolving = MutableStateFlow(false)
     val isResolving: StateFlow<Boolean> = _isResolving.asStateFlow()
+
+    init {
+        loadMerchantData()
+        // BƯỚC 2: Gọi hàm lắng nghe Real-time
+        startListeningToUnreadCount()
+    }
+
+    // BƯỚC 3: Thay thế loadUnreadMessageCount bằng hàm lắng nghe liên tục
+    private fun startListeningToUnreadCount() {
+        viewModelScope.launch {
+            try {
+                val user = authRepository.resolveStoredSession()
+                val currentUserId = user?.id ?: return@launch
+
+                chatRepository.listenToUnreadCount(currentUserId).collect { count ->
+                    _unreadCount.value = count
+                    _uiState.update { it.copy(unreadMessageCount = count) }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun searchAddress(query: String) {
         viewModelScope.launch {
@@ -103,11 +130,6 @@ class MerchantViewModel @Inject constructor(
         _selectedLng.value = null
         _selectedDetail.value = ""
         _isResolving.value = false
-    }
-
-    init {
-        loadMerchantData()
-        loadUnreadMessageCount()
     }
 
     private fun loadMerchantData() {
@@ -255,19 +277,6 @@ class MerchantViewModel @Inject constructor(
         }
     }
 
-    fun loadUnreadMessageCount() {
-        viewModelScope.launch {
-            try {
-                val user = authRepository.resolveStoredSession()
-                val currentUserId = user?.id ?: return@launch
-                val count = chatRepository.getTotalUnreadCount(currentUserId)
-                _uiState.update { it.copy(unreadMessageCount = count) }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
     fun toggleFoodAvailability(food: Food) {
         viewModelScope.launch {
             _uiState.update { currentState ->
@@ -286,47 +295,6 @@ class MerchantViewModel @Inject constructor(
                 merchantRepository.updateFood(updatedFood)
             } catch (e: Exception) {
                 e.printStackTrace()
-            }
-        }
-    }
-
-    fun updateStoreInfo(
-        newName: String,
-        newAddress: String,
-        newOpeningTime: String,
-        newClosingTime: String,
-        newIsActive: Boolean,
-        imageBytes: ByteArray?
-    ) {
-        val currentStore = _uiState.value.store ?: return
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
-            val tempStore = currentStore.copy(
-                name = newName,
-                address = newAddress.takeIf { it.isNotBlank() },
-                openingTime = newOpeningTime.takeIf { it.isNotBlank() },
-                closingTime = newClosingTime.takeIf { it.isNotBlank() },
-                isActive = newIsActive
-            )
-
-            val result = merchantRepository.updateStore(tempStore, imageBytes)
-
-            if (result.isSuccess) {
-                try {
-                    val updatedStore = merchantRepository.getStoreById(currentStore.id)
-                    _uiState.update { it.copy(store = updatedStore, isLoading = false) }
-                } catch (e: Exception) {
-                    _uiState.update { it.copy(isLoading = false, error = "Lỗi khi tải lại dữ liệu") }
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = result.exceptionOrNull()?.message ?: "Lỗi cập nhật cửa hàng"
-                    )
-                }
             }
         }
     }
