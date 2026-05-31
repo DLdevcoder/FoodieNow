@@ -19,4 +19,5 @@ interface MerchantRepository {
 
     suspend fun getCategories(): List<Category>
     suspend fun createCategory(name: String): Category
+    suspend fun getAllStores(): List<Store>
 }

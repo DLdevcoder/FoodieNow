@@ -129,4 +129,10 @@ class MerchantRepositoryImpl @Inject constructor(
             .insert(Category(name = name)) { select() }
             .decodeSingle<Category>()
     }
+
+    override suspend fun getAllStores(): List<Store> {
+        return supabaseClient.postgrest["stores"]
+            .select()
+            .decodeList<Store>()
+    }
 }

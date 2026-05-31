@@ -78,16 +78,27 @@ class CustomerHomeViewModel @Inject constructor(
                 val fetchedCategories = foodRepository.getCategories()
 
                 addressRepository.addresses.collect { addresses ->
-                    val defaultAddress = addresses.firstOrNull { it.isDefault }?.detail ?: "Chọn địa chỉ giao hàng"
+                    val defaultAddressObj = addresses.firstOrNull { it.isDefault }
+                    val defaultAddress = defaultAddressObj?.detail ?: "Chọn địa chỉ giao hàng"
+                    val customerLat = defaultAddressObj?.latitude ?: 21.028511
+                    val customerLng = defaultAddressObj?.longitude ?: 105.804817
 
                     foodRepository.getRecommendedFoods().collect { realFoods ->
-                        val featuredStores = realFoods
-                            .map { it.storeId }
-                            .distinct()
-                            .take(6)
-                            .mapNotNull { storeId ->
-                                runCatching { merchantRepository.getStoreById(storeId) }.getOrNull()
+                        val allStores = merchantRepository.getAllStores()
+                        val storeSales = realFoods.groupBy { it.storeId }
+                            .mapValues { entry -> entry.value.sumOf { it.soldCount } }
+
+                        val featuredStores = allStores.filter { store ->
+                            val sLat = store.lat
+                            val sLng = store.lng
+                            if (sLat != null && sLng != null) {
+                                calculateDistance(customerLat, customerLng, sLat, sLng) <= 3.0
+                            } else {
+                                false
                             }
+                        }
+                        .sortedByDescending { store -> storeSales[store.id] ?: 0 }
+                        .take(10)
 
                         _uiState.update {
                             it.copy(
@@ -128,5 +139,16 @@ class CustomerHomeViewModel @Inject constructor(
                 searchResults = filteredList
             )
         }
+    }
+
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val r = 6371.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2)
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return r * c
     }
 }

@@ -28,7 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.Discount
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -169,10 +168,6 @@ fun CustomerHomeScreen(
                         onFoodClick = onNavigateToFoodDetail,
                         onSeeAllClick = onNavigateToSearch
                     )
-                }
-
-                item {
-                    CollectionsSection(onSeeAllClick = onNavigateToSearch)
                 }
             }
         }
@@ -567,7 +562,7 @@ private fun RestaurantsSection(
             }
         } else {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(stores.take(6)) { store ->
+                items(stores) { store ->
                     CompactRestaurantCard(
                         name = store.name,
                         imageUrl = store.imageUrl,
@@ -664,108 +659,7 @@ private fun CompactRestaurantCard(
     }
 }
 
-@Composable
-private fun CollectionsSection(onSeeAllClick: () -> Unit) {
-    SectionContainer {
-        SectionHeader(
-            title = stringResource(R.string.home_section_collections),
-            subtitle = stringResource(R.string.home_collections_subtitle),
-            onSeeAllClick = onSeeAllClick
-        )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            item {
-                VoucherDealCard(
-                    title = stringResource(R.string.home_collection_1_title),
-                    subtitle = stringResource(R.string.home_collection_1_subtitle),
-                    badge = stringResource(R.string.home_collection_1_badge),
-                    containerBrush = Brush.linearGradient(listOf(Color(0xFF0E8A73), Color(0xFF21B493))),
-                    onClick = onSeeAllClick
-                )
-            }
-            item {
-                VoucherDealCard(
-                    title = stringResource(R.string.home_collection_2_title),
-                    subtitle = stringResource(R.string.home_collection_2_subtitle),
-                    badge = stringResource(R.string.home_collection_2_badge),
-                    containerBrush = Brush.linearGradient(listOf(PromoGradientStart, PromoGradientEnd)),
-                    onClick = onSeeAllClick
-                )
-            }
-            item {
-                VoucherDealCard(
-                    title = stringResource(R.string.home_collection_3_title),
-                    subtitle = stringResource(R.string.home_collection_3_subtitle),
-                    badge = stringResource(R.string.home_collection_3_badge),
-                    containerBrush = Brush.linearGradient(listOf(Color(0xFFEF4444), PromoGradientStart)),
-                    onClick = onSeeAllClick
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun VoucherDealCard(
-    title: String,
-    subtitle: String,
-    badge: String,
-    containerBrush: Brush,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .width(208.dp)
-            .height(96.dp)
-            .clip(MaterialTheme.shapes.large)
-            .clickable(onClick = onClick)
-            .background(containerBrush)
-            .padding(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(MaterialTheme.shapes.large)
-                    .background(Color.White.copy(alpha = 0.22f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Discount, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                VoucherBadge(label = badge, containerColor = Color.White.copy(alpha = 0.2f))
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.86f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
-}
 
 @Composable
 fun FoodCard(
