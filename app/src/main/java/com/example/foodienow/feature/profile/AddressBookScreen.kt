@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.example.foodienow.BuildConfig
+import com.example.foodienow.R
 import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -61,7 +63,7 @@ fun AddressBookScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Sổ địa chỉ") },
+                title = { Text(stringResource(R.string.address_book_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
@@ -100,10 +102,10 @@ fun AddressBookScreen(
                         tint = Color.LightGray
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Chưa có địa chỉ nào.", color = Color.Gray, fontSize = 16.sp)
+                    Text(stringResource(R.string.address_book_empty_title), color = Color.Gray, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     TextButton(onClick = { showAddFlow = true }) {
-                        Text("Thêm địa chỉ đầu tiên")
+                        Text(stringResource(R.string.address_book_empty_action))
                     }
                 }
             } else {
@@ -135,8 +137,8 @@ fun AddressBookScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Xác nhận xóa") },
-            text = { Text("Bạn có chắc chắn muốn xóa địa chỉ này không?") },
+            title = { Text(stringResource(R.string.address_book_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.address_book_delete_confirm_desc)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -146,12 +148,12 @@ fun AddressBookScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Xóa", color = Color.White)
+                    Text(stringResource(R.string.common_delete), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -160,8 +162,8 @@ fun AddressBookScreen(
     if (showDefaultConfirm) {
         AlertDialog(
             onDismissRequest = { showDefaultConfirm = false },
-            title = { Text("Xác nhận đặt mặc định") },
-            text = { Text("Bạn có chắc chắn muốn đặt địa chỉ này làm địa chỉ mặc định không?") },
+            title = { Text(stringResource(R.string.address_book_default_confirm_title)) },
+            text = { Text(stringResource(R.string.address_book_default_confirm_desc)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -170,12 +172,12 @@ fun AddressBookScreen(
                         selectedAddressForMap = null
                     }
                 ) {
-                    Text("Đồng ý")
+                    Text(stringResource(R.string.common_agree))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDefaultConfirm = false }) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -230,7 +232,7 @@ private fun AddAddressFlow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Thêm địa chỉ mới",
+                    stringResource(R.string.address_book_add_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     modifier = Modifier.weight(1f)
@@ -248,7 +250,7 @@ private fun AddAddressFlow(
                     searchQuery = it
                     viewModel.searchAddress(it)
                 },
-                placeholder = { Text("Tìm kiếm địa chỉ...") },
+                placeholder = { Text(stringResource(R.string.address_book_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -348,7 +350,7 @@ private fun AddAddressFlow(
                 OutlinedTextField(
                     value = alias,
                     onValueChange = { alias = it },
-                    label = { Text("Tên gợi nhớ (VD: Nhà, Công ty)") },
+                    label = { Text(stringResource(R.string.address_book_alias_label)) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
@@ -368,7 +370,7 @@ private fun AddAddressFlow(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Xác nhận thêm địa chỉ", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(stringResource(R.string.address_book_add_confirm_btn), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             } else {
                 Box(
@@ -387,7 +389,7 @@ private fun AddAddressFlow(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Tìm kiếm và chọn địa chỉ để xem trên bản đồ",
+                            stringResource(R.string.address_book_search_hint),
                             color = Color.Gray,
                             fontSize = 14.sp
                         )
@@ -451,7 +453,7 @@ private fun AddMapPreview(
                     if (mapInstance == null) {
                         mapInstance = map
                         var isUserMovingMap = false
-                        
+
                         map.addOnCameraMoveStartedListener { reason ->
                             // REASON_API_GESTURE is 1
                             if (reason == 1) {
@@ -462,7 +464,7 @@ private fun AddMapPreview(
                         map.setStyle("https://tiles.goong.io/assets/goong_map_web.json?api_key=${BuildConfig.GOONG_MAPTILES_KEY}") {
                             isReady = true
                         }
-                        
+
                         map.addOnCameraIdleListener {
                             if (isUserMovingMap) {
                                 val target = map.cameraPosition?.target ?: return@addOnCameraIdleListener
@@ -597,7 +599,7 @@ private fun AddressDetailSheet(
                     shape = RoundedCornerShape(24.dp),
                     enabled = !address.isDefault
                 ) {
-                    Text("Đặt làm mặc định", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.address_book_set_default_btn), fontWeight = FontWeight.Bold)
                 }
 
                 Button(
@@ -606,7 +608,7 @@ private fun AddressDetailSheet(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(24.dp)
                 ) {
-                    Text("Xóa địa chỉ", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(stringResource(R.string.address_book_delete_btn), fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }
@@ -647,7 +649,7 @@ private fun AddressItem(
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
-                                text = "Mặc định",
+                                text = stringResource(R.string.address_book_default_badge),
                                 color = Color(0xFF10B981),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,

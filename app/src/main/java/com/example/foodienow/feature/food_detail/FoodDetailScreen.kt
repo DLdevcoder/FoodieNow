@@ -45,6 +45,7 @@ fun FoodDetailScreen(
     onNavigateToChat: (storeId: String, receiverId: String, storeName: String) -> Unit
 ) {
     val context = LocalContext.current
+    val addToCartToastMessage = stringResource(R.string.food_detail_add_to_cart_toast)
 
     Scaffold(
         topBar = {
@@ -83,7 +84,7 @@ fun FoodDetailScreen(
                 Button(
                     onClick = {
                         onAddToCart(food, 1)
-                        Toast.makeText(context, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, addToCartToastMessage, Toast.LENGTH_SHORT).show()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = MaterialTheme.shapes.medium,
@@ -143,7 +144,11 @@ fun FoodDetailScreen(
                     } else {
                         val thousands = food.soldCount / 1000
                         val hundreds = (food.soldCount % 1000) / 100
-                        if (hundreds == 0) "${thousands}k" else "${thousands},${hundreds}k"
+                        if (hundreds == 0) {
+                            stringResource(R.string.food_detail_sold_thousand, thousands.toString())
+                        } else {
+                            stringResource(R.string.food_detail_sold_thousand_decimal, thousands.toString(), hundreds.toString())
+                        }
                     }
 
                     Row(
@@ -158,12 +163,12 @@ fun FoodDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (food.rating > 0) String.format("%.1f", food.rating) else "0.0",
+                            text = if (food.rating > 0) String.format("%.1f", food.rating) else stringResource(R.string.food_detail_rating_zero),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )
                         Text(
-                            text = " | ",
+                            text = stringResource(R.string.food_detail_rating_separator),
                             color = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
@@ -226,7 +231,7 @@ fun FoodDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Chat,
-                                contentDescription = "Chat với cửa hàng",
+                                contentDescription = stringResource(R.string.food_detail_chat_store_desc),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(20.dp)
                             )

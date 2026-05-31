@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -78,6 +79,10 @@ fun CustomerTrackingScreen(
     val customerIcon = remember(context) { createMapIcon(context, R.drawable.ic_customer, 40) }
     val shipperIcon = remember(context) { createMapIcon(context, R.drawable.ic_shipper, 45) }
 
+    val storeMarkerTitle = stringResource(R.string.tracking_store_marker_title)
+    val customerMarkerTitle = stringResource(R.string.tracking_customer_marker_title)
+    val shipperMarkerTitle = stringResource(R.string.tracking_shipper_marker_title)
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -114,14 +119,14 @@ fun CustomerTrackingScreen(
 
             // 2. Vẽ ghim Quán ăn
             if (storeMarker == null && currentOrder.merchantLat != null && currentOrder.merchantLng != null) {
-                val opts = MarkerOptions().position(LatLng(currentOrder.merchantLat!!, currentOrder.merchantLng!!)).title("Cửa hàng")
+                val opts = MarkerOptions().position(LatLng(currentOrder.merchantLat!!, currentOrder.merchantLng!!)).title(storeMarkerTitle)
                 storeIcon?.let { opts.icon(it) }
                 storeMarker = map.addMarker(opts)
             }
 
             // 3. Vẽ ghim Khách hàng
             if (customerMarker == null && currentOrder.deliveryLat != null && currentOrder.deliveryLng != null) {
-                val opts = MarkerOptions().position(LatLng(currentOrder.deliveryLat!!, currentOrder.deliveryLng!!)).title("Vị trí của bạn")
+                val opts = MarkerOptions().position(LatLng(currentOrder.deliveryLat!!, currentOrder.deliveryLng!!)).title(customerMarkerTitle)
                 customerIcon?.let { opts.icon(it) }
                 customerMarker = map.addMarker(opts)
             }
@@ -149,12 +154,11 @@ fun CustomerTrackingScreen(
             if (shipperMarker != null) {
                 shipperMarker?.position = currentPos
             } else {
-                val opts = MarkerOptions().position(currentPos).title("Tài xế")
+                val opts = MarkerOptions().position(currentPos).title(shipperMarkerTitle)
                 shipperIcon?.let { opts.icon(it) }
                 shipperMarker = map.addMarker(opts)
             }
         } else {
-            // Nếu không phải DELIVERING thì ẩn tài xế
             shipperMarker?.let { map.removeMarker(it) }
             shipperMarker = null
         }
@@ -163,9 +167,9 @@ fun CustomerTrackingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Theo dõi đơn hàng", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.tracking_screen_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại") }
+                    IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back)) }
                 }
             )
         }
@@ -201,10 +205,14 @@ fun CustomerTrackingScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
 
+                        val statusDelivering = stringResource(R.string.tracking_status_delivering)
+                        val statusCompleted = stringResource(R.string.tracking_status_completed)
+                        val statusProcessing = stringResource(R.string.tracking_status_processing)
+
                         val statusText = when (currentOrder.status) {
-                            OrderStatus.DELIVERING -> "Tài xế đang giao đơn hàng"
-                            OrderStatus.COMPLETED -> "Đơn hàng đã giao thành công"
-                            else -> "Đang xử lý đơn hàng"
+                            OrderStatus.DELIVERING -> statusDelivering
+                            OrderStatus.COMPLETED -> statusCompleted
+                            else -> statusProcessing
                         }
 
                         Text(
@@ -214,12 +222,15 @@ fun CustomerTrackingScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text(text = "Mã đơn: #${currentOrder.id?.take(8)}", style = MaterialTheme.typography.bodySmall)
-                        Text(text = "Địa chỉ nhận: ${currentOrder.deliveryAddress}", style = MaterialTheme.typography.bodyMedium)
+                        Text(text = stringResource(R.string.tracking_order_id_prefix, currentOrder.id?.take(8) ?: ""), style = MaterialTheme.typography.bodySmall)
+                        Text(text = stringResource(R.string.tracking_delivery_address_prefix, currentOrder.deliveryAddress), style = MaterialTheme.typography.bodyMedium)
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         val isCustomerConfirmed = currentOrder.customerConfirmed
+
+                        val btnWaiting = stringResource(R.string.tracking_btn_waiting_shipper)
+                        val btnConfirm = stringResource(R.string.tracking_btn_confirm_receipt)
 
                         Button(
                             onClick = { viewModel.confirmReceipt(onSuccess = onBack) },
@@ -230,7 +241,7 @@ fun CustomerTrackingScreen(
                                 contentColor = if (isCustomerConfirmed) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
                             )
                         ) {
-                            Text(text = if (isCustomerConfirmed) "Chờ tài xế xác nhận..." else "Xác nhận đã nhận đơn")
+                            Text(text = if (isCustomerConfirmed) btnWaiting else btnConfirm)
                         }
                     }
                 }

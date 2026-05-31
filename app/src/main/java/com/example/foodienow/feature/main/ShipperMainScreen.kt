@@ -142,7 +142,6 @@ fun ShipperMainScreen(
                             onClick = {
                                 selectedTab = index
                                 if (index == 0) {
-                                    // Khi bấm vào lại nút Home thì reset về tab Chờ nhận (0)
                                     shipperHomeInitialTab = 0
                                     hasViewedOrders = true
                                 }

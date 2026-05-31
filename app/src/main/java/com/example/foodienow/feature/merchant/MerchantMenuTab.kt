@@ -22,11 +22,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.example.foodienow.R
 import com.example.foodienow.core.designsystem.components.FoodieCard
 import com.example.foodienow.core.designsystem.theme.ColorPrimaryDark
 import com.example.foodienow.core.designsystem.theme.PromoGradientEnd
@@ -92,7 +94,7 @@ fun MerchantMenuTab(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Quản lý thực đơn",
+                            text = stringResource(R.string.merchant_menu_manage_title),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -100,7 +102,7 @@ fun MerchantMenuTab(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Cập nhật món ăn và phát hành khuyến mãi",
+                            text = stringResource(R.string.merchant_menu_manage_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.84f),
                             maxLines = 1,
@@ -119,12 +121,12 @@ fun MerchantMenuTab(
             Tab(
                 selected = subTabSelected == 0,
                 onClick = { subTabSelected = 0 },
-                text = { Text("Thực đơn", fontWeight = FontWeight.Bold) }
+                text = { Text(stringResource(R.string.merchant_tab_menu), fontWeight = FontWeight.Bold) }
             )
             Tab(
                 selected = subTabSelected == 1,
                 onClick = { subTabSelected = 1 },
-                text = { Text("Voucher", fontWeight = FontWeight.Bold) }
+                text = { Text(stringResource(R.string.merchant_tab_voucher), fontWeight = FontWeight.Bold) }
             )
         }
 
@@ -134,13 +136,13 @@ fun MerchantMenuTab(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else if (uiState.error != null) {
                     Text(
-                        text = "Lỗi: ${uiState.error}",
+                        text = stringResource(R.string.error_prefix, uiState.error),
                         color = Color.Red,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 } else if (uiState.menu.isEmpty()) {
                     Text(
-                        text = "Chưa có món ăn nào.\nHãy bấm nút + để thêm món.",
+                        text = stringResource(R.string.merchant_menu_empty_food),
                         color = Color.Gray,
                         modifier = Modifier.align(Alignment.Center),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -170,16 +172,17 @@ fun MerchantMenuTab(
                         .align(Alignment.BottomEnd)
                         .padding(24.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Thêm món")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.merchant_menu_add_food_desc))
                 }
             } else {
                 if (uiState.isVouchersLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else if (uiState.vouchers.isEmpty()) {
                     Text(
-                        text = "Chưa có voucher nào.\nHãy bấm nút + để thêm voucher.",
+                        text = stringResource(R.string.merchant_menu_empty_voucher),
                         color = Color.Gray,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 } else {
                     LazyColumn(
@@ -214,7 +217,7 @@ fun MerchantMenuTab(
                         .align(Alignment.BottomEnd)
                         .padding(24.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Thêm Voucher")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.merchant_menu_add_voucher_desc))
                 }
             }
         }
@@ -238,8 +241,8 @@ fun MerchantMenuTab(
     if (voucherToDelete != null) {
         AlertDialog(
             onDismissRequest = { voucherToDelete = null },
-            title = { Text("Xác nhận xóa", fontWeight = FontWeight.Bold) },
-            text = { Text("Bạn có chắc chắn muốn xóa voucher ${voucherToDelete?.code} không?") },
+            title = { Text(stringResource(R.string.merchant_voucher_delete_confirm_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.merchant_voucher_delete_confirm_desc, voucherToDelete?.code ?: "")) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -248,12 +251,12 @@ fun MerchantMenuTab(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Xóa", color = Color.White)
+                    Text(stringResource(R.string.common_delete), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { voucherToDelete = null }) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -287,9 +290,9 @@ fun MerchantVoucherItem(
                     verticalArrangement = Arrangement.Center
                 ) {
                     val valueText = if (voucher.discountPercent > 0) {
-                        "${voucher.discountPercent}%"
+                        stringResource(R.string.merchant_voucher_percent_suffix, voucher.discountPercent.toString())
                     } else {
-                        "${voucher.discountAmount / 1000}K"
+                        stringResource(R.string.merchant_voucher_k_suffix, (voucher.discountAmount / 1000).toString())
                     }
                     Text(
                         text = valueText,
@@ -300,7 +303,7 @@ fun MerchantVoucherItem(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "GIẢM GIÁ",
+                        text = stringResource(R.string.merchant_voucher_discount_label),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = ColorPrimaryDark.copy(alpha = 0.7f),
@@ -341,7 +344,7 @@ fun MerchantVoucherItem(
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
-                        
+
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
@@ -353,7 +356,7 @@ fun MerchantVoucherItem(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Đơn tối thiểu: ${voucher.minOrderValue.formatPrice()}",
+                        text = stringResource(R.string.merchant_voucher_min_order_prefix, voucher.minOrderValue.formatPrice()),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
@@ -361,7 +364,7 @@ fun MerchantVoucherItem(
 
                     if (voucher.discountPercent > 0 && voucher.maxDiscount > 0) {
                         Text(
-                            text = "Giảm tối đa: ${voucher.maxDiscount.formatPrice()}",
+                            text = stringResource(R.string.merchant_voucher_max_discount_prefix, voucher.maxDiscount.formatPrice()),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
@@ -371,8 +374,8 @@ fun MerchantVoucherItem(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     val expiryText = voucher.expiresAt?.let {
-                        "HSD: " + it.take(10).split("-").reversed().joinToString("/")
-                    } ?: "Không giới hạn HSD"
+                        stringResource(R.string.merchant_voucher_expiry_prefix, it.take(10).split("-").reversed().joinToString("/"))
+                    } ?: stringResource(R.string.merchant_voucher_no_expiry)
                     Text(
                         text = expiryText,
                         style = MaterialTheme.typography.labelSmall,
@@ -397,7 +400,7 @@ fun MerchantVoucherItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Sửa",
+                            contentDescription = stringResource(R.string.common_edit),
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -412,7 +415,7 @@ fun MerchantVoucherItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Xóa",
+                            contentDescription = stringResource(R.string.common_delete),
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -454,9 +457,9 @@ fun MerchantFoodItem(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
-                
+
                 Text(
                     text = food.price.formatPrice(),
                     color = ColorPrimaryDark,
@@ -477,7 +480,7 @@ fun MerchantFoodItem(
                             .background(if (food.isAvailable) Color(0xFF4CAF50) else Color.Red)
                     )
                     Text(
-                        text = if (food.isAvailable) "Đang bán" else "Tạm hết",
+                        text = if (food.isAvailable) stringResource(R.string.merchant_food_status_available) else stringResource(R.string.merchant_food_status_unavailable),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
                         color = if (food.isAvailable) Color(0xFF4CAF50) else Color.Red
@@ -501,7 +504,7 @@ fun MerchantFoodItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Sửa",
+                        contentDescription = stringResource(R.string.common_edit),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -552,11 +555,20 @@ fun AddEditVoucherDialog(
     var maxDiscountError by remember { mutableStateOf<String?>(null) }
     var expiresError by remember { mutableStateOf<String?>(null) }
 
+    val errorEmptyCode = stringResource(R.string.merchant_voucher_error_empty_code)
+    val errorEmpty = stringResource(R.string.merchant_voucher_error_empty)
+    val errorPercentRange = stringResource(R.string.merchant_voucher_error_percent_range)
+    val errorAmountPositive = stringResource(R.string.merchant_voucher_error_amount_positive)
+    val errorMaxAmount = stringResource(R.string.merchant_voucher_error_max_amount)
+    val errorMinOrder = stringResource(R.string.merchant_voucher_error_min_order)
+    val errorExpiryFormat = stringResource(R.string.merchant_voucher_error_expiry_format)
+    val errorDiscountInvalid = stringResource(R.string.merchant_voucher_error_discount_invalid)
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = if (voucher == null) "Thêm Voucher mới" else "Chỉnh sửa Voucher",
+                text = if (voucher == null) stringResource(R.string.merchant_voucher_add_title) else stringResource(R.string.merchant_voucher_edit_title),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -572,10 +584,10 @@ fun AddEditVoucherDialog(
                     value = code,
                     onValueChange = {
                         code = it.uppercase()
-                        codeError = if (it.isBlank()) "Mã voucher không được để trống" else null
+                        codeError = if (it.isBlank()) errorEmptyCode else null
                     },
-                    label = { Text("Mã Voucher") },
-                    placeholder = { Text("Ví dụ: KHUYENMAI50") },
+                    label = { Text(stringResource(R.string.merchant_voucher_code_label)) },
+                    placeholder = { Text(stringResource(R.string.merchant_voucher_code_hint)) },
                     isError = codeError != null,
                     supportingText = codeError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                     modifier = Modifier.fillMaxWidth()
@@ -588,13 +600,13 @@ fun AddEditVoucherDialog(
                     FilterChip(
                         selected = isPercent,
                         onClick = { isPercent = true },
-                        label = { Text("Phần trăm (%)") },
+                        label = { Text(stringResource(R.string.merchant_voucher_type_percent)) },
                         modifier = Modifier.weight(1f)
                     )
                     FilterChip(
                         selected = !isPercent,
                         onClick = { isPercent = false },
-                        label = { Text("Số tiền cố định (đ)") },
+                        label = { Text(stringResource(R.string.merchant_voucher_type_fixed)) },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -605,13 +617,13 @@ fun AddEditVoucherDialog(
                         onValueChange = {
                             discountPercent = it
                             discountError = when {
-                                it.isBlank() -> "Không được để trống"
-                                it.toIntOrNull() == null || it.toInt() !in 1..100 -> "Phần trăm phải từ 1 đến 100"
+                                it.isBlank() -> errorEmpty
+                                it.toIntOrNull() == null || it.toInt() !in 1..100 -> errorPercentRange
                                 else -> null
                             }
                         },
-                        label = { Text("Phần trăm giảm (%)") },
-                        placeholder = { Text("Ví dụ: 15") },
+                        label = { Text(stringResource(R.string.merchant_voucher_percent_label)) },
+                        placeholder = { Text(stringResource(R.string.merchant_voucher_percent_hint)) },
                         isError = discountError != null,
                         supportingText = discountError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         modifier = Modifier.fillMaxWidth()
@@ -622,12 +634,12 @@ fun AddEditVoucherDialog(
                         onValueChange = {
                             maxDiscount = it
                             maxDiscountError = when {
-                                it.isNotBlank() && it.toLongOrNull() == null -> "Số tiền giảm tối đa không hợp lệ"
+                                it.isNotBlank() && it.toLongOrNull() == null -> errorMaxAmount
                                 else -> null
                             }
                         },
-                        label = { Text("Giảm tối đa (đ) - Không bắt buộc") },
-                        placeholder = { Text("Ví dụ: 30000") },
+                        label = { Text(stringResource(R.string.merchant_voucher_max_amount_label)) },
+                        placeholder = { Text(stringResource(R.string.merchant_voucher_max_amount_hint)) },
                         isError = maxDiscountError != null,
                         supportingText = maxDiscountError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         modifier = Modifier.fillMaxWidth()
@@ -638,13 +650,13 @@ fun AddEditVoucherDialog(
                         onValueChange = {
                             discountAmount = it
                             discountError = when {
-                                it.isBlank() -> "Không được để trống"
-                                it.toLongOrNull() == null || it.toLong() <= 0 -> "Số tiền giảm phải lớn hơn 0"
+                                it.isBlank() -> errorEmpty
+                                it.toLongOrNull() == null || it.toLong() <= 0 -> errorAmountPositive
                                 else -> null
                             }
                         },
-                        label = { Text("Số tiền giảm (đ)") },
-                        placeholder = { Text("Ví dụ: 20000") },
+                        label = { Text(stringResource(R.string.merchant_voucher_amount_label)) },
+                        placeholder = { Text(stringResource(R.string.merchant_voucher_amount_hint)) },
                         isError = discountError != null,
                         supportingText = discountError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         modifier = Modifier.fillMaxWidth()
@@ -656,13 +668,13 @@ fun AddEditVoucherDialog(
                     onValueChange = {
                         minOrderValue = it
                         minOrderError = when {
-                            it.isBlank() -> "Không được để trống"
-                            it.toLongOrNull() == null || it.toLong() < 0 -> "Giá trị đơn tối thiểu không hợp lệ"
+                            it.isBlank() -> errorEmpty
+                            it.toLongOrNull() == null || it.toLong() < 0 -> errorMinOrder
                             else -> null
                         }
                     },
-                    label = { Text("Đơn tối thiểu (đ)") },
-                    placeholder = { Text("Ví dụ: 50000") },
+                    label = { Text(stringResource(R.string.merchant_voucher_min_order_label)) },
+                    placeholder = { Text(stringResource(R.string.merchant_voucher_min_order_hint)) },
                     isError = minOrderError != null,
                     supportingText = minOrderError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                     modifier = Modifier.fillMaxWidth()
@@ -673,12 +685,12 @@ fun AddEditVoucherDialog(
                     onValueChange = {
                         expiresAt = it
                         expiresError = when {
-                            it.isNotBlank() && !it.matches(Regex("""^\d{4}-\d{2}-\d{2}$""")) -> "Định dạng phải là YYYY-MM-DD"
+                            it.isNotBlank() && !it.matches(Regex("""^\d{4}-\d{2}-\d{2}$""")) -> errorExpiryFormat
                             else -> null
                         }
                     },
-                    label = { Text("Ngày hết hạn - Không bắt buộc") },
-                    placeholder = { Text("YYYY-MM-DD (Ví dụ: 2026-12-31)") },
+                    label = { Text(stringResource(R.string.merchant_voucher_expiry_label)) },
+                    placeholder = { Text(stringResource(R.string.merchant_voucher_expiry_hint)) },
                     isError = expiresError != null,
                     supportingText = expiresError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                     modifier = Modifier.fillMaxWidth()
@@ -689,7 +701,7 @@ fun AddEditVoucherDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Trạng thái hoạt động", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(stringResource(R.string.merchant_voucher_status_label), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     Switch(
                         checked = isActive,
                         onCheckedChange = { isActive = it }
@@ -702,7 +714,7 @@ fun AddEditVoucherDialog(
                 onClick = {
                     val codeValid = code.isNotBlank()
                     if (!codeValid) {
-                        codeError = "Mã voucher không được để trống"
+                        codeError = errorEmptyCode
                     }
 
                     val discountValid = if (isPercent) {
@@ -711,22 +723,22 @@ fun AddEditVoucherDialog(
                         discountAmount.toLongOrNull() != null && discountAmount.toLong() > 0
                     }
                     if (!discountValid) {
-                        discountError = "Thông tin giảm giá không hợp lệ"
+                        discountError = errorDiscountInvalid
                     }
 
                     val minOrderValid = minOrderValue.toLongOrNull() != null && minOrderValue.toLong() >= 0
                     if (!minOrderValid) {
-                        minOrderError = "Giá trị đơn tối thiểu không hợp lệ"
+                        minOrderError = errorMinOrder
                     }
 
                     val maxDiscountValid = !isPercent || maxDiscount.isBlank() || maxDiscount.toLongOrNull() != null
                     if (!maxDiscountValid) {
-                        maxDiscountError = "Số tiền giảm tối đa không hợp lệ"
+                        maxDiscountError = errorMaxAmount
                     }
 
                     val expiresValid = expiresAt.isBlank() || expiresAt.matches(Regex("""^\d{4}-\d{2}-\d{2}$"""))
                     if (!expiresValid) {
-                        expiresError = "Định dạng phải là YYYY-MM-DD"
+                        expiresError = errorExpiryFormat
                     }
 
                     if (codeValid && discountValid && minOrderValid && maxDiscountValid && expiresValid) {
@@ -748,12 +760,12 @@ fun AddEditVoucherDialog(
                     }
                 }
             ) {
-                Text("Xác nhận")
+                Text(stringResource(R.string.common_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )

@@ -115,9 +115,9 @@ fun CustomerHomeScreen(
             if (uiState.errorMessage != null && uiState.recommendedFoods.isEmpty()) {
                 item {
                     FoodieErrorState(
-                        title = "Chưa tải được thực đơn",
+                        title = stringResource(R.string.home_error_menu_title),
                         subtitle = uiState.errorMessage.orEmpty(),
-                        actionLabel = "Thử lại",
+                        actionLabel = stringResource(R.string.home_error_retry),
                         onAction = viewModel::refresh
                     )
                 }
@@ -140,7 +140,7 @@ fun CustomerHomeScreen(
                 item {
                     HorizontalFoodSection(
                         title = stringResource(R.string.home_section_good_meal),
-                        subtitle = "Món bán chạy quanh bạn, giao nhanh trong hôm nay",
+                        subtitle = stringResource(R.string.home_section_good_meal_subtitle),
                         foods = uiState.recommendedFoods.sortedByDescending { it.soldCount },
                         isLoading = uiState.isLoading,
                         onFoodClick = onNavigateToFoodDetail,
@@ -161,7 +161,7 @@ fun CustomerHomeScreen(
                 item {
                     HorizontalFoodSection(
                         title = stringResource(R.string.home_section_must_try),
-                        subtitle = "Gợi ý được chọn theo đánh giá và lượt đặt",
+                        subtitle = stringResource(R.string.home_section_must_try_subtitle),
                         foods = uiState.recommendedFoods.sortedWith(
                             compareByDescending<Food> { it.rating }.thenByDescending { it.soldCount }
                         ),
@@ -215,7 +215,7 @@ private fun HomeTopSection(
         ) {
             Column(modifier = Modifier.weight(0.78f)) {
                 Text(
-                    text = "FoodieNow",
+                    text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -250,7 +250,7 @@ private fun HomeTopSection(
             )
             HeaderActionButton(
                 icon = Icons.Default.ChatBubbleOutline,
-                contentDescription = "Tin nhắn",
+                contentDescription = stringResource(R.string.chat_list_title),
                 badgeCount = unreadMessageCount,
                 onClick = onNavigateToChatList
             )
@@ -281,7 +281,7 @@ private fun DeliverySummary(
             Spacer(modifier = Modifier.width(7.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Giao đến",
+                    text = stringResource(R.string.home_delivery_to),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White.copy(alpha = 0.74f),
                     maxLines = 1,
@@ -308,18 +308,18 @@ private fun SearchCtaButton(onClick: () -> Unit) {
             .width(54.dp)
             .clip(MaterialTheme.shapes.large)
             .clickable(onClick = onClick)
-        .background(
-            if (MaterialTheme.colorScheme.background == DarkBackground) {
-                Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface))
-            } else {
-                Brush.linearGradient(listOf(Color.White, Color(0xFFFFF1E8)))
-            }
-        ),
+            .background(
+                if (MaterialTheme.colorScheme.background == DarkBackground) {
+                    Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface))
+                } else {
+                    Brush.linearGradient(listOf(Color.White, Color(0xFFFFF1E8)))
+                }
+            ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             Icons.Default.Search,
-            contentDescription = "Tìm kiếm",
+            contentDescription = stringResource(R.string.home_search_action),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(23.dp)
         )
@@ -399,9 +399,9 @@ private fun PromoBanner(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                VoucherBadge(label = "FREESHIP", containerColor = Color.White.copy(alpha = 0.22f))
+                VoucherBadge(label = stringResource(R.string.home_promo_badge_freeship), containerColor = Color.White.copy(alpha = 0.22f))
                 Text(
-                    text = "Đặt món nóng hổi, giao ngay",
+                    text = stringResource(R.string.home_promo_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -409,7 +409,7 @@ private fun PromoBanner(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Ưu đãi đến 50% cho bữa trưa và tối nay",
+                    text = stringResource(R.string.home_promo_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.88f),
                     maxLines = 1,
@@ -426,7 +426,7 @@ private fun PromoBanner(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Đặt ngay",
+                        text = stringResource(R.string.home_promo_order_now),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -459,8 +459,8 @@ private fun CategoriesSection(
 
     SectionContainer {
         SectionHeader(
-            title = "Bạn đang thèm gì?",
-            subtitle = "Chọn nhanh theo món quen của người Việt",
+            title = stringResource(R.string.home_category_section_title),
+            subtitle = stringResource(R.string.home_category_section_subtitle),
             onSeeAllClick = null
         )
 
@@ -523,9 +523,9 @@ private fun HorizontalFoodSection(
 
             foods.isEmpty() -> {
                 FoodieEmptyState(
-                    title = "Chưa có món phù hợp",
-                    subtitle = "Các món mới sẽ xuất hiện tại đây khi quán cập nhật thực đơn.",
-                    actionLabel = "Tìm món khác",
+                    title = stringResource(R.string.home_empty_food_title),
+                    subtitle = stringResource(R.string.home_empty_food_subtitle),
+                    actionLabel = stringResource(R.string.home_empty_food_action),
                     onAction = onSeeAllClick,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
@@ -554,8 +554,8 @@ private fun RestaurantsSection(
 ) {
     SectionContainer {
         SectionHeader(
-            title = "Quán nổi bật gần bạn",
-            subtitle = "Đánh giá tốt, chuẩn bị nhanh",
+            title = stringResource(R.string.home_store_section_title),
+            subtitle = stringResource(R.string.home_store_section_subtitle),
             onSeeAllClick = onSeeAllClick
         )
 
@@ -653,7 +653,7 @@ private fun CompactRestaurantCard(
                     modifier = Modifier.size(14.dp)
                 )
                 Text(
-                    text = "20-30 phút",
+                    text = stringResource(R.string.home_store_delivery_time),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -669,7 +669,7 @@ private fun CollectionsSection(onSeeAllClick: () -> Unit) {
     SectionContainer {
         SectionHeader(
             title = stringResource(R.string.home_section_collections),
-            subtitle = "Voucher và combo đang được dùng nhiều",
+            subtitle = stringResource(R.string.home_collections_subtitle),
             onSeeAllClick = onSeeAllClick
         )
 
@@ -678,27 +678,27 @@ private fun CollectionsSection(onSeeAllClick: () -> Unit) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
                 VoucherDealCard(
-                    title = "FREESHIP đơn từ 50K",
-                    subtitle = "Quán gần bạn",
-                    badge = "Giao nhanh",
+                    title = stringResource(R.string.home_collection_1_title),
+                    subtitle = stringResource(R.string.home_collection_1_subtitle),
+                    badge = stringResource(R.string.home_collection_1_badge),
                     containerBrush = Brush.linearGradient(listOf(Color(0xFF0E8A73), Color(0xFF21B493))),
                     onClick = onSeeAllClick
                 )
             }
             item {
                 VoucherDealCard(
-                    title = "Combo trưa tiết kiệm",
-                    subtitle = "Giảm đến 50%",
-                    badge = "Hot deal",
+                    title = stringResource(R.string.home_collection_2_title),
+                    subtitle = stringResource(R.string.home_collection_2_subtitle),
+                    badge = stringResource(R.string.home_collection_2_badge),
                     containerBrush = Brush.linearGradient(listOf(PromoGradientStart, PromoGradientEnd)),
                     onClick = onSeeAllClick
                 )
             }
             item {
                 VoucherDealCard(
-                    title = "Món ngon dưới 39K",
-                    subtitle = "Ăn nhanh, giá mềm",
-                    badge = "Tiết kiệm",
+                    title = stringResource(R.string.home_collection_3_title),
+                    subtitle = stringResource(R.string.home_collection_3_subtitle),
+                    badge = stringResource(R.string.home_collection_3_badge),
                     containerBrush = Brush.linearGradient(listOf(Color(0xFFEF4444), PromoGradientStart)),
                     onClick = onSeeAllClick
                 )
@@ -788,7 +788,7 @@ fun FoodCard(
                 )
                 if (food.soldCount >= 1000) {
                     VoucherBadge(
-                        label = "Bán chạy",
+                        label = stringResource(R.string.home_food_badge_best_seller),
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(6.dp)
@@ -854,7 +854,7 @@ fun FoodCard(
 
 @Composable
 private fun RatingSummary(rating: Double, soldCount: Int) {
-    val soldText = if (soldCount > 0) "Đã bán ${compactCount(soldCount)}" else "Món mới"
+    val soldText = if (soldCount > 0) stringResource(R.string.home_food_sold_prefix, compactCount(soldCount)) else stringResource(R.string.home_food_new_item)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -866,13 +866,13 @@ private fun RatingSummary(rating: Double, soldCount: Int) {
             contentColor = FoodieRating
         ) {
             Row(
-                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(13.dp))
                 Text(
-                    text = if (rating > 0) String.format("%.1f", rating) else "Mới",
+                    text = if (rating > 0) String.format("%.1f", rating) else stringResource(R.string.home_food_new_short),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -936,7 +936,7 @@ private fun SectionHeader(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Xem thêm",
+                    text = stringResource(R.string.home_see_more),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -1030,15 +1030,16 @@ private fun RestaurantCardSkeleton() {
     }
 }
 
+@Composable
 private fun compactCount(count: Int): String {
     return when {
-        count >= 1_000_000 -> "${count / 1_000_000}tr+"
+        count >= 1_000_000 -> stringResource(R.string.home_format_million, count / 1_000_000)
         count >= 1_000 -> {
             val whole = count / 1_000
             val decimal = (count % 1_000) / 100
-            if (decimal == 0) "${whole}k+" else "$whole,${decimal}k+"
+            if (decimal == 0) stringResource(R.string.home_format_thousand_whole, whole) else stringResource(R.string.home_format_thousand_decimal, whole, decimal)
         }
         count > 0 -> count.toString()
-        else -> "mới"
+        else -> stringResource(R.string.home_food_new_short)
     }
 }

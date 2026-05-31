@@ -47,6 +47,8 @@ fun MerchantOrdersTab(
         null to R.string.my_orders_tab_history
     )
 
+    val cancelReason = stringResource(R.string.merchant_orders_cancel_reason_store)
+
     Column(modifier = Modifier.fillMaxSize()) {
         Surface(
             color = Color.Transparent,
@@ -89,7 +91,7 @@ fun MerchantOrdersTab(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Quản lý đơn hàng",
+                            text = stringResource(R.string.merchant_orders_manage_title),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -97,7 +99,7 @@ fun MerchantOrdersTab(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Theo dõi trạng thái và chế biến món ăn",
+                            text = stringResource(R.string.merchant_orders_manage_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.84f),
                             maxLines = 1,
@@ -105,6 +107,7 @@ fun MerchantOrdersTab(
                         )
                     }
 
+                    val chatBadgePlus = stringResource(R.string.merchant_orders_chat_badge_plus)
                     Surface(
                         shape = CircleShape,
                         color = Color.White.copy(alpha = 0.18f),
@@ -122,7 +125,7 @@ fun MerchantOrdersTab(
                                             contentColor = Color.White
                                         ) {
                                             Text(
-                                                text = if (unreadMessageCount > 99) "99+"
+                                                text = if (unreadMessageCount > 99) chatBadgePlus
                                                 else unreadMessageCount.toString()
                                             )
                                         }
@@ -131,7 +134,7 @@ fun MerchantOrdersTab(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ChatBubbleOutline,
-                                    contentDescription = "Tin nhắn",
+                                    contentDescription = stringResource(R.string.chat_list_title),
                                     tint = Color.White,
                                     modifier = Modifier.size(22.dp)
                                 )
@@ -181,11 +184,11 @@ fun MerchantOrdersTab(
             .filter {
                 if (currentTab.first == null) {
                     it.status == OrderStatus.COMPLETED ||
-                    it.status == OrderStatus.CANCELLED_BY_CUSTOMER ||
-                    it.status == OrderStatus.CANCELLED_BY_STORE ||
-                    it.status == OrderStatus.NO_SHIPPER_FOUND ||
-                    it.status == OrderStatus.PAYMENT_FAILED ||
-                    it.status == OrderStatus.DELIVERY_TIMEOUT
+                            it.status == OrderStatus.CANCELLED_BY_CUSTOMER ||
+                            it.status == OrderStatus.CANCELLED_BY_STORE ||
+                            it.status == OrderStatus.NO_SHIPPER_FOUND ||
+                            it.status == OrderStatus.PAYMENT_FAILED ||
+                            it.status == OrderStatus.DELIVERY_TIMEOUT
                 } else {
                     it.status == currentTab.first
                 }
@@ -212,7 +215,7 @@ fun MerchantOrdersTab(
                     MerchantOrderCard(
                         order = order,
                         onAccept = { order.id?.let { viewModel.acceptOrder(it) } },
-                        onCancel = { order.id?.let { viewModel.rejectOrder(it, "Cửa hàng hủy đơn") } },
+                        onCancel = { order.id?.let { viewModel.rejectOrder(it, cancelReason) } },
                         onMarkReady = { order.id?.let { viewModel.markOrderReady(it) } }
                     )
                 }
@@ -284,7 +287,7 @@ private fun MerchantOrderCard(
 
             if (!order.note.isNullOrBlank()) {
                 Text(
-                    text = "Ghi chú: ${order.note}",
+                    text = stringResource(R.string.merchant_orders_note_prefix, order.note),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFFF57C00),
                     fontWeight = FontWeight.Medium
@@ -314,7 +317,7 @@ private fun MerchantOrderCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(onClick = onMarkReady) {
-                        Text("Chuẩn bị xong")
+                        Text(stringResource(R.string.merchant_orders_action_prepared))
                     }
                 }
             }

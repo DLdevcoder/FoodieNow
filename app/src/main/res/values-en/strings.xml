@@ -418,4 +418,332 @@
     <string name="notification_title_order_cancelled_shipper">Order Cancelled</string>
     <string name="notification_body_order_cancelled_shipper">An order assigned to you has been cancelled.</string>
     <string name="notification_title_new_chat_message">New Message</string>
+
+    <string name="common_close">Close</string>
+    <string name="common_save">Save</string>
+    <string name="common_refresh">Refresh</string>
+    <string name="common_all">All</string>
+    <string name="common_name">Name</string>
+    <string name="common_id">ID</string>
+    <string name="role_admin">Admin</string>
+    <string name="role_display_user">User</string>
+    <string name="role_display_store">Store</string>
+
+    <string name="admin_account_details_title">Account Details</string>
+    <string name="admin_account_balance_title">Account Balance</string>
+    <string name="admin_account_balance_current">Current:</string>
+    <string name="admin_account_balance_change">Change balance:</string>
+    <string name="admin_account_balance_new_hint">New balance (₫)</string>
+    <string name="admin_wallet_history_title">Wallet Transaction History</string>
+    <string name="admin_wallet_history_empty">No transaction history found.</string>
+
+    <string name="admin_tab_account_management">Account Management</string>
+    <string name="admin_tab_cash_flow">Cash Flow Management</string>
+    <string name="admin_tab_accounts">Accounts</string>
+    <string name="admin_tab_cash_flow_short">Cash Flow</string>
+
+    <string name="admin_finance_detailed_stats">Detailed Financial Stats</string>
+    <string name="admin_finance_total_balance">Total System Balance</string>
+    <string name="admin_finance_escrow">Pending Escrow</string>
+    <string name="admin_finance_commission">Total Commission</string>
+    <string name="admin_finance_shipper_balance">Shipper Balance</string>
+    <string name="admin_finance_merchant_balance">Merchant Balance</string>
+
+    <string name="admin_system_config_title">System Configuration</string>
+    <string name="admin_config_commission_rate">Commission Rate (%)</string>
+    <string name="admin_config_base_delivery_fee">Base Delivery Fee (₫)</string>
+    <string name="admin_config_free_delivery_threshold">Free Delivery Threshold (₫)</string>
+    <string name="admin_config_update_btn">Update Configuration</string>
+
+    <string name="admin_finance_daily_report">Daily Reports</string>
+    <string name="admin_finance_empty_report">No cash flow reports available.</string>
+    <string name="admin_finance_order_count">%1$d orders</string>
+    <string name="admin_finance_total_revenue">Total Revenue:</string>
+    <string name="admin_finance_admin_commission">Admin Commission:</string>
+    <string name="admin_finance_merchant_payout">Merchant Payout:</string>
+    <string name="admin_finance_shipper_payout">Shipper Payout:</string>
+
+    <string name="admin_search_placeholder">Search by name, email, ID...</string>
+    <string name="admin_filter_role_all">Role: All</string>
+    <string name="admin_filter_role_user">Role: User</string>
+    <string name="admin_filter_role_store">Role: Store</string>
+    <string name="admin_filter_role_shipper">Role: Shipper</string>
+    <string name="admin_filter_role_admin">Role: Admin</string>
+
+    <string name="admin_search_by_all">Search by: All</string>
+    <string name="admin_search_by_name">Search by: Name</string>
+    <string name="admin_search_by_email">Search by: Email</string>
+    <string name="admin_search_by_id">Search by: ID</string>
+
+    <string name="admin_accounts_not_found">No accounts found.</string>
+    <string name="admin_chart_account_label">Accounts</string>
+
+    <string name="category_detail_error_title">Cannot load category</string>
+    <string name="category_detail_error_retry">Retry</string>
+    <string name="category_detail_empty_title">No items in this category yet</string>
+    <string name="category_detail_empty_subtitle">New dishes from the restaurant will be updated here.</string>
+
+    <string name="chat_list_title">Messages</string>
+    <string name="chat_list_empty">No messages yet</string>
+
+    <string name="chat_default_title">Chat</string>
+    <string name="chat_input_placeholder">Type a message...</string>
+    <string name="chat_send_action">Send</string>
+
+    <string name="search_suggestion_com_tam">Com tam</string>
+    <string name="search_suggestion_pho_bo">Pho bo</string>
+    <string name="search_suggestion_bun_cha">Bun cha</string>
+    <string name="search_suggestion_tra_sua">Milk tea</string>
+    <string name="search_suggestion_an_vat">Snacks</string>
+    <string name="search_quick_suggestions_title">Quick suggestions</string>
+    <string name="search_empty_state_title">What do you want to eat today?</string>
+    <string name="search_no_results_title">No matching items found</string>
+    <string name="search_no_results_subtitle">Try another name or check your spelling.</string>
+    <string name="search_clear_action">Clear search</string>
+
+    <!-- Customer Home Screen -->
+    <string name="home_error_menu_title">Unable to load menu</string>
+    <string name="home_error_retry">Retry</string>
+    <string name="home_section_good_meal_subtitle">Best sellers around you, fast delivery today</string>
+    <string name="home_section_must_try_subtitle">Recommended based on reviews and orders</string>
+    <string name="home_delivery_to">Deliver to</string>
+
+    <string name="home_promo_badge_freeship">FREESHIP</string>
+    <string name="home_promo_title">Order hot food, deliver now</string>
+    <string name="home_promo_subtitle">Up to 50% off for lunch and dinner today</string>
+    <string name="home_promo_order_now">Order now</string>
+
+    <string name="home_category_section_title">What are you craving?</string>
+    <string name="home_category_section_subtitle">Quick choices based on local favorites</string>
+
+    <string name="home_empty_food_title">No matching items yet</string>
+    <string name="home_empty_food_subtitle">New items will appear here when the menu is updated.</string>
+    <string name="home_empty_food_action">Find other items</string>
+
+    <string name="home_store_section_title">Featured near you</string>
+    <string name="home_store_section_subtitle">Good reviews, fast prep</string>
+    <string name="home_store_delivery_time">20-30 mins</string>
+
+    <string name="home_collections_subtitle">Popular vouchers and combos</string>
+    <string name="home_collection_1_title">FREESHIP on 50K+</string>
+    <string name="home_collection_1_subtitle">Near you</string>
+    <string name="home_collection_1_badge">Fast delivery</string>
+    <string name="home_collection_2_title">Saver lunch combo</string>
+    <string name="home_collection_2_subtitle">Up to 50% off</string>
+    <string name="home_collection_2_badge">Hot deal</string>
+    <string name="home_collection_3_title">Delicious under 39K</string>
+    <string name="home_collection_3_subtitle">Fast, affordable</string>
+    <string name="home_collection_3_badge">Saver</string>
+
+    <string name="home_food_badge_best_seller">Best seller</string>
+    <string name="home_food_sold_prefix">Sold %1$s</string>
+    <string name="home_food_new_item">New item</string>
+    <string name="home_food_new_short">New</string>
+    <string name="home_see_more">See more</string>
+
+    <string name="home_format_million">%1$dm+</string>
+    <string name="home_format_thousand_whole">%1$dk+</string>
+    <string name="home_format_thousand_decimal">%1$d.%2$dk+</string>
+
+    <string name="tracking_screen_title">Order Tracking</string>
+    <string name="tracking_store_marker_title">Store</string>
+    <string name="tracking_customer_marker_title">Your location</string>
+    <string name="tracking_shipper_marker_title">Driver</string>
+    <string name="tracking_status_delivering">Driver is delivering your order</string>
+    <string name="tracking_status_completed">Order delivered successfully</string>
+    <string name="tracking_status_processing">Processing order</string>
+    <string name="tracking_order_id_prefix">Order ID: #%1$s</string>
+    <string name="tracking_delivery_address_prefix">Delivery address: %1$s</string>
+    <string name="tracking_btn_waiting_shipper">Waiting for driver confirmation...</string>
+    <string name="tracking_btn_confirm_receipt">Confirm Receipt</string>
+
+    <string name="food_detail_add_to_cart_toast">Added to cart</string>
+    <string name="food_detail_chat_store_desc">Chat with store</string>
+    <string name="food_detail_rating_zero">0.0</string>
+    <string name="food_detail_rating_separator"> | </string>
+    <string name="food_detail_sold_thousand">%1$sk</string>
+    <string name="food_detail_sold_thousand_decimal">%1$s.%2$sk</string>
+
+    <string name="merchant_tab_orders">Orders</string>
+    <string name="merchant_tab_menu">Menu</string>
+    <string name="merchant_tab_earnings">Earnings</string>
+
+    <string name="merchant_food_loading_categories">Loading categories...</string>
+
+    <string name="merchant_earnings_balance_title">Revenue Balance</string>
+    <string name="merchant_earnings_withdraw_btn">Withdraw</string>
+    <string name="merchant_earnings_stats_title">Earnings Statistics</string>
+    <string name="merchant_earnings_today">Today</string>
+    <string name="merchant_earnings_this_week">This week</string>
+    <string name="merchant_earnings_history_title">Transaction History</string>
+    <string name="merchant_earnings_history_empty">No transactions yet</string>
+
+    <string name="merchant_earnings_not_linked_title">No withdrawal wallet linked</string>
+    <string name="merchant_earnings_not_linked_desc">You need to link at least one e-wallet account (MoMo, ZaloPay, VNPAY, PayPal) to withdraw money.</string>
+    <string name="merchant_earnings_link_now">Link now</string>
+    <string name="merchant_earnings_link_later">Later</string>
+
+    <string name="merchant_earnings_withdraw_dialog_title">Withdraw to linked wallet</string>
+    <string name="merchant_earnings_available_balance">Available balance: %1$s ₫</string>
+    <string name="merchant_earnings_select_wallet">Select receiving wallet:</string>
+    <string name="merchant_earnings_withdraw_amount_hint">Withdrawal amount (₫)</string>
+    <string name="merchant_earnings_error_invalid_amount">Please enter a valid amount.</string>
+    <string name="merchant_earnings_error_insufficient">Insufficient balance for withdrawal.</string>
+    <string name="merchant_earnings_error_minimum">Minimum withdrawal amount is 10,000 ₫.</string>
+    <string name="merchant_earnings_cancel">Cancel</string>
+
+    <string name="merchant_earnings_success_title">Withdrawal Successful</string>
+    <string name="merchant_earnings_success_desc">Transaction has been completed successfully.</string>
+    <string name="merchant_earnings_success_amount">Amount: %1$s ₫</string>
+    <string name="merchant_earnings_success_wallet">Received by: %1$s Wallet</string>
+    <string name="merchant_earnings_success_current_balance">Current balance: %1$s ₫</string>
+    <string name="merchant_earnings_confirm">Confirm</string>
+
+    <string name="merchant_menu_manage_title">Menu Management</string>
+    <string name="merchant_menu_manage_subtitle">Update dishes and issue promotions</string>
+    <string name="merchant_tab_voucher">Vouchers</string>
+    <string name="merchant_menu_empty_food">No dishes yet.\nTap + to add a dish.</string>
+    <string name="merchant_menu_add_food_desc">Add dish</string>
+    <string name="merchant_menu_empty_voucher">No vouchers yet.\nTap + to add a voucher.</string>
+    <string name="merchant_menu_add_voucher_desc">Add Voucher</string>
+    <string name="merchant_voucher_delete_confirm_title">Confirm Deletion</string>
+    <string name="merchant_voucher_delete_confirm_desc">Are you sure you want to delete the voucher %1$s?</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="merchant_voucher_discount_label">DISCOUNT</string>
+    <string name="merchant_voucher_min_order_prefix">Min order: %1$s</string>
+    <string name="merchant_voucher_max_discount_prefix">Max discount: %1$s</string>
+    <string name="merchant_voucher_expiry_prefix">Exp: %1$s</string>
+    <string name="merchant_voucher_no_expiry">No expiration date</string>
+    <string name="merchant_food_status_available">Available</string>
+    <string name="merchant_food_status_unavailable">Out of stock</string>
+    <string name="merchant_voucher_add_title">Add New Voucher</string>
+    <string name="merchant_voucher_edit_title">Edit Voucher</string>
+    <string name="merchant_voucher_code_label">Voucher Code</string>
+    <string name="merchant_voucher_code_hint">Example: PROMO50</string>
+    <string name="merchant_voucher_error_empty_code">Voucher code cannot be empty</string>
+    <string name="merchant_voucher_type_percent">Percentage (%)</string>
+    <string name="merchant_voucher_type_fixed">Fixed amount (đ)</string>
+    <string name="merchant_voucher_percent_label">Discount percentage (%)</string>
+    <string name="merchant_voucher_percent_hint">Example: 15</string>
+    <string name="merchant_voucher_error_empty">Cannot be empty</string>
+    <string name="merchant_voucher_error_percent_range">Percentage must be between 1 and 100</string>
+    <string name="merchant_voucher_amount_label">Discount amount (đ)</string>
+    <string name="merchant_voucher_amount_hint">Example: 20000</string>
+    <string name="merchant_voucher_error_amount_positive">Discount amount must be greater than 0</string>
+    <string name="merchant_voucher_max_amount_label">Max discount (đ) - Optional</string>
+    <string name="merchant_voucher_max_amount_hint">Example: 30000</string>
+    <string name="merchant_voucher_error_max_amount">Invalid maximum discount amount</string>
+    <string name="merchant_voucher_min_order_label">Minimum order (đ)</string>
+    <string name="merchant_voucher_min_order_hint">Example: 50000</string>
+    <string name="merchant_voucher_error_min_order">Invalid minimum order value</string>
+    <string name="merchant_voucher_expiry_label">Expiration date - Optional</string>
+    <string name="merchant_voucher_expiry_hint">YYYY-MM-DD (Example: 2026-12-31)</string>
+    <string name="merchant_voucher_error_expiry_format">Format must be YYYY-MM-DD</string>
+    <string name="merchant_voucher_status_label">Active status</string>
+    <string name="merchant_voucher_error_discount_invalid">Invalid discount information</string>
+    <string name="merchant_voucher_k_suffix">%1$sK</string>
+    <string name="merchant_voucher_percent_suffix">%1$s%%</string>
+
+    <string name="merchant_orders_manage_title">Order Management</string>
+    <string name="merchant_orders_manage_subtitle">Track order status and prepare dishes</string>
+    <string name="merchant_orders_chat_badge_plus">99+</string>
+    <string name="merchant_orders_cancel_reason_store">Store cancelled order</string>
+    <string name="merchant_orders_note_prefix">Note: %1$s</string>
+    <string name="merchant_orders_action_prepared">Ready</string>
+
+    <string name="order_detail_title">Order Details</string>
+    <string name="order_detail_review_action">Review</string>
+    <string name="order_detail_item_price_format">%1$d x %2$s</string>
+
+    <!-- Order History Screen -->
+    <string name="order_history_cancel_dialog_title">Cancel order</string>
+    <string name="order_history_cancel_dialog_desc">Please provide a reason for cancelling this order:</string>
+    <string name="order_history_cancel_dialog_hint">Example: Changed my mind, ordered the wrong item...</string>
+    <string name="order_history_cancel_confirm">Confirm cancellation</string>
+    <string name="order_history_error_title">Cannot load orders</string>
+    <string name="order_history_error_retry">Retry</string>
+    <string name="order_history_cart_empty_title">Cart is empty</string>
+    <string name="order_history_cart_empty_subtitle">Items you added but haven\'t paid for will appear here.</string>
+    <string name="order_history_cart_empty_action">Discover delicious food</string>
+    <string name="order_history_active_empty_title">No active orders</string>
+    <string name="order_history_active_empty_subtitle">Paid orders being prepared, picked up, or delivered will appear here.</string>
+    <string name="order_history_reorder_success_toast">Added items to cart</string>
+    <string name="order_history_history_empty_title">No order history</string>
+    <string name="order_history_history_empty_subtitle">Successfully delivered or cancelled orders will be saved here.</string>
+    <string name="order_history_header_subtitle">%1$d items in cart • %2$d active orders • %3$d saved orders</string>
+    <string name="order_history_cart_summary_title">%1$d unpaid items</string>
+    <string name="order_history_cart_summary_total">Subtotal %1$s</string>
+    <string name="order_history_default_food_name">Order from FoodieNow</string>
+    <string name="order_history_action_cancel">Cancel</string>
+    <string name="order_history_action_track">Track</string>
+    <string name="order_history_action_detail">Details</string>
+    <string name="order_history_action_reorder">Reorder</string>
+    <string name="order_history_tab_cart">Cart</string>
+    <string name="order_history_tab_active">Delivering</string>
+    <string name="order_history_tab_history">History</string>
+
+    <string name="order_status_waiting_payment">Awaiting payment</string>
+    <string name="order_status_waiting_confirmation">Awaiting confirmation</string>
+    <string name="order_status_preparing">Preparing</string>
+    <string name="order_status_waiting_shipper">Awaiting driver</string>
+    <string name="order_status_delivering">Delivering</string>
+    <string name="order_status_completed">Delivered</string>
+    <string name="order_status_cancelled_by_customer">Cancelled by customer</string>
+    <string name="order_status_cancelled_by_store">Cancelled by store</string>
+    <string name="order_status_no_shipper_found">No driver found</string>
+    <string name="order_status_payment_failed">Payment failed</string>
+    <string name="order_status_delivery_timeout">Delivery timeout</string>
+
+    <string name="address_book_title">Address Book</string>
+    <string name="address_book_empty_title">No addresses yet.</string>
+    <string name="address_book_empty_action">Add your first address</string>
+
+    <string name="address_book_delete_confirm_title">Confirm deletion</string>
+    <string name="address_book_delete_confirm_desc">Are you sure you want to delete this address?</string>
+    <string name="address_book_default_confirm_title">Confirm set default</string>
+    <string name="address_book_default_confirm_desc">Are you sure you want to set this address as default?</string>
+    <string name="common_agree">Agree</string>
+
+    <string name="address_book_add_title">Add new address</string>
+    <string name="address_book_search_placeholder">Search address...</string>
+    <string name="address_book_alias_label">Alias (e.g. Home, Office)</string>
+    <string name="address_book_add_confirm_btn">Confirm add address</string>
+    <string name="address_book_search_hint">Search and select an address to view on the map</string>
+
+    <string name="address_book_set_default_btn">Set as default</string>
+    <string name="address_book_delete_btn">Delete address</string>
+    <string name="address_book_default_badge">Default</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_loading">Loading profile...</string>
+    <string name="profile_error_title">Cannot load profile</string>
+    <string name="profile_error_retry">Retry</string>
+    <string name="profile_voucher_warehouse">Vouchers</string>
+
+    <string name="profile_section_orders_deals">Orders &amp; Deals</string>
+    <string name="profile_section_account">Account</string>
+    <string name="profile_section_support_settings">Support &amp; Settings</string>
+
+    <string name="profile_desc_order_history">Track placed orders and delivery status</string>
+    <string name="profile_desc_activity_history">View payments, reward points, and recent activity</string>
+    <string name="profile_desc_must_try">Dishes tailored to your taste</string>
+    <string name="profile_desc_address">Manage default delivery addresses</string>
+    <string name="profile_desc_payment">COD, FoodiePay and e-wallets</string>
+    <string name="profile_desc_invite">Get vouchers when friends place their first order</string>
+    <string name="profile_desc_wallet">Manage top-ups and withdrawals</string>
+    <string name="profile_desc_payment_settings">Configure linked payments</string>
+    <string name="profile_desc_settings">Language, theme, and notifications</string>
+    <string name="profile_desc_password">Update your login password</string>
+    <string name="profile_desc_help">FAQs and customer support</string>
+    <string name="profile_desc_shop_owner">Open a store and manage sales</string>
+    <string name="profile_desc_logout">Sign out of your account on this device</string>
+
+    <string name="profile_logout_loading_title">Signing out</string>
+    <string name="profile_logout_loading_desc">FoodieNow is ending your session and securing your account information on this device.</string>
+    <string name="profile_header_subtitle">Manage your FoodieNow account</string>
+    <string name="profile_edit_avatar_desc">Edit profile</string>
+    <string name="profile_avatar_desc">Avatar</string>
 </resources>
