@@ -5,6 +5,7 @@ import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderItemResponse
 import com.example.foodienow.domain.model.OrderItemUiModel
 import com.example.foodienow.domain.model.OrderStatus
+import com.example.foodienow.domain.model.ShipperAcceptOrderParams
 import com.example.foodienow.domain.model.Store
 import com.example.foodienow.domain.repository.OrderRepository
 import io.github.jan.supabase.SupabaseClient
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import javax.inject.Inject
 
 class OrderRepositoryImpl @Inject constructor(
@@ -92,15 +95,67 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getMerchantOrders(merchantId: String): Flow<List<Order>> = flow {
-        val response = supabaseClient.postgrest["orders"]
-            .select {
-                filter {
-                    eq("merchant_id", merchantId)
+    override fun getMerchantOrders(merchantId: String): Flow<List<Order>> = channelFlow {
+        try {
+            val initialOrders = supabaseClient.postgrest["orders"]
+                .select {
+                    filter {
+                        eq("merchant_id", merchantId)
+                    }
+                }
+                .decodeList<Order>()
+            send(initialOrders)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        val channelName = "merchant_orders_channel_$merchantId"
+        val channel = supabaseClient.channel(channelName)
+        val insertFlow = channel.postgresChangeFlow<io.github.jan.supabase.realtime.PostgresAction.Insert>(schema = "public") {
+            table = "orders"
+            filter = "merchant_id=eq.$merchantId"
+        }
+        val updateFlow = channel.postgresChangeFlow<io.github.jan.supabase.realtime.PostgresAction.Update>(schema = "public") {
+            table = "orders"
+            filter = "merchant_id=eq.$merchantId"
+        }
+
+        launch {
+            insertFlow.collect {
+                try {
+                    val updatedOrders = supabaseClient.postgrest["orders"]
+                        .select {
+                            filter { eq("merchant_id", merchantId) }
+                        }
+                        .decodeList<Order>()
+                    send(updatedOrders)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
-            .decodeList<Order>()
-        emit(response)
+        }
+
+        launch {
+            updateFlow.collect {
+                try {
+                    val updatedOrders = supabaseClient.postgrest["orders"]
+                        .select {
+                            filter { eq("merchant_id", merchantId) }
+                        }
+                        .decodeList<Order>()
+                    send(updatedOrders)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        channel.subscribe()
+
+        awaitClose {
+            launch {
+                supabaseClient.realtime.removeChannel(channel)
+            }
+        }
     }
 
     override fun getOrdersByCustomer(customerId: String): Flow<List<Order>> = channelFlow {
@@ -143,6 +198,7 @@ class OrderRepositoryImpl @Inject constructor(
         val channel = supabaseClient.channel(channelName)
         val changes = channel.postgresChangeFlow<PostgresAction>("public") {
             table = "orders"
+            filter = "customer_id=eq.$customerId"
         }
 
         launch {
@@ -178,6 +234,7 @@ class OrderRepositoryImpl @Inject constructor(
         val channel = supabaseClient.channel(channelName)
         val changes = channel.postgresChangeFlow<PostgresAction>("public") {
             table = "orders"
+            filter = "status=eq.${OrderStatus.WAITING_SHIPPER.name}"
         }
 
         launch {
@@ -187,21 +244,29 @@ class OrderRepositoryImpl @Inject constructor(
         }
 
         channel.subscribe()
+
         awaitClose {
-            launch { supabaseClient.realtime.removeChannel(channel) }
+            launch {
+                supabaseClient.realtime.removeChannel(channel)
+            }
         }
     }
 
     override fun getShipperActiveOrder(shipperId: String): Flow<List<Order>> = channelFlow {
         val fetchActive = suspend {
-            supabaseClient.postgrest["orders"]
-                .select {
-                    filter {
-                        eq("shipper_id", shipperId)
-                        eq("status", OrderStatus.DELIVERING.name)
+            try {
+                supabaseClient.postgrest["orders"]
+                    .select(columns = Columns.raw("*")) {
+                        filter {
+                            eq("shipper_id", shipperId)
+                            isIn("status", listOf(OrderStatus.PICKING_UP.name, OrderStatus.DELIVERING.name))
+                        }
                     }
-                }
-                .decodeList<Order>()
+                    .decodeList<Order>()
+            } catch (e: Exception) {
+                android.util.Log.e("OrderRepository", "Lỗi tải đơn active: ${e.message}")
+                emptyList<Order>()
+            }
         }
 
         send(fetchActive())
@@ -210,6 +275,8 @@ class OrderRepositoryImpl @Inject constructor(
         val channel = supabaseClient.channel(channelName)
         val changes = channel.postgresChangeFlow<PostgresAction>("public") {
             table = "orders"
+            // Bổ sung filter này để tránh làm ngập băng thông
+            filter = "shipper_id=eq.$shipperId"
         }
 
         launch {
@@ -224,8 +291,8 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun acceptOrder(orderId: String, shipperId: String): Result<Unit> {
-        return shipperAcceptOrder(orderId, shipperId)
+    override suspend fun acceptOrder(orderId: String, shipperId: String, lat: Double, lng: Double): Result<Unit> {
+        return shipperAcceptOrder(orderId, shipperId, lat, lng)
     }
 
     override suspend fun updateOrderStatus(orderId: String, newStatus: OrderStatus): Result<Unit> {
@@ -480,29 +547,37 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun shipperAcceptOrder(orderId: String, shipperId: String): Result<Unit> {
+    override suspend fun shipperAcceptOrder(orderId: String, shipperId: String, lat: Double, lng: Double): Result<Unit> {
         return try {
+            // Thay thế mapOf bằng data class vừa tạo
+            val params = ShipperAcceptOrderParams(
+                orderId = orderId,
+                shipperId = shipperId,
+                shipperLat = lat,
+                shipperLng = lng
+            )
+
             supabaseClient.postgrest.rpc(
                 function = "shipper_accept_order",
-                parameters = mapOf(
-                    "p_order_id" to orderId,
-                    "p_shipper_id" to shipperId
-                )
+                parameters = params
             )
             Result.success(Unit)
         } catch (e: Exception) {
+            android.util.Log.e("OrderRepository", "Lỗi RPC nhận đơn: ", e)
             Result.failure(e)
         }
     }
 
     override suspend fun shipperCancelOrder(orderId: String): Result<Unit> {
         return try {
+            val params = OrderIdParam(orderId = orderId)
             supabaseClient.postgrest.rpc(
                 function = "shipper_cancel_order",
-                parameters = mapOf("p_order_id" to orderId)
+                parameters = params
             )
             Result.success(Unit)
         } catch (e: Exception) {
+            android.util.Log.e("OrderRepository", "Lỗi hủy đơn: ", e)
             Result.failure(e)
         }
     }
@@ -543,3 +618,8 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 }
+
+@Serializable
+data class OrderIdParam(
+    @SerialName("p_order_id") val orderId: String
+)

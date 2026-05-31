@@ -71,7 +71,6 @@ fun ShipperTrackingScreen(
     val order by viewModel.currentOrder.collectAsState()
     val routeToStore by viewModel.routeToStore.collectAsState()
     val routeToCustomer by viewModel.routeToCustomer.collectAsState()
-    val isPickedUp by viewModel.isPickedUp.collectAsState()
 
     var hasLocationPermission by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
@@ -133,28 +132,26 @@ fun ShipperTrackingScreen(
         onDispose { locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) } }
     }
 
-    // KHỐI VẼ ĐƯỜNG VÀ ĐIỂM CỐ ĐỊNH (ĐÃ SỬA LỖI XÓA ĐƯỜNG MÀU XANH)
+    // LOGIC VẼ ĐƯỜNG PHỤ THUỘC VÀO TRẠNG THÁI (order?.status)
     LaunchedEffect(isMapReady, routeToStore, routeToCustomer, order?.merchantLat, order?.deliveryLat, order?.status) {
         if (!isMapReady) return@LaunchedEffect
         val map = mapLibreMapInstance ?: return@LaunchedEffect
 
-        // --- QUẢN LÝ CHẶNG ĐẾN CỬA HÀNG (MÀU XANH) ---
+        // 1. CHẶNG ĐẾN CỬA HÀNG (Màu xanh dương)
         if (routeToStore.isNotEmpty()) {
-            // Nếu có đường mới, xóa đường cũ (nếu tồn tại) trước khi vẽ
             polylineToStore?.let { map.removePolyline(it) }
             polylineToStore = map.addPolyline(PolylineOptions().addAll(routeToStore).color(AndroidColor.parseColor("#0088FF")).width(6f))
         } else {
-            // NẾU DANH SÁCH RỖNG -> XÓA TRIỆT ĐỂ KHỎI BẢN ĐỒ VÀ SET REF VỀ NULL
             polylineToStore?.let {
                 map.removePolyline(it)
-                polylineToStore = null // Dòng này quan trọng để Compose không vẽ lại nó
+                polylineToStore = null
             }
         }
 
-        // --- QUẢN LÝ CHẶNG ĐẾN KHÁCH HÀNG (MÀU CAM/XÁM) ---
+        // 2. CHẶNG ĐẾN KHÁCH HÀNG (Màu xám khi đang lấy đơn, Màu cam khi đang giao)
         polylineToCustomer?.let { map.removePolyline(it) }
         if (routeToCustomer.isNotEmpty()) {
-            val routeColor = if (!isPickedUp) "#9AA0A6" else "#EE4D2D"
+            val routeColor = if (order?.status == OrderStatus.PICKING_UP) "#9AA0A6" else "#EE4D2D"
             polylineToCustomer = map.addPolyline(
                 PolylineOptions()
                     .addAll(routeToCustomer)
@@ -163,6 +160,7 @@ fun ShipperTrackingScreen(
             )
         }
 
+        // 3. ĐIỂM MARKER CỬA HÀNG VÀ KHÁCH HÀNG
         if (storeMarker == null && order?.merchantLat != null && order?.merchantLng != null) {
             val opts = MarkerOptions().position(LatLng(order!!.merchantLat!!, order!!.merchantLng!!)).title("Cửa hàng")
             merchantIcon?.let { opts.icon(it) }
@@ -240,7 +238,11 @@ fun ShipperTrackingScreen(
 
                             val isShipperConfirmed = currentOrder.shipperConfirmed
 
-                            if (!isPickedUp) {
+                            // 1. Lắng nghe trạng thái đang xử lý
+                            val isProcessing by viewModel.isProcessing.collectAsState()
+
+                            // LOGIC NÚT BẤM DỰA VÀO TRẠNG THÁI
+                            if (currentOrder.status == OrderStatus.PICKING_UP) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -249,6 +251,7 @@ fun ShipperTrackingScreen(
                                         onClick = { viewModel.cancelDelivery(onSuccess = onBack) },
                                         modifier = Modifier.weight(1f),
                                         shape = MaterialTheme.shapes.medium,
+                                        enabled = !isProcessing, // KHÓA NÚT
                                         colors = ButtonDefaults.outlinedButtonColors(
                                             contentColor = Color(0xFFD32F2F)
                                         )
@@ -258,16 +261,21 @@ fun ShipperTrackingScreen(
                                     Button(
                                         onClick = { viewModel.confirmOrderPickedUp() },
                                         modifier = Modifier.weight(1f),
-                                        shape = MaterialTheme.shapes.medium
+                                        shape = MaterialTheme.shapes.medium,
+                                        enabled = !isProcessing // KHÓA NÚT
                                     ) {
-                                        Text("Đã lấy hàng")
+                                        if (isProcessing) {
+                                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                                        } else {
+                                            Text("Đã lấy hàng")
+                                        }
                                     }
                                 }
-                            } else {
+                            } else if (currentOrder.status == OrderStatus.DELIVERING) {
                                 Button(
                                     onClick = { viewModel.confirmDelivery(onSuccess = onBack) },
                                     modifier = Modifier.fillMaxWidth(),
-                                    enabled = !isShipperConfirmed,
+                                    enabled = !isShipperConfirmed && !isProcessing, // KHÓA NÚT
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = if (isShipperConfirmed)
                                             MaterialTheme.colorScheme.surfaceVariant
@@ -278,9 +286,13 @@ fun ShipperTrackingScreen(
                                     ),
                                     shape = MaterialTheme.shapes.medium
                                 ) {
-                                    Text(
-                                        text = if (isShipperConfirmed) "Chờ khách xác nhận..." else "Xác nhận đã giao hàng"
-                                    )
+                                    if (isProcessing) {
+                                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                                    } else {
+                                        Text(
+                                            text = if (isShipperConfirmed) "Chờ khách xác nhận..." else "Xác nhận đã giao hàng"
+                                        )
+                                    }
                                 }
                             }
                         }

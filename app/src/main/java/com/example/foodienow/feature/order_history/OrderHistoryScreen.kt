@@ -912,6 +912,7 @@ private fun OrderStatus.toOrderStatusStyle(): OrderStatusStyle {
         OrderStatus.WAITING_STORE_CONFIRMATION -> OrderStatusStyle(stringResource(R.string.order_status_waiting_confirmation), AmberTertiary, Icons.Default.AccessTime)
         OrderStatus.PREPARING -> OrderStatusStyle(stringResource(R.string.order_status_preparing), AmberTertiary, Icons.AutoMirrored.Filled.Assignment)
         OrderStatus.WAITING_SHIPPER -> OrderStatusStyle(stringResource(R.string.order_status_waiting_shipper), InfoBlue, Icons.Default.LocalShipping)
+        OrderStatus.PICKING_UP -> OrderStatusStyle("Shipper đang lấy đơn", InfoBlue, Icons.Default.LocalShipping)
         OrderStatus.DELIVERING -> OrderStatusStyle(stringResource(R.string.order_status_delivering), InfoBlue, Icons.Default.LocalShipping)
         OrderStatus.COMPLETED -> OrderStatusStyle(stringResource(R.string.order_status_completed), SuccessGreen, Icons.Default.CheckCircle)
         OrderStatus.CANCELLED_BY_CUSTOMER -> OrderStatusStyle(stringResource(R.string.order_status_cancelled_by_customer), ErrorRed, Icons.Default.RemoveShoppingCart)

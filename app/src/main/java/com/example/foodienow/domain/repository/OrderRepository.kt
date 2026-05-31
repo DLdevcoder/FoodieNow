@@ -22,7 +22,7 @@ interface OrderRepository {
     fun getShipperActiveOrder(shipperId: String): Flow<List<Order>>
 
     // Shipper nhận đơn
-    suspend fun acceptOrder(orderId: String, shipperId: String): Result<Unit>
+    suspend fun acceptOrder(orderId: String, shipperId: String, lat: Double, lng: Double): Result<Unit>
 
     // cập nhật trạng thái
     suspend fun updateOrderStatus(orderId: String, newStatus: OrderStatus): Result<Unit>
@@ -45,7 +45,7 @@ interface OrderRepository {
     suspend fun storeConfirmOrder(orderId: String): Result<Unit>
     suspend fun storeRejectOrder(orderId: String, reason: String): Result<Unit>
     suspend fun storeMarkReady(orderId: String): Result<Unit>
-    suspend fun shipperAcceptOrder(orderId: String, shipperId: String): Result<Unit>
+    suspend fun shipperAcceptOrder(orderId: String, shipperId: String, lat: Double, lng: Double): Result<Unit>
     suspend fun shipperCancelOrder(orderId: String): Result<Unit>
     suspend fun shipperCompleteDelivery(orderId: String): Result<Unit>
     suspend fun confirmOnlinePayment(orderId: String, transactionId: String): Result<Unit>

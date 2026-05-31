@@ -9,6 +9,7 @@ enum class OrderStatus {
     WAITING_STORE_CONFIRMATION,
     PREPARING,
     WAITING_SHIPPER,
+    PICKING_UP,
     DELIVERING,
     COMPLETED,
     CANCELLED_BY_CUSTOMER,
@@ -50,6 +51,7 @@ enum class OrderStatus {
             WAITING_STORE_CONFIRMATION -> "Đợi cửa hàng xác nhận"
             PREPARING -> "Đang chuẩn bị"
             WAITING_SHIPPER -> "Chờ shipper"
+            PICKING_UP -> "Shipper đang lấy đơn"
             DELIVERING -> "Đang vận chuyển"
             COMPLETED -> "Hoàn thành"
             CANCELLED_BY_CUSTOMER -> "Khách hàng hủy"
@@ -85,4 +87,11 @@ data class Order(
     @SerialName("customer_confirmed") val customerConfirmed: Boolean = false,
     @SerialName("cancelled_by") val cancelledBy: String? = null,
     @SerialName("cancellation_reason") val cancellationReason: String? = null
+)
+@Serializable
+data class ShipperAcceptOrderParams(
+    @SerialName("p_order_id") val orderId: String,
+    @SerialName("p_shipper_id") val shipperId: String,
+    @SerialName("p_shipper_lat") val shipperLat: Double,
+    @SerialName("p_shipper_lng") val shipperLng: Double
 )
