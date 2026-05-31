@@ -8,6 +8,7 @@ import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +27,8 @@ data class ShipperUiState(
     val error: String? = null,
     val isAutoAcceptEnabled: Boolean = false,
     val shipperLat: Double? = null,
-    val shipperLng: Double? = null
+    val shipperLng: Double? = null,
+    val processingOrderIds: Set<String> = emptySet()
 )
 
 @HiltViewModel
@@ -37,10 +39,16 @@ class ShipperViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ShipperUiState())
     val uiState: StateFlow<ShipperUiState> = _uiState.asStateFlow()
+
     private var rawPendingOrders: List<Order> = emptyList()
-    private val _cancelledOrderIds = MutableStateFlow<Set<String>>(emptySet())
+
+    // ĐỔI TÊN BIẾN NÀY THÀNH _handledOrderIds (chứa cả đơn đã hủy và đơn ĐÃ NHẬN THÀNH CÔNG)
+    private val _handledOrderIds = MutableStateFlow<Set<String>>(emptySet())
 
     private val MAX_DISTANCE_KM = 3.0
+    private var availableJob: Job? = null
+    private var activeJob: Job? = null
+    private var completedJob: Job? = null
 
     init {
         loadShipperData()
@@ -56,14 +64,18 @@ class ShipperViewModel @Inject constructor(
                 if (shipperId != null) {
                     _uiState.update { it.copy(currentShipperId = shipperId) }
 
-                    launch {
+                    availableJob?.cancel()
+                    activeJob?.cancel()
+                    completedJob?.cancel()
+
+                    availableJob = launch {
                         orderRepository.getAvailableDeliveries().collect { orders ->
                             rawPendingOrders = orders
                             processAvailableOrders(rawPendingOrders)
                         }
                     }
 
-                    launch {
+                    activeJob = launch {
                         orderRepository.getShipperActiveOrder(shipperId).collect { orders ->
                             _uiState.update { state ->
                                 state.copy(
@@ -74,7 +86,7 @@ class ShipperViewModel @Inject constructor(
                         }
                     }
 
-                    launch {
+                    completedJob = launch {
                         orderRepository.getShipperCompletedOrders(shipperId).collect { orders ->
                             _uiState.update { state ->
                                 state.copy(
@@ -99,19 +111,18 @@ class ShipperViewModel @Inject constructor(
 
     fun toggleAutoAccept(enabled: Boolean) {
         _uiState.update { it.copy(isAutoAcceptEnabled = enabled) }
+        processAvailableOrders(rawPendingOrders)
     }
 
     private fun processAvailableOrders(allOrders: List<Order>) {
         val currentState = _uiState.value
         val lat = currentState.shipperLat
         val lng = currentState.shipperLng
-        val cancelledSet = _cancelledOrderIds.value
 
-        Log.d("ShipperApp", "1. Tổng số đơn PREPARING từ Database: ${allOrders.size}")
-        Log.d("ShipperApp", "2. Vị trí Shipper hiện tại: Lat=$lat, Lng=$lng")
+        // Lấy danh sách đen ra kiểm tra
+        val handledSet = _handledOrderIds.value
 
         if (lat == null || lng == null) {
-            Log.d("ShipperApp", "-> DỪNG: Chưa lấy được GPS của Shipper")
             _uiState.update { it.copy(availableOrders = emptyList()) }
             return
         }
@@ -121,17 +132,13 @@ class ShipperViewModel @Inject constructor(
             val storeLat = order.merchantLat
             val storeLng = order.merchantLng
 
-            if (orderId != null && cancelledSet.contains(orderId)) {
-                Log.d("ShipperApp", "-> LOẠI ĐƠN $orderId: Nằm trong danh sách đã hủy")
+            // NẾU ĐƠN HÀNG NẰM TRONG DANH SÁCH ĐEN -> BỎ QUA LUÔN, KHÔNG HIỂN THỊ LẠI
+            if (orderId != null && handledSet.contains(orderId)) {
                 false
             } else if (storeLat != null && storeLng != null) {
                 val distance = calculateHaversineDistance(lat, lng, storeLat, storeLng)
-                Log.d("ShipperApp", "-> Khoảng cách đến đơn $orderId: $distance km")
-
-                // Trả về true nếu <= 3km
                 distance <= MAX_DISTANCE_KM
             } else {
-                Log.d("ShipperApp", "-> LOẠI ĐƠN $orderId: Tọa độ quán (merchant_lat/lng) bị NULL")
                 false
             }
         }.sortedBy { it.createdAt }
@@ -142,7 +149,9 @@ class ShipperViewModel @Inject constructor(
             val bestOrder = nearbyOrders.minByOrNull { order ->
                 calculateHaversineDistance(lat, lng, order.merchantLat!!, order.merchantLng!!)
             }
-            bestOrder?.id?.let { acceptOrder(it) }
+            if (bestOrder?.id != null && !currentState.processingOrderIds.contains(bestOrder.id)) {
+                acceptOrder(bestOrder.id)
+            }
         }
     }
 
@@ -158,34 +167,62 @@ class ShipperViewModel @Inject constructor(
     }
 
     fun acceptOrder(orderId: String) {
-        val shipperId = _uiState.value.currentShipperId ?: return
+        val currentState = _uiState.value
+        if (currentState.processingOrderIds.contains(orderId)) return
+
+        val shipperId = currentState.currentShipperId ?: return
+
+        // KIỂM TRA: Phải có tọa độ mới cho nhận đơn
+        val lat = currentState.shipperLat
+        val lng = currentState.shipperLng
+        if (lat == null || lng == null) {
+            _uiState.update { it.copy(error = "Không thể nhận đơn: Chưa lấy được vị trí GPS của bạn.") }
+            return
+        }
+
         viewModelScope.launch {
+            val orderToMove = currentState.availableOrders.find { it.id == orderId }
             _uiState.update { state ->
                 state.copy(
-                    availableOrders = state.availableOrders.filter { it.id != orderId }
+                    availableOrders = state.availableOrders.filter { it.id != orderId },
+                    processingOrderIds = state.processingOrderIds + orderId
                 )
             }
-            val result = orderRepository.shipperAcceptOrder(orderId, shipperId)
+
+            // TRUYỀN lat VÀ lng VÀO ĐÂY
+            val result = orderRepository.shipperAcceptOrder(orderId, shipperId, lat, lng)
 
             if (result.isFailure) {
                 Log.e("ShipperApp", "Lỗi nhận đơn: ", result.exceptionOrNull())
-                _uiState.update { it.copy(error = "Không thể nhận đơn. Vui lòng thử lại.") }
+                _uiState.update { state ->
+                    val restoredOrders = if (orderToMove != null && !state.availableOrders.contains(orderToMove)) {
+                        state.availableOrders + orderToMove
+                    } else state.availableOrders
+
+                    state.copy(
+                        error = "Không thể nhận đơn. Đơn có thể đã bị hủy hoặc được shipper khác nhận.",
+                        availableOrders = restoredOrders,
+                        processingOrderIds = state.processingOrderIds - orderId
+                    )
+                }
+            } else {
+                _handledOrderIds.update { it + orderId }
+
+                _uiState.update { state ->
+                    state.copy(processingOrderIds = state.processingOrderIds - orderId)
+                }
             }
         }
     }
 
     fun cancelOrder(orderId: String) {
         viewModelScope.launch {
-            _cancelledOrderIds.update { it + orderId }
-
-            _uiState.update { state ->
-                state.copy(activeOrders = state.activeOrders.filter { it.id != orderId })
-            }
+            _handledOrderIds.update { it + orderId }
 
             val result = orderRepository.shipperCancelOrder(orderId)
             if (result.isFailure) {
                 Log.e("ShipperApp", "Lỗi hủy đơn: ", result.exceptionOrNull())
-                _cancelledOrderIds.update { it - orderId }
+                _handledOrderIds.update { it - orderId }
                 _uiState.update { it.copy(error = "Lỗi hủy đơn. Vui lòng thử lại.") }
             }
         }
@@ -197,6 +234,16 @@ class ShipperViewModel @Inject constructor(
             if (result.isFailure) {
                 Log.e("ShipperApp", "Lỗi hoàn tất đơn: ", result.exceptionOrNull())
                 _uiState.update { it.copy(error = "Không thể hoàn thành đơn. Vui lòng thử lại.") }
+            }
+        }
+    }
+
+    fun markOrderAsPickedUp(orderId: String) {
+        viewModelScope.launch {
+            val result = orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
+            if (result.isFailure) {
+                Log.e("ShipperApp", "Lỗi cập nhật lấy hàng: ", result.exceptionOrNull())
+                _uiState.update { it.copy(error = "Không thể cập nhật. Vui lòng thử lại.") }
             }
         }
     }

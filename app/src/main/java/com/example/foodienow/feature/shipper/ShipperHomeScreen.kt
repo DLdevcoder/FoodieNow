@@ -289,6 +289,7 @@ private fun ShipperOrderCard(
     viewModel: ShipperViewModel,
     isHistoryTab: Boolean
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
     val formattedPrice = "${formatter.format(order.totalPrice)} VND"
 
@@ -335,7 +336,6 @@ private fun ShipperOrderCard(
                     color = Color(0xFFD32F2F)
                 )
             }
-
             Spacer(modifier = Modifier.height(4.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -351,11 +351,38 @@ private fun ShipperOrderCard(
                 } else {
                     when (order.status) {
                         OrderStatus.WAITING_SHIPPER -> {
+                            // 2. SỬ DỤNG uiState ĐÃ COLLECT ĐỂ KIỂM TRA
+                            val isProcessing = uiState.processingOrderIds.contains(order.id)
+
                             Button(
                                 onClick = { order.id?.let { viewModel.acceptOrder(it) } },
+                                shape = MaterialTheme.shapes.medium,
+                                enabled = !isProcessing // Khóa nút khi đang gửi lên server
+                            ) {
+                                if (isProcessing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Text(stringResource(R.string.shipper_action_accept))
+                                }
+                            }
+                        }
+                        OrderStatus.PICKING_UP -> {
+                            OutlinedButton(
+                                onClick = onNavigateToMap,
+                                modifier = Modifier.padding(end = 8.dp),
                                 shape = MaterialTheme.shapes.medium
                             ) {
-                                Text(stringResource(R.string.shipper_action_accept))
+                                Text("Bản đồ")
+                            }
+                            Button(
+                                onClick = { order.id?.let { viewModel.markOrderAsPickedUp(it) } },
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text("Đã lấy hàng")
                             }
                         }
                         OrderStatus.DELIVERING -> {
@@ -365,6 +392,24 @@ private fun ShipperOrderCard(
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text("Bản đồ")
+                            }
+
+                            if (order.shipperConfirmed) {
+                                Button(
+                                    onClick = { },
+                                    enabled = false, // Disable nút
+                                    shape = MaterialTheme.shapes.medium
+                                ) {
+                                    Text("Chờ khách xác nhận")
+                                }
+                            } else {
+                                Button(
+                                    onClick = { order.id?.let { viewModel.completeOrder(it) } },
+                                    shape = MaterialTheme.shapes.medium,
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                                ) {
+                                    Text("Đã giao")
+                                }
                             }
                         }
                         else -> {}

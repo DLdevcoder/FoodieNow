@@ -5,10 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Order
-import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +29,9 @@ class OrderHistoryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(OrderHistoryUiState())
     val uiState: StateFlow<OrderHistoryUiState> = _uiState.asStateFlow()
 
+    // Khai báo biến quản lý luồng
+    private var ordersJob: Job? = null
+
     init {
         loadOrders()
         observeCart()
@@ -43,7 +46,10 @@ class OrderHistoryViewModel @Inject constructor(
     }
 
     fun loadOrders() {
-        viewModelScope.launch {
+        // Hủy luồng cũ trước khi mở luồng mới
+        ordersJob?.cancel()
+
+        ordersJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorResId = null) }
             val user = authRepository.getAuthState().first()
             if (user == null) {
@@ -115,7 +121,8 @@ class OrderHistoryViewModel @Inject constructor(
                     orderRepository.cancelOrderWithReason(orderId, reason, "CUSTOMER")
                 }
 
-                loadOrders()
+                // ĐÃ XÓA loadOrders() Ở ĐÂY. Realtime sẽ tự động update lại danh sách.
+
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

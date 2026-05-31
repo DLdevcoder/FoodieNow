@@ -7,6 +7,7 @@ import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,23 +28,25 @@ class MerchantOrdersViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(MerchantOrdersUiState())
     val uiState: StateFlow<MerchantOrdersUiState> = _uiState.asStateFlow()
+
+    private var ordersJob: Job? = null
 
     init {
         loadOrders()
     }
 
     private fun loadOrders() {
-        viewModelScope.launch {
+        ordersJob?.cancel()
+
+        ordersJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val currentUser = authRepository.getAuthState().firstOrNull()
                 val merchantId = currentUser?.id
 
                 if (merchantId != null) {
-                    // Lưu lại ID để dùng lúc xác nhận đơn
                     _uiState.update { it.copy(currentMerchantId = merchantId) }
 
                     orderRepository.getMerchantOrders(merchantId).collect { orderList ->

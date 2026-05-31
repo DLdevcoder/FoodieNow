@@ -40,11 +40,12 @@ fun MerchantOrdersTab(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     val tabs = listOf(
-        OrderStatus.WAITING_STORE_CONFIRMATION to R.string.merchant_orders_status_pending,
-        OrderStatus.PREPARING to R.string.merchant_orders_status_preparing,
-        OrderStatus.WAITING_SHIPPER to R.string.merchant_orders_status_driver_assigned,
-        OrderStatus.DELIVERING to R.string.merchant_orders_status_delivering,
-        null to R.string.my_orders_tab_history
+        OrderStatus.WAITING_STORE_CONFIRMATION to "Chờ xác nhận",
+        OrderStatus.PREPARING to "Đang chuẩn bị",
+        OrderStatus.WAITING_SHIPPER to "Chờ nhận đơn",
+        OrderStatus.PICKING_UP to "Chờ shipper lấy",
+        OrderStatus.DELIVERING to "Đang giao",
+        null to "Lịch sử"
     )
 
     val cancelReason = stringResource(R.string.merchant_orders_cancel_reason_store)
@@ -145,6 +146,7 @@ fun MerchantOrdersTab(
             }
         }
 
+        // 2. CHUYỂN SANG ScrollableTabRow VÌ ĐÃ CÓ 6 TAB, KHÔNG ĐỦ CHỖ NẾU CHIA ĐỀU
         ScrollableTabRow(
             selectedTabIndex = selectedTabIndex,
             edgePadding = 8.dp,
@@ -160,7 +162,9 @@ fun MerchantOrdersTab(
                 Tab(
                     selected = selectedTabIndex == index,
                     onClick = { selectedTabIndex = index },
-                    text = { Text(stringResource(tab.second)) }
+                    // Sửa lại cách gọi text vì tôi dùng String trực tiếp thay vì Resource ID ở trên
+                    // Nếu bạn có file strings.xml, hãy tạo thẻ string và đổi lại thành stringResource(tab.second as Int)
+                    text = { Text(tab.second.toString()) }
                 )
             }
         }
@@ -223,6 +227,7 @@ fun MerchantOrdersTab(
         }
     }
 }
+
 @Composable
 private fun MerchantOrderCard(
     order: Order,

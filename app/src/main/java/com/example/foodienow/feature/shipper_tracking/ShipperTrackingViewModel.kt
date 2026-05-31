@@ -13,6 +13,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.request.get
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +23,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.maplibre.android.geometry.LatLng
 import javax.inject.Inject
+import kotlin.math.*
 
 @Serializable
 data class DirectionsResponse(
@@ -90,12 +92,17 @@ class ShipperTrackingViewModel @Inject constructor(
     private val _routeToCustomer = MutableStateFlow<List<LatLng>>(emptyList())
     val routeToCustomer: StateFlow<List<LatLng>> = _routeToCustomer.asStateFlow()
 
-    private val _isPickedUp = MutableStateFlow(false)
-    val isPickedUp: StateFlow<Boolean> = _isPickedUp.asStateFlow()
+    private val _isProcessing = MutableStateFlow(false)
+    val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
 
     private val httpClient = HttpClient(OkHttp)
     private val json = Json { ignoreUnknownKeys = true }
     private val goongApiKey = BuildConfig.GOONG_API_KEY
+
+    // Biến lưu tọa độ trước đó để kiểm tra khoảng cách
+    private var lastRouteUpdateLat: Double? = null
+    private var lastRouteUpdateLng: Double? = null
+    private val DISTANCE_THRESHOLD_METERS = 50.0 // Lấy lại route nếu di chuyển > 50m
 
     init {
         loadOrder()
@@ -113,30 +120,44 @@ class ShipperTrackingViewModel @Inject constructor(
         }
     }
 
+    private var lastDbUpdateTimestamp: Long = 0
+    private val DB_UPDATE_INTERVAL_MS = 10000L
     fun updateShipperLocation(lat: Double, lng: Double) {
         viewModelScope.launch {
             try {
-                orderRepository.updateShipperLocation(orderId, lat, lng)
-                _currentOrder.update { it?.copy(shipperLat = lat, shipperLng = lng) }
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastDbUpdateTimestamp > DB_UPDATE_INTERVAL_MS) {
+                    lastDbUpdateTimestamp = currentTime
+                    launch {
+                        try { orderRepository.updateShipperLocation(orderId, lat, lng) }
+                        catch (e: Exception) { Log.e("Tracking", "Lỗi update tọa độ lên DB: ${e.message}") }
+                    }
+                }
 
-                val currentOrderVal = _currentOrder.value
-                if (currentOrderVal?.status == OrderStatus.DELIVERING) {
-                    if (_isPickedUp.value) {
-                        val custLat = currentOrderVal.deliveryLat
-                        val custLng = currentOrderVal.deliveryLng
-                        if (custLat != null && custLng != null) {
-                            _routeToCustomer.value = getRoutePolyline(
-                                origin = "$lat,$lng",
-                                destination = "$custLat,$custLng"
-                            )
-                        }
-                    } else {
+                _currentOrder.update { it?.copy(shipperLat = lat, shipperLng = lng) }
+                val currentOrderVal = _currentOrder.value ?: return@launch
+                val shouldUpdateRoute = lastRouteUpdateLat == null || lastRouteUpdateLng == null ||
+                        calculateDistanceInMeters(lat, lng, lastRouteUpdateLat!!, lastRouteUpdateLng!!) > DISTANCE_THRESHOLD_METERS
+                if (shouldUpdateRoute) {
+                    lastRouteUpdateLat = lat
+                    lastRouteUpdateLng = lng
+
+                    if (currentOrderVal.status == OrderStatus.PICKING_UP) {
                         val storeLat = currentOrderVal.merchantLat
                         val storeLng = currentOrderVal.merchantLng
                         if (storeLat != null && storeLng != null) {
                             _routeToStore.value = getRoutePolyline(
                                 origin = "$lat,$lng",
                                 destination = "$storeLat,$storeLng"
+                            )
+                        }
+                    } else if (currentOrderVal.status == OrderStatus.DELIVERING) {
+                        val custLat = currentOrderVal.deliveryLat
+                        val custLng = currentOrderVal.deliveryLng
+                        if (custLat != null && custLng != null) {
+                            _routeToCustomer.value = getRoutePolyline(
+                                origin = "$lat,$lng",
+                                destination = "$custLat,$custLng"
                             )
                         }
                     }
@@ -159,52 +180,70 @@ class ShipperTrackingViewModel @Inject constructor(
             val custLng = order.deliveryLng ?: return@launch
 
             try {
-                if (order.status == OrderStatus.DELIVERING) {
-                    if (_isPickedUp.value) {
+                when (order.status) {
+                    OrderStatus.PICKING_UP -> {
+                        val route1Deferred = async { getRoutePolyline("$shipperLat,$shipperLng", "$storeLat,$storeLng") }
+                        val route2Deferred = async { getRoutePolyline("$storeLat,$storeLng", "$custLat,$custLng") }
+
+                        _routeToStore.value = route1Deferred.await()
+                        _routeToCustomer.value = route2Deferred.await()
+                    }
+                    OrderStatus.DELIVERING -> {
                         _routeToStore.value = emptyList()
                         _routeToCustomer.value = getRoutePolyline(
                             origin = "$shipperLat,$shipperLng",
                             destination = "$custLat,$custLng"
                         )
-                    } else {
-                        _routeToStore.value = getRoutePolyline(
-                            origin = "$shipperLat,$shipperLng",
-                            destination = "$storeLat,$storeLng"
-                        )
-                        _routeToCustomer.value = getRoutePolyline(
-                            origin = "$storeLat,$storeLng",
-                            destination = "$custLat,$custLng"
-                        )
                     }
-                } else {
-                    _routeToStore.value = emptyList()
-                    _routeToCustomer.value = emptyList()
+                    else -> {
+                        _routeToStore.value = emptyList()
+                        _routeToCustomer.value = emptyList()
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("GoongAPI", "Lỗi tìm đường: ${e.message}")
-                e.printStackTrace()
             }
         }
     }
 
     fun confirmOrderPickedUp() {
+        if (_isProcessing.value) return
         viewModelScope.launch {
+            _isProcessing.value = true
             try {
-                _isPickedUp.value = true
-                _currentOrder.value?.let { fetchRoutesBasedOnStatus(it) }
+                // Tối ưu UI: Reset cả 2 đường hiện tại ngay lập tức để xóa trên bản đồ
+                _routeToStore.value = emptyList()
+                _routeToCustomer.value = emptyList()
+
+                // Cập nhật state UI sang DELIVERING
+                _currentOrder.update { it?.copy(status = OrderStatus.DELIVERING) }
+
+                // Gọi server
+                val result = orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
+                if (result.isSuccess) {
+                    _currentOrder.value?.let { fetchRoutesBasedOnStatus(it) }
+                } else {
+                    // Trả lại trạng thái cũ nếu server lỗi
+                    _currentOrder.update { it?.copy(status = OrderStatus.PICKING_UP) }
+                    _currentOrder.value?.let { fetchRoutesBasedOnStatus(it) }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
+                _currentOrder.update { it?.copy(status = OrderStatus.PICKING_UP) }
+            } finally {
+                _isProcessing.value = false
             }
         }
     }
 
     fun confirmDelivery(onSuccess: () -> Unit) {
+        if (_isProcessing.value) return
         viewModelScope.launch {
+            _isProcessing.value = true
             try {
                 val result = orderRepository.confirmShipperDelivery(orderId)
                 if (result.isSuccess) {
                     _currentOrder.update { it?.copy(shipperConfirmed = true) }
-
                     val latestOrder = orderRepository.getOrderById(orderId)
                     if (latestOrder?.status == OrderStatus.COMPLETED) {
                         onSuccess()
@@ -212,12 +251,16 @@ class ShipperTrackingViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                _isProcessing.value = false
             }
         }
     }
 
     fun cancelDelivery(onSuccess: () -> Unit) {
+        if (_isProcessing.value) return
         viewModelScope.launch {
+            _isProcessing.value = true
             try {
                 val result = orderRepository.shipperCancelOrder(orderId)
                 if (result.isSuccess) {
@@ -225,6 +268,8 @@ class ShipperTrackingViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                _isProcessing.value = false
             }
         }
     }
@@ -239,5 +284,16 @@ class ShipperTrackingViewModel @Inject constructor(
         } else {
             emptyList()
         }
+    }
+
+    private fun calculateDistanceInMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val R = 6371e3
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2) * sin(dLon / 2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return R * c
     }
 }
