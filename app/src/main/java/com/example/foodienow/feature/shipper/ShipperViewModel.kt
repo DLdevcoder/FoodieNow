@@ -165,7 +165,6 @@ class ShipperViewModel @Inject constructor(
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return R * c
     }
-
     fun acceptOrder(orderId: String) {
         val currentState = _uiState.value
         if (currentState.processingOrderIds.contains(orderId)) return
@@ -181,33 +180,54 @@ class ShipperViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            // 1. Lấy đơn hàng ra để chuẩn bị di chuyển
             val orderToMove = currentState.availableOrders.find { it.id == orderId }
+
+            // 2. OPTIMISTIC UPDATE: Cập nhật giao diện siêu tốc
             _uiState.update { state ->
+                // Xóa khỏi tab Đơn sẵn sàng
+                val newAvailableOrders = state.availableOrders.filter { it.id != orderId }
+
+                // Bơm thẳng sang tab Đang giao với trạng thái PICKING_UP
+                val newActiveOrders = if (orderToMove != null) {
+                    val updatedOrder = orderToMove.copy(
+                        status = OrderStatus.PICKING_UP,
+                        shipperId = shipperId
+                    )
+                    listOf(updatedOrder) + state.activeOrders
+                } else {
+                    state.activeOrders
+                }
+
                 state.copy(
-                    availableOrders = state.availableOrders.filter { it.id != orderId },
+                    availableOrders = newAvailableOrders,
+                    activeOrders = newActiveOrders.sortedBy { it.createdAt }, // Hiện ngay lập tức
                     processingOrderIds = state.processingOrderIds + orderId
                 )
             }
 
-            // TRUYỀN lat VÀ lng VÀO ĐÂY
+            // 3. Gửi lệnh lên Server chạy ngầm
             val result = orderRepository.shipperAcceptOrder(orderId, shipperId, lat, lng)
 
             if (result.isFailure) {
                 Log.e("ShipperApp", "Lỗi nhận đơn: ", result.exceptionOrNull())
+                // PHỤC HỒI LẠI TRẠNG THÁI CŨ NẾU LỖI
                 _uiState.update { state ->
-                    val restoredOrders = if (orderToMove != null && !state.availableOrders.contains(orderToMove)) {
+                    val restoredAvailable = if (orderToMove != null && !state.availableOrders.contains(orderToMove)) {
                         state.availableOrders + orderToMove
                     } else state.availableOrders
 
+                    val restoredActive = state.activeOrders.filter { it.id != orderId }
+
                     state.copy(
                         error = "Không thể nhận đơn. Đơn có thể đã bị hủy hoặc được shipper khác nhận.",
-                        availableOrders = restoredOrders,
+                        availableOrders = restoredAvailable,
+                        activeOrders = restoredActive,
                         processingOrderIds = state.processingOrderIds - orderId
                     )
                 }
             } else {
                 _handledOrderIds.update { it + orderId }
-
                 _uiState.update { state ->
                     state.copy(processingOrderIds = state.processingOrderIds - orderId)
                 }
@@ -215,36 +235,67 @@ class ShipperViewModel @Inject constructor(
         }
     }
 
-    fun cancelOrder(orderId: String) {
-        viewModelScope.launch {
-            _handledOrderIds.update { it + orderId }
+    fun markOrderAsPickedUp(orderId: String) {
+        val currentState = _uiState.value
+        if (currentState.processingOrderIds.contains(orderId)) return
 
-            val result = orderRepository.shipperCancelOrder(orderId)
+        viewModelScope.launch {
+            // 1. OPTIMISTIC UPDATE: Đổi chữ "Đã lấy hàng" thành "Đã giao" ngay lập tức
+            _uiState.update { state ->
+                val updatedActiveOrders = state.activeOrders.map {
+                    if (it.id == orderId) it.copy(status = OrderStatus.DELIVERING) else it
+                }
+                state.copy(
+                    activeOrders = updatedActiveOrders,
+                    processingOrderIds = state.processingOrderIds + orderId
+                )
+            }
+
+            // 2. Cập nhật server
+            val result = orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
+
             if (result.isFailure) {
-                Log.e("ShipperApp", "Lỗi hủy đơn: ", result.exceptionOrNull())
-                _handledOrderIds.update { it - orderId }
-                _uiState.update { it.copy(error = "Lỗi hủy đơn. Vui lòng thử lại.") }
+                Log.e("ShipperApp", "Lỗi cập nhật lấy hàng: ", result.exceptionOrNull())
+                // Phục hồi nếu lỗi
+                _uiState.update { state ->
+                    val restoredOrders = state.activeOrders.map {
+                        if (it.id == orderId) it.copy(status = OrderStatus.PICKING_UP) else it
+                    }
+                    state.copy(
+                        error = "Không thể cập nhật. Vui lòng thử lại.",
+                        activeOrders = restoredOrders,
+                        processingOrderIds = state.processingOrderIds - orderId
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(processingOrderIds = it.processingOrderIds - orderId) }
             }
         }
     }
 
     fun completeOrder(orderId: String) {
+        val currentState = _uiState.value
+        if (currentState.processingOrderIds.contains(orderId)) return
+
         viewModelScope.launch {
+            _uiState.update { it.copy(processingOrderIds = it.processingOrderIds + orderId) }
+
             val result = orderRepository.confirmShipperDelivery(orderId)
+
             if (result.isFailure) {
                 Log.e("ShipperApp", "Lỗi hoàn tất đơn: ", result.exceptionOrNull())
                 _uiState.update { it.copy(error = "Không thể hoàn thành đơn. Vui lòng thử lại.") }
+            } else {
+                // Tối ưu UI: Vô hiệu hóa nút và đổi sang "Chờ khách xác nhận" ngay lập tức
+                _uiState.update { state ->
+                    val updatedActiveOrders = state.activeOrders.map {
+                        if (it.id == orderId) it.copy(shipperConfirmed = true) else it
+                    }
+                    state.copy(activeOrders = updatedActiveOrders)
+                }
             }
-        }
-    }
 
-    fun markOrderAsPickedUp(orderId: String) {
-        viewModelScope.launch {
-            val result = orderRepository.updateOrderStatus(orderId, OrderStatus.DELIVERING)
-            if (result.isFailure) {
-                Log.e("ShipperApp", "Lỗi cập nhật lấy hàng: ", result.exceptionOrNull())
-                _uiState.update { it.copy(error = "Không thể cập nhật. Vui lòng thử lại.") }
-            }
+            _uiState.update { it.copy(processingOrderIds = it.processingOrderIds - orderId) }
         }
     }
 }

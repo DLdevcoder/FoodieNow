@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Order
+import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.domain.repository.AuthRepository
 import com.example.foodienow.domain.repository.OrderRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -118,11 +119,14 @@ class OrderHistoryViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             try {
                 order.id?.let { orderId ->
+                    _uiState.update { state ->
+                        val updatedOrders = state.orders.map {
+                            if (it.id == orderId) it.copy(status = OrderStatus.CANCELLED_BY_CUSTOMER) else it
+                        }
+                        state.copy(orders = updatedOrders)
+                    }
                     orderRepository.cancelOrderWithReason(orderId, reason, "CUSTOMER")
                 }
-
-                // ĐÃ XÓA loadOrders() Ở ĐÂY. Realtime sẽ tự động update lại danh sách.
-
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

@@ -268,7 +268,12 @@ fun PaymentScreen(
         viewModel.paymentEvent.collect { event ->
             when (event) {
                 is PaymentEvent.PaymentSuccess -> {
-                    activeBanner = Pair("Thanh toán thành công", "Số dư Ví FoodiePay đã trừ -${formatter.format(event.amount)} cho đơn hàng ${event.orderId}.")
+                    if (event.methodLabel.contains("FoodiePay") || event.methodLabel.contains("Ví điện tử")) {
+                        activeBanner = Pair("Thanh toán thành công", "Số dư Ví FoodiePay đã trừ -${formatter.format(event.amount)} cho đơn hàng ${event.orderId}.")
+                    } else {
+                        activeBanner = Pair("Đặt hàng thành công", "Đơn hàng ${event.orderId} thanh toán bằng Tiền mặt (COD). Số tiền: ${formatter.format(event.amount)}.")
+                    }
+
                     kotlinx.coroutines.delay(2200)
                     onNavigateToPaymentResult(event.orderId, event.amount, event.methodLabel)
                 }

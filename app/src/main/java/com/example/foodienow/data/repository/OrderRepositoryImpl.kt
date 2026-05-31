@@ -492,15 +492,17 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun cancelOrderWithReason(orderId: String, reason: String, cancelledBy: String): Result<Unit> {
         return try {
-            supabaseClient.postgrest["orders"].update(
-                {
-                    set("status", OrderStatus.CANCELLED_BY_CUSTOMER.name)
-                    set("cancellation_reason", reason)
-                    set("cancelled_by", cancelledBy)
-                }
-            ) {
-                filter { eq("id", orderId) }
-            }
+            val params = CustomerCancelOrderParams(
+                orderId = orderId,
+                reason = reason,
+                cancelledBy = cancelledBy
+            )
+
+            supabaseClient.postgrest.rpc(
+                function = "customer_cancel_order",
+                parameters = params
+            )
+
             Result.success(Unit)
         } catch (e: Exception) {
             android.util.Log.e("OrderRepository", "Lỗi khi hủy đơn: ", e)
@@ -618,7 +620,12 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 }
-
+@Serializable
+data class CustomerCancelOrderParams(
+    @SerialName("p_order_id") val orderId: String,
+    @SerialName("p_reason") val reason: String,
+    @SerialName("p_cancelled_by") val cancelledBy: String
+)
 @Serializable
 data class OrderIdParam(
     @SerialName("p_order_id") val orderId: String
