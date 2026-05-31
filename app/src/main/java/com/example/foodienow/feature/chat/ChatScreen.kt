@@ -17,19 +17,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.Message
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     viewModel: ChatViewModel = hiltViewModel(),
-    title: String = "Chat",
+    title: String = stringResource(R.string.chat_default_title),
     receiverAvatarUrl: String? = null,
     onBack: () -> Unit
 ) {
@@ -44,7 +46,6 @@ fun ChatScreen(
     }
 
     Scaffold(
-        // CHỈ SỬ DỤNG imePadding() ở ĐÂY ĐỂ ĐẨY TOÀN BỘ GIAO DIỆN LÊN
         modifier = Modifier.imePadding(),
         topBar = {
             TopAppBar(
@@ -90,7 +91,7 @@ fun ChatScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -113,7 +114,7 @@ fun ChatScreen(
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
-                        placeholder = { Text("Nhập tin nhắn...") },
+                        placeholder = { Text(stringResource(R.string.chat_input_placeholder)) },
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -132,7 +133,7 @@ fun ChatScreen(
                             contentColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Gửi")
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.chat_send_action))
                     }
                 }
             }

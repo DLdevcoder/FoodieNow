@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,6 +35,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
+import com.example.foodienow.R
 import com.example.foodienow.core.designsystem.components.FoodieCard
 import com.example.foodienow.core.designsystem.theme.FoodieCream
 import com.example.foodienow.core.designsystem.theme.OrangePrimary
@@ -107,9 +109,9 @@ fun AdminDashboardScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Chi tiết tài khoản", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(stringResource(R.string.admin_account_details_title), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     IconButton(onClick = { showDetailUserDialog = null }) {
-                        Icon(Icons.Default.Close, contentDescription = "Đóng")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close))
                     }
                 }
             },
@@ -205,13 +207,13 @@ fun AdminDashboardScreen(
                             modifier = Modifier.padding(14.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Số dư tài khoản", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(stringResource(R.string.admin_account_balance_title), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Hiện tại:", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.admin_account_balance_current), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(
                                     formatter.format(profile.balance),
                                     fontWeight = FontWeight.ExtraBold,
@@ -220,7 +222,7 @@ fun AdminDashboardScreen(
                                 )
                             }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                            Text("Thay đổi số dư:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.admin_account_balance_change), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -229,7 +231,7 @@ fun AdminDashboardScreen(
                                 OutlinedTextField(
                                     value = newBalanceInput,
                                     onValueChange = { input -> newBalanceInput = input.filter { it.isDigit() } },
-                                    label = { Text("Số dư mới (₫)") },
+                                    label = { Text(stringResource(R.string.admin_account_balance_new_hint)) },
                                     singleLine = true,
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     modifier = Modifier.weight(1f),
@@ -247,7 +249,7 @@ fun AdminDashboardScreen(
                                     shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier.height(52.dp)
                                 ) {
-                                    Text("Lưu", fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.common_save), fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -257,8 +259,8 @@ fun AdminDashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Lịch sử giao dịch ví", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        
+                        Text(stringResource(R.string.admin_wallet_history_title), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
                         if (uiState.isTransactionsLoading) {
                             Box(
                                 modifier = Modifier
@@ -275,7 +277,7 @@ fun AdminDashboardScreen(
                                     .height(80.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Chưa có lịch sử giao dịch nào.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(stringResource(R.string.admin_wallet_history_empty), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         } else {
                             Card(
@@ -292,7 +294,7 @@ fun AdminDashboardScreen(
                                         val isPositive = tx.type == WalletTransactionType.TOP_UP || tx.type == WalletTransactionType.REFUND
                                         val amountText = (if (isPositive) "+" else "-") + formatter.format(tx.amount)
                                         val amountColor = if (isPositive) SuccessGreen else ErrorRed
-                                        
+
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -377,7 +379,7 @@ fun AdminDashboardScreen(
                     TopAppBar(
                         title = {
                             Text(
-                                text = if (activeTab == 0) "Quản lý tài khoản" else "Quản lý dòng tiền",
+                                text = if (activeTab == 0) stringResource(R.string.admin_tab_account_management) else stringResource(R.string.admin_tab_cash_flow),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 20.sp,
                                 color = Color.White
@@ -407,9 +409,9 @@ fun AdminDashboardScreen(
                     modifier = Modifier.height(72.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
                 ) {
                     val tabs = listOf(
-                        Triple(Icons.Default.SupervisorAccount, "Tài khoản", 0),
-                        Triple(Icons.Default.MonetizationOn, "Dòng tiền", 1),
-                        Triple(Icons.Default.Person, "Tôi", 2)
+                        Triple(Icons.Default.SupervisorAccount, stringResource(R.string.admin_tab_accounts), 0),
+                        Triple(Icons.Default.MonetizationOn, stringResource(R.string.admin_tab_cash_flow_short), 1),
+                        Triple(Icons.Default.Person, stringResource(R.string.bottom_nav_me), 2)
                     )
 
                     tabs.forEach { (icon, label, index) ->
@@ -616,13 +618,13 @@ private fun CashFlowTabContent(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Thống kê tiền chi tiết",
+                        text = stringResource(R.string.admin_finance_detailed_stats),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    
+
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -647,7 +649,7 @@ private fun CashFlowTabContent(
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
-                                Text("Tổng tiền hiện tại", fontSize = 13.sp)
+                                Text(stringResource(R.string.admin_finance_total_balance), fontSize = 13.sp)
                             }
                             Text(
                                 text = formatter.format(uiState.detailedFinancialStats.totalSystemBalance),
@@ -680,7 +682,7 @@ private fun CashFlowTabContent(
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
-                                Text("Tiền chờ (Escrow)", fontSize = 13.sp)
+                                Text(stringResource(R.string.admin_finance_escrow), fontSize = 13.sp)
                             }
                             Text(
                                 text = formatter.format(uiState.detailedFinancialStats.pendingEscrowBalance),
@@ -713,7 +715,7 @@ private fun CashFlowTabContent(
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
-                                Text("Tiền hoa hồng", fontSize = 13.sp)
+                                Text(stringResource(R.string.admin_finance_commission), fontSize = 13.sp)
                             }
                             Text(
                                 text = formatter.format(uiState.detailedFinancialStats.totalCommissions),
@@ -746,7 +748,7 @@ private fun CashFlowTabContent(
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
-                                Text("Tiền cho shipper", fontSize = 13.sp)
+                                Text(stringResource(R.string.admin_finance_shipper_balance), fontSize = 13.sp)
                             }
                             Text(
                                 text = formatter.format(uiState.detailedFinancialStats.totalShipperBalance),
@@ -779,7 +781,7 @@ private fun CashFlowTabContent(
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
-                                Text("Tiền cho chủ quán", fontSize = 13.sp)
+                                Text(stringResource(R.string.admin_finance_merchant_balance), fontSize = 13.sp)
                             }
                             Text(
                                 text = formatter.format(uiState.detailedFinancialStats.totalMerchantBalance),
@@ -804,42 +806,42 @@ private fun CashFlowTabContent(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Cấu hình hệ thống",
+                        text = stringResource(R.string.admin_system_config_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    
+
                     OutlinedTextField(
                         value = commissionInput,
                         onValueChange = onCommissionInputChanged,
-                        label = { Text("Tỷ lệ hoa hồng (%)") },
+                        label = { Text(stringResource(R.string.admin_config_commission_rate)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp)
                     )
-                    
+
                     OutlinedTextField(
                         value = deliveryFeeInput,
                         onValueChange = onDeliveryFeeInputChanged,
-                        label = { Text("Phí giao hàng cơ bản (₫)") },
+                        label = { Text(stringResource(R.string.admin_config_base_delivery_fee)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp)
                     )
-                    
+
                     OutlinedTextField(
                         value = freeDeliveryThresholdInput,
                         onValueChange = onFreeDeliveryThresholdInputChanged,
-                        label = { Text("Ngưỡng miễn phí giao hàng (₫)") },
+                        label = { Text(stringResource(R.string.admin_config_free_delivery_threshold)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp)
                     )
-                    
+
                     Button(
                         onClick = onSaveSettings,
                         colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
@@ -848,7 +850,7 @@ private fun CashFlowTabContent(
                             .fillMaxWidth()
                             .height(48.dp)
                     ) {
-                        Text("Cập nhật cấu hình", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.admin_config_update_btn), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -860,9 +862,9 @@ private fun CashFlowTabContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Báo cáo theo ngày", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.admin_finance_daily_report), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 IconButton(onClick = onRefresh) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Tải lại")
+                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.common_refresh))
                 }
             }
         }
@@ -876,7 +878,7 @@ private fun CashFlowTabContent(
         } else if (uiState.financialStats.isEmpty()) {
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                    Text("Chưa có báo cáo dòng tiền nào.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.admin_finance_empty_report), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         } else {
@@ -899,7 +901,7 @@ private fun CashFlowTabContent(
                             )
                             Badge(containerColor = OrangePrimary.copy(alpha = 0.1f)) {
                                 Text(
-                                    text = "${stats.totalOrders} đơn hàng",
+                                    text = stringResource(R.string.admin_finance_order_count, stats.totalOrders),
                                     color = OrangePrimary,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -908,11 +910,11 @@ private fun CashFlowTabContent(
                         }
                         HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Tổng Doanh Thu:", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.admin_finance_total_revenue), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(formatter.format(stats.totalSubtotal), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Hoa Hồng Admin:", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.admin_finance_admin_commission), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
                                 formatter.format(stats.totalCommissions),
                                 fontSize = 13.sp,
@@ -921,11 +923,11 @@ private fun CashFlowTabContent(
                             )
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Giải Ngân Merchant:", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.admin_finance_merchant_payout), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(formatter.format(stats.totalMerchantPayouts), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Giải Ngân Shipper:", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.admin_finance_shipper_payout), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(formatter.format(stats.totalShipperPayouts), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -972,7 +974,7 @@ private fun AccountsTabContent(
                 OutlinedTextField(
                     value = uiState.searchQuery,
                     onValueChange = onSearchQueryChanged,
-                    placeholder = { Text("Tìm theo tên, email, ID...") },
+                    placeholder = { Text(stringResource(R.string.admin_search_placeholder)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -983,7 +985,7 @@ private fun AccountsTabContent(
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = onRefresh) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Tải lại")
+                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.common_refresh))
                 }
             }
         }
@@ -1013,11 +1015,11 @@ private fun AccountsTabContent(
                         ) {
                             Text(
                                 text = when (uiState.selectedRoleFilter) {
-                                    null -> "Vai trò: Tất cả"
-                                    UserRole.CUSTOMER -> "Vai trò: User"
-                                    UserRole.MERCHANT -> "Vai trò: Store"
-                                    UserRole.SHIPPER -> "Vai trò: Shipper"
-                                    UserRole.ADMIN -> "Vai trò: Admin"
+                                    null -> stringResource(R.string.admin_filter_role_all)
+                                    UserRole.CUSTOMER -> stringResource(R.string.admin_filter_role_user)
+                                    UserRole.MERCHANT -> stringResource(R.string.admin_filter_role_store)
+                                    UserRole.SHIPPER -> stringResource(R.string.admin_filter_role_shipper)
+                                    UserRole.ADMIN -> stringResource(R.string.admin_filter_role_admin)
                                 },
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
@@ -1036,7 +1038,7 @@ private fun AccountsTabContent(
                         onDismissRequest = { showRoleMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Tất cả", fontSize = 13.sp) },
+                            text = { Text(stringResource(R.string.common_all), fontSize = 13.sp) },
                             onClick = {
                                 onRoleFilterChanged(null)
                                 showRoleMenu = false
@@ -1047,10 +1049,10 @@ private fun AccountsTabContent(
                                 text = {
                                     Text(
                                         text = when (role) {
-                                            UserRole.CUSTOMER -> "User"
-                                            UserRole.MERCHANT -> "Store"
-                                            UserRole.SHIPPER -> "Shipper"
-                                            UserRole.ADMIN -> "Admin"
+                                            UserRole.CUSTOMER -> stringResource(R.string.role_display_user)
+                                            UserRole.MERCHANT -> stringResource(R.string.role_display_store)
+                                            UserRole.SHIPPER -> stringResource(R.string.role_shipper)
+                                            UserRole.ADMIN -> stringResource(R.string.role_admin)
                                         },
                                         fontSize = 13.sp
                                     )
@@ -1081,10 +1083,10 @@ private fun AccountsTabContent(
                         ) {
                             Text(
                                 text = when (uiState.searchCriteria) {
-                                    SearchCriteria.ALL -> "Tìm theo: Tất cả"
-                                    SearchCriteria.NAME -> "Tìm theo: Tên"
-                                    SearchCriteria.EMAIL -> "Tìm theo: Email"
-                                    SearchCriteria.ID -> "Tìm theo: ID"
+                                    SearchCriteria.ALL -> stringResource(R.string.admin_search_by_all)
+                                    SearchCriteria.NAME -> stringResource(R.string.admin_search_by_name)
+                                    SearchCriteria.EMAIL -> stringResource(R.string.admin_search_by_email)
+                                    SearchCriteria.ID -> stringResource(R.string.admin_search_by_id)
                                 },
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
@@ -1107,10 +1109,10 @@ private fun AccountsTabContent(
                                 text = {
                                     Text(
                                         text = when (criteria) {
-                                            SearchCriteria.ALL -> "Tất cả"
-                                            SearchCriteria.NAME -> "Tên"
-                                            SearchCriteria.EMAIL -> "Email"
-                                            SearchCriteria.ID -> "ID"
+                                            SearchCriteria.ALL -> stringResource(R.string.common_all)
+                                            SearchCriteria.NAME -> stringResource(R.string.common_name)
+                                            SearchCriteria.EMAIL -> stringResource(R.string.auth_email_label)
+                                            SearchCriteria.ID -> stringResource(R.string.common_id)
                                         },
                                         fontSize = 13.sp
                                     )
@@ -1135,7 +1137,7 @@ private fun AccountsTabContent(
         } else if (uiState.filteredProfiles.isEmpty()) {
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                    Text("Không tìm thấy tài khoản nào.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.admin_accounts_not_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         } else {
@@ -1235,7 +1237,7 @@ private fun AccountPieChart(
     val nonAdminStats = accountStats.filter { it.role != UserRole.ADMIN }
     val totalUsers = nonAdminStats.sumOf { it.totalUsers }
     val entries = nonAdminStats.filter { it.totalUsers > 0 }
-    
+
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -1250,7 +1252,7 @@ private fun AccountPieChart(
                 val sizeMin = size.minDimension - strokeWidth
                 val chartSize = Size(sizeMin, sizeMin)
                 val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
-                
+
                 if (totalUsers == 0L) {
                     drawArc(
                         color = Color.LightGray,
@@ -1284,7 +1286,7 @@ private fun AccountPieChart(
                     }
                 }
             }
-            
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = totalUsers.toString(),
@@ -1293,13 +1295,13 @@ private fun AccountPieChart(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Tài khoản",
+                    text = stringResource(R.string.admin_chart_account_label),
                     fontSize = 10.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        
+
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.weight(1f)
@@ -1314,12 +1316,12 @@ private fun AccountPieChart(
                     UserRole.ADMIN -> OrangePrimary
                 }
                 val label = when (role) {
-                    UserRole.CUSTOMER -> "User"
-                    UserRole.MERCHANT -> "Store"
-                    UserRole.SHIPPER -> "Shipper"
-                    UserRole.ADMIN -> "Admin"
+                    UserRole.CUSTOMER -> stringResource(R.string.role_display_user)
+                    UserRole.MERCHANT -> stringResource(R.string.role_display_store)
+                    UserRole.SHIPPER -> stringResource(R.string.role_shipper)
+                    UserRole.ADMIN -> stringResource(R.string.role_admin)
                 }
-                
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)

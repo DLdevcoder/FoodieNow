@@ -1,6 +1,7 @@
 package com.example.foodienow.feature.order_history
 
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -90,12 +91,12 @@ import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.feature.customer_home.components.formatPrice
 
 private enum class OrdersTab(
-    val title: String,
+    @StringRes val titleResId: Int,
     val icon: ImageVector
 ) {
-    CART("Giỏ hàng", Icons.Default.ShoppingCart),
-    ACTIVE("Đang giao", Icons.Default.LocalShipping),
-    HISTORY("Lịch sử", Icons.Default.History)
+    CART(R.string.order_history_tab_cart, Icons.Default.ShoppingCart),
+    ACTIVE(R.string.order_history_tab_active, Icons.Default.LocalShipping),
+    HISTORY(R.string.order_history_tab_history, Icons.Default.History)
 }
 
 @Composable
@@ -132,16 +133,16 @@ fun OrderHistoryScreen(
                 orderToCancel = null
                 cancelReason = ""
             },
-            title = { Text(text = "Hủy đơn hàng") },
+            title = { Text(text = stringResource(R.string.order_history_cancel_dialog_title)) },
             text = {
                 Column {
-                    Text(text = "Vui lòng cho biết lý do bạn muốn hủy đơn hàng này:")
+                    Text(text = stringResource(R.string.order_history_cancel_dialog_desc))
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = cancelReason,
                         onValueChange = { cancelReason = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Ví dụ: Đổi ý, đặt nhầm món...") },
+                        placeholder = { Text(stringResource(R.string.order_history_cancel_dialog_hint)) },
                         maxLines = 3
                     )
                 }
@@ -155,7 +156,7 @@ fun OrderHistoryScreen(
                     },
                     enabled = cancelReason.isNotBlank()
                 ) {
-                    Text("Xác nhận hủy", color = ErrorRed)
+                    Text(stringResource(R.string.order_history_cancel_confirm), color = ErrorRed)
                 }
             },
             dismissButton = {
@@ -165,7 +166,7 @@ fun OrderHistoryScreen(
                         cancelReason = ""
                     }
                 ) {
-                    Text("Đóng")
+                    Text(stringResource(R.string.common_close))
                 }
             }
         )
@@ -205,9 +206,9 @@ fun OrderHistoryScreen(
                 uiState.errorResId != null -> {
                     val errorResId = uiState.errorResId ?: R.string.error_load_order_history
                     FoodieErrorState(
-                        title = "Không thể tải đơn hàng",
+                        title = stringResource(R.string.order_history_error_title),
                         subtitle = stringResource(errorResId),
-                        actionLabel = "Thử lại",
+                        actionLabel = stringResource(R.string.order_history_error_retry),
                         onAction = viewModel::loadOrders,
                         modifier = Modifier
                             .weight(1f)
@@ -230,8 +231,8 @@ fun OrderHistoryScreen(
                     OrdersListTab(
                         orders = activeOrders,
                         emptyIcon = Icons.Default.LocalShipping,
-                        emptyTitle = "Chưa có đơn đang giao",
-                        emptySubtitle = "Các đơn đã thanh toán và đang được chuẩn bị, lấy hàng hoặc giao đến bạn sẽ xuất hiện tại đây.",
+                        emptyTitle = stringResource(R.string.order_history_active_empty_title),
+                        emptySubtitle = stringResource(R.string.order_history_active_empty_subtitle),
                         onNavigateToOrderDetail = onNavigateToOrderDetail,
                         onNavigateToTracking = onNavigateToTracking,
                         onReorder = null,
@@ -241,17 +242,18 @@ fun OrderHistoryScreen(
                 }
 
                 else -> {
+                    val reorderSuccessMsg = stringResource(R.string.order_history_reorder_success_toast)
                     val onReorder: (String) -> Unit = { orderId ->
                         viewModel.reorder(orderId) {
-                            Toast.makeText(context, "Đã thêm món vào giỏ hàng", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, reorderSuccessMsg, Toast.LENGTH_SHORT).show()
                             onNavigateToCart()
                         }
                     }
                     OrdersListTab(
                         orders = historyOrders,
                         emptyIcon = Icons.Default.History,
-                        emptyTitle = "Chưa có lịch sử đơn hàng",
-                        emptySubtitle = "Những đơn đã giao thành công hoặc đã hủy sẽ được lưu tại đây.",
+                        emptyTitle = stringResource(R.string.order_history_history_empty_title),
+                        emptySubtitle = stringResource(R.string.order_history_history_empty_subtitle),
                         onNavigateToOrderDetail = onNavigateToOrderDetail,
                         onNavigateToTracking = null,
                         onReorder = onReorder,
@@ -314,7 +316,7 @@ private fun OrdersHeader(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "$cartCount món trong giỏ • $activeCount đơn đang xử lý • $historyCount đơn đã lưu",
+                    text = stringResource(R.string.order_history_header_subtitle, cartCount, activeCount, historyCount),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.84f),
                     maxLines = 1,
@@ -351,7 +353,7 @@ private fun OrdersSegmentedTabs(
             tabs.forEachIndexed { index, tab ->
                 OrdersSegment(
                     selected = selectedIndex == index,
-                    title = tab.title,
+                    title = stringResource(tab.titleResId),
                     count = counts.getOrElse(index) { 0 },
                     icon = tab.icon,
                     modifier = Modifier.weight(1f),
@@ -432,9 +434,9 @@ private fun CartOrdersTab(
     if (cartItems.isEmpty()) {
         FoodieEmptyState(
             icon = Icons.Default.RemoveShoppingCart,
-            title = "Giỏ hàng đang trống",
-            subtitle = "Các món bạn thêm nhưng chưa thanh toán sẽ nằm ở đây.",
-            actionLabel = "Khám phá món ngon",
+            title = stringResource(R.string.order_history_cart_empty_title),
+            subtitle = stringResource(R.string.order_history_cart_empty_subtitle),
+            actionLabel = stringResource(R.string.order_history_cart_empty_action),
             onAction = onBack,
             modifier = modifier.fillMaxWidth()
         )
@@ -501,13 +503,13 @@ private fun CartSummaryCard(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "$itemCount món chưa thanh toán",
+                    text = stringResource(R.string.order_history_cart_summary_title, itemCount),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 Text(
-                    text = "Tạm tính ${total.formatPrice()}",
+                    text = stringResource(R.string.order_history_cart_summary_total, total.formatPrice()),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.86f)
                 )
@@ -521,7 +523,7 @@ private fun CartSummaryCard(
                 ),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
             ) {
-                Text("Thanh toán", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.cart_checkout), fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -674,13 +676,13 @@ private fun OrderCardItem(
     onCancelClick: ((Order) -> Unit)?
 ) {
     val style = order.status.toOrderStatusStyle()
+    val defaultFoodName = stringResource(R.string.order_history_default_food_name)
 
     FoodieCard(
         modifier = Modifier.fillMaxWidth(),
         onClick = { order.id?.let(onNavigateToOrderDetail) }
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            // Khối Header, Divider, Detail của OrderCardItem được giữ nguyên
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -732,11 +734,11 @@ private fun OrderCardItem(
                         text = if (order.otherItemsCount != null && order.otherItemsCount > 0) {
                             stringResource(
                                 R.string.order_food_name_with_others,
-                                order.previewFoodName ?: "Đơn hàng từ FoodieNow",
+                                order.previewFoodName ?: defaultFoodName,
                                 order.otherItemsCount
                             )
                         } else {
-                            order.previewFoodName ?: "Đơn hàng từ FoodieNow"
+                            order.previewFoodName ?: defaultFoodName
                         },
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
@@ -798,7 +800,7 @@ private fun OrderCardItem(
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                Text("Hủy đơn", fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.order_history_action_cancel), fontWeight = FontWeight.Bold)
                             }
                         } else {
                             Button(
@@ -806,7 +808,7 @@ private fun OrderCardItem(
                                 shape = MaterialTheme.shapes.medium,
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                Text("Theo dõi", fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.order_history_action_track), fontWeight = FontWeight.Bold)
                             }
                         }
                     } else {
@@ -816,7 +818,7 @@ private fun OrderCardItem(
                             shape = MaterialTheme.shapes.medium,
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                         ) {
-                            Text("Chi tiết", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.order_history_action_detail), fontWeight = FontWeight.Bold)
                         }
 
                         if (onReorder != null && order.status == OrderStatus.COMPLETED) {
@@ -825,7 +827,7 @@ private fun OrderCardItem(
                                 shape = MaterialTheme.shapes.medium,
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                Text("Đặt lại", fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.order_history_action_reorder), fontWeight = FontWeight.Bold)
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     Icons.AutoMirrored.Filled.ArrowForward,
@@ -903,23 +905,25 @@ private data class OrderStatusStyle(
     val icon: ImageVector
 )
 
+@Composable
 private fun OrderStatus.toOrderStatusStyle(): OrderStatusStyle {
     return when (this) {
-        OrderStatus.WAITING_PAYMENT -> OrderStatusStyle("Đợi thanh toán", AmberTertiary, Icons.Default.AccessTime)
-        OrderStatus.WAITING_STORE_CONFIRMATION -> OrderStatusStyle("Chờ xác nhận", AmberTertiary, Icons.Default.AccessTime)
-        OrderStatus.PREPARING -> OrderStatusStyle("Đang chuẩn bị", AmberTertiary, Icons.AutoMirrored.Filled.Assignment)
-        OrderStatus.WAITING_SHIPPER -> OrderStatusStyle("Chờ shipper", InfoBlue, Icons.Default.LocalShipping)
-        OrderStatus.DELIVERING -> OrderStatusStyle("Đang giao", InfoBlue, Icons.Default.LocalShipping)
-        OrderStatus.COMPLETED -> OrderStatusStyle("Đã giao", SuccessGreen, Icons.Default.CheckCircle)
-        OrderStatus.CANCELLED_BY_CUSTOMER -> OrderStatusStyle("Khách hàng hủy", ErrorRed, Icons.Default.RemoveShoppingCart)
-        OrderStatus.CANCELLED_BY_STORE -> OrderStatusStyle("Cửa hàng hủy", ErrorRed, Icons.Default.RemoveShoppingCart)
-        OrderStatus.NO_SHIPPER_FOUND -> OrderStatusStyle("Không có shipper", ErrorRed, Icons.Default.RemoveShoppingCart)
-        OrderStatus.PAYMENT_FAILED -> OrderStatusStyle("Thanh toán lỗi", ErrorRed, Icons.Default.RemoveShoppingCart)
-        OrderStatus.DELIVERY_TIMEOUT -> OrderStatusStyle("Quá giờ giao", ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.WAITING_PAYMENT -> OrderStatusStyle(stringResource(R.string.order_status_waiting_payment), AmberTertiary, Icons.Default.AccessTime)
+        OrderStatus.WAITING_STORE_CONFIRMATION -> OrderStatusStyle(stringResource(R.string.order_status_waiting_confirmation), AmberTertiary, Icons.Default.AccessTime)
+        OrderStatus.PREPARING -> OrderStatusStyle(stringResource(R.string.order_status_preparing), AmberTertiary, Icons.AutoMirrored.Filled.Assignment)
+        OrderStatus.WAITING_SHIPPER -> OrderStatusStyle(stringResource(R.string.order_status_waiting_shipper), InfoBlue, Icons.Default.LocalShipping)
+        OrderStatus.DELIVERING -> OrderStatusStyle(stringResource(R.string.order_status_delivering), InfoBlue, Icons.Default.LocalShipping)
+        OrderStatus.COMPLETED -> OrderStatusStyle(stringResource(R.string.order_status_completed), SuccessGreen, Icons.Default.CheckCircle)
+        OrderStatus.CANCELLED_BY_CUSTOMER -> OrderStatusStyle(stringResource(R.string.order_status_cancelled_by_customer), ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.CANCELLED_BY_STORE -> OrderStatusStyle(stringResource(R.string.order_status_cancelled_by_store), ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.NO_SHIPPER_FOUND -> OrderStatusStyle(stringResource(R.string.order_status_no_shipper_found), ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.PAYMENT_FAILED -> OrderStatusStyle(stringResource(R.string.order_status_payment_failed), ErrorRed, Icons.Default.RemoveShoppingCart)
+        OrderStatus.DELIVERY_TIMEOUT -> OrderStatusStyle(stringResource(R.string.order_status_delivery_timeout), ErrorRed, Icons.Default.RemoveShoppingCart)
     }
 }
 
+@Composable
 private fun String?.toDisplayTime(): String {
-    if (this.isNullOrBlank()) return "Chưa rõ thời gian"
+    if (this.isNullOrBlank()) return stringResource(R.string.order_history_time_unknown)
     return if (length >= 16) substring(0, 16).replace("T", " ") else this
 }

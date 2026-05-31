@@ -16,8 +16,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
 import com.example.foodienow.core.designsystem.components.FoodieEmptyState
 import com.example.foodienow.core.designsystem.components.FoodieErrorState
 import com.example.foodienow.core.designsystem.components.FoodieLoadingState
@@ -56,9 +58,9 @@ fun CategoryDetailScreen(
 
                 uiState.errorMessage != null -> {
                     FoodieErrorState(
-                        title = "Không thể tải danh mục",
+                        title = stringResource(R.string.category_detail_error_title),
                         subtitle = uiState.errorMessage.orEmpty(),
-                        actionLabel = "Thử lại",
+                        actionLabel = stringResource(R.string.category_detail_error_retry),
                         onAction = viewModel::refresh,
                         modifier = Modifier.align(Alignment.Center)
                     )
@@ -66,8 +68,8 @@ fun CategoryDetailScreen(
 
                 uiState.foods.isEmpty() -> {
                     FoodieEmptyState(
-                        title = "Danh mục này chưa có món",
-                        subtitle = "Các món mới từ quán sẽ được cập nhật tại đây.",
+                        title = stringResource(R.string.category_detail_empty_title),
+                        subtitle = stringResource(R.string.category_detail_empty_subtitle),
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }

@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.example.foodienow.R
 import com.example.foodienow.domain.model.OrderItemUiModel
 import com.example.foodienow.domain.model.OrderStatus
 import java.text.NumberFormat
@@ -39,10 +41,10 @@ fun OrderDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chi tiết đơn hàng", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.order_detail_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Trở lại")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -63,7 +65,7 @@ fun OrderDetailScreen(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (uiState.error != null) {
                 Text(
-                    text = "Lỗi: ${uiState.error}",
+                    text = stringResource(R.string.error_prefix, uiState.error!!),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -125,7 +127,7 @@ fun OrderItemCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${item.quantity} x ${formatter.format(item.priceAtTime)}",
+                    text = stringResource(R.string.order_detail_item_price_format, item.quantity, formatter.format(item.priceAtTime)),
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
@@ -137,7 +139,7 @@ fun OrderItemCard(
                 enabled = orderStatus == OrderStatus.COMPLETED, // Chỉ cho phép đánh giá nếu đơn đã hoàn thành
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Đánh giá", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Text(stringResource(R.string.order_detail_review_action), fontWeight = FontWeight.Bold, fontSize = 12.sp)
             }
         }
     }

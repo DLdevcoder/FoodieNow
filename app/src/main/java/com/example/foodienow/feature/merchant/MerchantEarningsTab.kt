@@ -24,11 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodienow.R
 import com.example.foodienow.core.designsystem.components.FoodieCard
 import com.example.foodienow.core.designsystem.theme.FoodieCream
 import com.example.foodienow.core.designsystem.theme.PromoGradientEnd
@@ -52,6 +54,10 @@ fun MerchantEarningsTab(
     var selectedWallet by remember { mutableStateOf("") }
     var withdrawAmountText by remember { mutableStateOf("") }
     var amountError by remember { mutableStateOf<String?>(null) }
+
+    val errorInvalidAmount = stringResource(R.string.merchant_earnings_error_invalid_amount)
+    val errorInsufficient = stringResource(R.string.merchant_earnings_error_insufficient)
+    val errorMinimum = stringResource(R.string.merchant_earnings_error_minimum)
 
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize().background(FoodieCream), contentAlignment = Alignment.Center) {
@@ -90,7 +96,7 @@ fun MerchantEarningsTab(
                         Box(
                             modifier = Modifier
                                 .size(52.dp)
-                               .clip(MaterialTheme.shapes.large)
+                                .clip(MaterialTheme.shapes.large)
                                 .background(Color.White.copy(alpha = 0.18f)),
                             contentAlignment = Alignment.Center
                         ) {
@@ -104,7 +110,7 @@ fun MerchantEarningsTab(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Số dư doanh thu",
+                                text = stringResource(R.string.merchant_earnings_balance_title),
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,
@@ -139,7 +145,7 @@ fun MerchantEarningsTab(
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "Rút tiền",
+                                text = stringResource(R.string.merchant_earnings_withdraw_btn),
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.labelMedium
                             )
@@ -156,7 +162,7 @@ fun MerchantEarningsTab(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Thống kê thu nhập",
+                    text = stringResource(R.string.merchant_earnings_stats_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -178,7 +184,7 @@ fun MerchantEarningsTab(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Hôm nay",
+                                text = stringResource(R.string.merchant_earnings_today),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -203,7 +209,7 @@ fun MerchantEarningsTab(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Tuần này",
+                                text = stringResource(R.string.merchant_earnings_this_week),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -225,7 +231,7 @@ fun MerchantEarningsTab(
                     .padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "Lịch sử giao dịch",
+                    text = stringResource(R.string.merchant_earnings_history_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -240,7 +246,7 @@ fun MerchantEarningsTab(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Chưa có giao dịch nào",
+                            text = stringResource(R.string.merchant_earnings_history_empty),
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -274,8 +280,8 @@ fun MerchantEarningsTab(
     if (showNotLinkedDialog) {
         AlertDialog(
             onDismissRequest = { showNotLinkedDialog = false },
-            title = { Text("Chưa liên kết ví rút tiền", fontWeight = FontWeight.Bold) },
-            text = { Text("Bạn cần liên kết ít nhất một tài khoản ví điện tử (MoMo, ZaloPay, VNPAY, PayPal) để có thể thực hiện rút tiền.") },
+            title = { Text(stringResource(R.string.merchant_earnings_not_linked_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.merchant_earnings_not_linked_desc)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -285,7 +291,7 @@ fun MerchantEarningsTab(
                     colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Liên kết ngay", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(stringResource(R.string.merchant_earnings_link_now), fontWeight = FontWeight.Bold, color = Color.White)
                 }
             },
             dismissButton = {
@@ -293,7 +299,7 @@ fun MerchantEarningsTab(
                     onClick = { showNotLinkedDialog = false },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                 ) {
-                    Text("Để sau", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.merchant_earnings_link_later), fontWeight = FontWeight.SemiBold)
                 }
             },
             shape = RoundedCornerShape(16.dp)
@@ -303,20 +309,20 @@ fun MerchantEarningsTab(
     if (showWithdrawDialog) {
         AlertDialog(
             onDismissRequest = { showWithdrawDialog = false },
-            title = { Text("Rút tiền về ví liên kết", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.merchant_earnings_withdraw_dialog_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Số dư khả dụng: ${formatter.format(uiState.currentBalance)} ₫",
+                        text = stringResource(R.string.merchant_earnings_available_balance, formatter.format(uiState.currentBalance)),
                         fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.bodyMedium
                     )
 
                     Text(
-                        text = "Chọn ví nhận tiền:",
+                        text = stringResource(R.string.merchant_earnings_select_wallet),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -362,7 +368,7 @@ fun MerchantEarningsTab(
                                 amountError = null
                             }
                         },
-                        label = { Text("Số tiền rút (₫)") },
+                        label = { Text(stringResource(R.string.merchant_earnings_withdraw_amount_hint)) },
                         singleLine = true,
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth(),
@@ -377,11 +383,11 @@ fun MerchantEarningsTab(
                         onClick = {
                             val amount = withdrawAmountText.toLongOrNull() ?: 0L
                             if (amount <= 0) {
-                                amountError = "Vui lòng nhập số tiền rút hợp lệ."
+                                amountError = errorInvalidAmount
                             } else if (amount > uiState.currentBalance) {
-                                amountError = "Số dư không đủ để thực hiện rút tiền."
+                                amountError = errorInsufficient
                             } else if (amount < 10000L) {
-                                amountError = "Số tiền rút tối thiểu là 10.000 ₫."
+                                amountError = errorMinimum
                             } else {
                                 viewModel.withdraw(amount, selectedWallet)
                                 showWithdrawDialog = false
@@ -394,7 +400,7 @@ fun MerchantEarningsTab(
                         if (uiState.isWithdrawing) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                         } else {
-                            Text("Rút tiền", fontWeight = FontWeight.Bold, color = Color.White)
+                            Text(stringResource(R.string.merchant_earnings_withdraw_btn), fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
                 }
@@ -405,7 +411,7 @@ fun MerchantEarningsTab(
                     onClick = { showWithdrawDialog = false },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                 ) {
-                    Text("Hủy", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.merchant_earnings_cancel), fontWeight = FontWeight.SemiBold)
                 }
             },
             shape = RoundedCornerShape(16.dp)
@@ -426,7 +432,7 @@ fun MerchantEarningsTab(
                         tint = SuccessGreen,
                         modifier = Modifier.size(28.dp)
                     )
-                    Text("Rút tiền thành công", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.merchant_earnings_success_title), fontWeight = FontWeight.Bold)
                 }
             },
             text = {
@@ -435,21 +441,21 @@ fun MerchantEarningsTab(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Giao dịch đã được thực hiện thành công.",
+                        text = stringResource(R.string.merchant_earnings_success_desc),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "Số tiền: ${formatter.format(uiState.lastWithdrawalAmount)} ₫",
+                        text = stringResource(R.string.merchant_earnings_success_amount, formatter.format(uiState.lastWithdrawalAmount)),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = "Nhận bởi: Ví ${uiState.lastWithdrawalWallet}",
+                        text = stringResource(R.string.merchant_earnings_success_wallet, uiState.lastWithdrawalWallet),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Số dư hiện tại: ${formatter.format(uiState.currentBalance)} ₫",
+                        text = stringResource(R.string.merchant_earnings_success_current_balance, formatter.format(uiState.currentBalance)),
                         fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -461,7 +467,7 @@ fun MerchantEarningsTab(
                     colors = ButtonDefaults.buttonColors(containerColor = OrangePrimary),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Xác nhận", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(stringResource(R.string.merchant_earnings_confirm), fontWeight = FontWeight.Bold, color = Color.White)
                 }
             },
             shape = RoundedCornerShape(16.dp)
@@ -522,4 +528,3 @@ private fun TransactionItem(transaction: MerchantTransaction) {
         )
     }
 }
-

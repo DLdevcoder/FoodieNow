@@ -420,4 +420,332 @@ sẽ xuất hiện tại đây</string>
     <string name="notification_title_order_cancelled_shipper">Đơn hàng đã hủy</string>
     <string name="notification_body_order_cancelled_shipper">Đơn hàng bạn nhận giao đã bị hủy.</string>
     <string name="notification_title_new_chat_message">Tin nhắn mới</string>
+
+    <string name="common_close">Đóng</string>
+    <string name="common_save">Lưu</string>
+    <string name="common_refresh">Tải lại</string>
+    <string name="common_all">Tất cả</string>
+    <string name="common_name">Tên</string>
+    <string name="common_id">ID</string>
+    <string name="role_admin">Admin</string>
+    <string name="role_display_user">User</string>
+    <string name="role_display_store">Store</string>
+
+    <string name="admin_account_details_title">Chi tiết tài khoản</string>
+    <string name="admin_account_balance_title">Số dư tài khoản</string>
+    <string name="admin_account_balance_current">Hiện tại:</string>
+    <string name="admin_account_balance_change">Thay đổi số dư:</string>
+    <string name="admin_account_balance_new_hint">Số dư mới (₫)</string>
+    <string name="admin_wallet_history_title">Lịch sử giao dịch ví</string>
+    <string name="admin_wallet_history_empty">Chưa có lịch sử giao dịch nào.</string>
+
+    <string name="admin_tab_account_management">Quản lý tài khoản</string>
+    <string name="admin_tab_cash_flow">Quản lý dòng tiền</string>
+    <string name="admin_tab_accounts">Tài khoản</string>
+    <string name="admin_tab_cash_flow_short">Dòng tiền</string>
+
+    <string name="admin_finance_detailed_stats">Thống kê tiền chi tiết</string>
+    <string name="admin_finance_total_balance">Tổng tiền hiện tại</string>
+    <string name="admin_finance_escrow">Tiền chờ (Escrow)</string>
+    <string name="admin_finance_commission">Tiền hoa hồng</string>
+    <string name="admin_finance_shipper_balance">Tiền cho shipper</string>
+    <string name="admin_finance_merchant_balance">Tiền cho chủ quán</string>
+
+    <string name="admin_system_config_title">Cấu hình hệ thống</string>
+    <string name="admin_config_commission_rate">Tỷ lệ hoa hồng (%)</string>
+    <string name="admin_config_base_delivery_fee">Phí giao hàng cơ bản (₫)</string>
+    <string name="admin_config_free_delivery_threshold">Ngưỡng miễn phí giao hàng (₫)</string>
+    <string name="admin_config_update_btn">Cập nhật cấu hình</string>
+
+    <string name="admin_finance_daily_report">Báo cáo theo ngày</string>
+    <string name="admin_finance_empty_report">Chưa có báo cáo dòng tiền nào.</string>
+    <string name="admin_finance_order_count">%1$d đơn hàng</string>
+    <string name="admin_finance_total_revenue">Tổng Doanh Thu:</string>
+    <string name="admin_finance_admin_commission">Hoa Hồng Admin:</string>
+    <string name="admin_finance_merchant_payout">Giải Ngân Merchant:</string>
+    <string name="admin_finance_shipper_payout">Giải Ngân Shipper:</string>
+
+    <string name="admin_search_placeholder">Tìm theo tên, email, ID...</string>
+    <string name="admin_filter_role_all">Vai trò: Tất cả</string>
+    <string name="admin_filter_role_user">Vai trò: User</string>
+    <string name="admin_filter_role_store">Vai trò: Store</string>
+    <string name="admin_filter_role_shipper">Vai trò: Shipper</string>
+    <string name="admin_filter_role_admin">Vai trò: Admin</string>
+
+    <string name="admin_search_by_all">Tìm theo: Tất cả</string>
+    <string name="admin_search_by_name">Tìm theo: Tên</string>
+    <string name="admin_search_by_email">Tìm theo: Email</string>
+    <string name="admin_search_by_id">Tìm theo: ID</string>
+
+    <string name="admin_accounts_not_found">Không tìm thấy tài khoản nào.</string>
+    <string name="admin_chart_account_label">Tài khoản</string>
+
+    <string name="category_detail_error_title">Không thể tải danh mục</string>
+    <string name="category_detail_error_retry">Thử lại</string>
+    <string name="category_detail_empty_title">Danh mục này chưa có món</string>
+    <string name="category_detail_empty_subtitle">Các món mới từ quán sẽ được cập nhật tại đây.</string>
+
+    <string name="chat_list_title">Tin nhắn</string>
+    <string name="chat_list_empty">Chưa có tin nhắn nào</string>
+
+    <string name="chat_default_title">Chat</string>
+    <string name="chat_input_placeholder">Nhập tin nhắn...</string>
+    <string name="chat_send_action">Gửi</string>
+
+    <string name="search_suggestion_com_tam">Cơm tấm</string>
+    <string name="search_suggestion_pho_bo">Phở bò</string>
+    <string name="search_suggestion_bun_cha">Bún chả</string>
+    <string name="search_suggestion_tra_sua">Trà sữa</string>
+    <string name="search_suggestion_an_vat">Ăn vặt</string>
+    <string name="search_quick_suggestions_title">Tìm nhanh món quen</string>
+    <string name="search_empty_state_title">Bạn muốn ăn gì hôm nay?</string>
+    <string name="search_no_results_title">Không tìm thấy món phù hợp</string>
+    <string name="search_no_results_subtitle">Thử tên món khác hoặc kiểm tra lại dấu tiếng Việt.</string>
+    <string name="search_clear_action">Xóa tìm kiếm</string>
+
+    <!-- Customer Home Screen -->
+    <string name="home_error_menu_title">Chưa tải được thực đơn</string>
+    <string name="home_error_retry">Thử lại</string>
+    <string name="home_section_good_meal_subtitle">Món bán chạy quanh bạn, giao nhanh trong hôm nay</string>
+    <string name="home_section_must_try_subtitle">Gợi ý được chọn theo đánh giá và lượt đặt</string>
+    <string name="home_delivery_to">Giao đến</string>
+
+    <string name="home_promo_badge_freeship">FREESHIP</string>
+    <string name="home_promo_title">Đặt món nóng hổi, giao ngay</string>
+    <string name="home_promo_subtitle">Ưu đãi đến 50% cho bữa trưa và tối nay</string>
+    <string name="home_promo_order_now">Đặt ngay</string>
+
+    <string name="home_category_section_title">Bạn đang thèm gì?</string>
+    <string name="home_category_section_subtitle">Chọn nhanh theo món quen của người Việt</string>
+
+    <string name="home_empty_food_title">Chưa có món phù hợp</string>
+    <string name="home_empty_food_subtitle">Các món mới sẽ xuất hiện tại đây khi quán cập nhật thực đơn.</string>
+    <string name="home_empty_food_action">Tìm món khác</string>
+
+    <string name="home_store_section_title">Quán nổi bật gần bạn</string>
+    <string name="home_store_section_subtitle">Đánh giá tốt, chuẩn bị nhanh</string>
+    <string name="home_store_delivery_time">20-30 phút</string>
+
+    <string name="home_collections_subtitle">Voucher và combo đang được dùng nhiều</string>
+    <string name="home_collection_1_title">FREESHIP đơn từ 50K</string>
+    <string name="home_collection_1_subtitle">Quán gần bạn</string>
+    <string name="home_collection_1_badge">Giao nhanh</string>
+    <string name="home_collection_2_title">Combo trưa tiết kiệm</string>
+    <string name="home_collection_2_subtitle">Giảm đến 50%</string>
+    <string name="home_collection_2_badge">Hot deal</string>
+    <string name="home_collection_3_title">Món ngon dưới 39K</string>
+    <string name="home_collection_3_subtitle">Ăn nhanh, giá mềm</string>
+    <string name="home_collection_3_badge">Tiết kiệm</string>
+
+    <string name="home_food_badge_best_seller">Bán chạy</string>
+    <string name="home_food_sold_prefix">Đã bán %1$s</string>
+    <string name="home_food_new_item">Món mới</string>
+    <string name="home_food_new_short">Mới</string>
+    <string name="home_see_more">Xem thêm</string>
+
+    <string name="home_format_million">%1$dtr+</string>
+    <string name="home_format_thousand_whole">%1$dk+</string>
+    <string name="home_format_thousand_decimal">%1$d,%2$dk+</string>
+
+    <string name="tracking_screen_title">Theo dõi đơn hàng</string>
+    <string name="tracking_store_marker_title">Cửa hàng</string>
+    <string name="tracking_customer_marker_title">Vị trí của bạn</string>
+    <string name="tracking_shipper_marker_title">Tài xế</string>
+    <string name="tracking_status_delivering">Tài xế đang giao đơn hàng</string>
+    <string name="tracking_status_completed">Đơn hàng đã giao thành công</string>
+    <string name="tracking_status_processing">Đang xử lý đơn hàng</string>
+    <string name="tracking_order_id_prefix">Mã đơn: #%1$s</string>
+    <string name="tracking_delivery_address_prefix">Địa chỉ nhận: %1$s</string>
+    <string name="tracking_btn_waiting_shipper">Chờ tài xế xác nhận...</string>
+    <string name="tracking_btn_confirm_receipt">Xác nhận đã nhận đơn</string>
+
+    <string name="food_detail_add_to_cart_toast">Đã thêm vào giỏ hàng</string>
+    <string name="food_detail_chat_store_desc">Chat với cửa hàng</string>
+    <string name="food_detail_rating_zero">0.0</string>
+    <string name="food_detail_rating_separator"> | </string>
+    <string name="food_detail_sold_thousand">%1$sk</string>
+    <string name="food_detail_sold_thousand_decimal">%1$s,%2$sk</string>
+
+    <string name="merchant_tab_orders">Đơn hàng</string>
+    <string name="merchant_tab_menu">Thực đơn</string>
+    <string name="merchant_tab_earnings">Thu nhập</string>
+
+    <string name="merchant_food_loading_categories">Đang tải danh mục...</string>
+
+    <string name="merchant_earnings_balance_title">Số dư doanh thu</string>
+    <string name="merchant_earnings_withdraw_btn">Rút tiền</string>
+    <string name="merchant_earnings_stats_title">Thống kê thu nhập</string>
+    <string name="merchant_earnings_today">Hôm nay</string>
+    <string name="merchant_earnings_this_week">Tuần này</string>
+    <string name="merchant_earnings_history_title">Lịch sử giao dịch</string>
+    <string name="merchant_earnings_history_empty">Chưa có giao dịch nào</string>
+
+    <string name="merchant_earnings_not_linked_title">Chưa liên kết ví rút tiền</string>
+    <string name="merchant_earnings_not_linked_desc">Bạn cần liên kết ít nhất một tài khoản ví điện tử (MoMo, ZaloPay, VNPAY, PayPal) để có thể thực hiện rút tiền.</string>
+    <string name="merchant_earnings_link_now">Liên kết ngay</string>
+    <string name="merchant_earnings_link_later">Để sau</string>
+
+    <string name="merchant_earnings_withdraw_dialog_title">Rút tiền về ví liên kết</string>
+    <string name="merchant_earnings_available_balance">Số dư khả dụng: %1$s ₫</string>
+    <string name="merchant_earnings_select_wallet">Chọn ví nhận tiền:</string>
+    <string name="merchant_earnings_withdraw_amount_hint">Số tiền rút (₫)</string>
+    <string name="merchant_earnings_error_invalid_amount">Vui lòng nhập số tiền rút hợp lệ.</string>
+    <string name="merchant_earnings_error_insufficient">Số dư không đủ để thực hiện rút tiền.</string>
+    <string name="merchant_earnings_error_minimum">Số tiền rút tối thiểu là 10.000 ₫.</string>
+    <string name="merchant_earnings_cancel">Hủy</string>
+
+    <string name="merchant_earnings_success_title">Rút tiền thành công</string>
+    <string name="merchant_earnings_success_desc">Giao dịch đã được thực hiện thành công.</string>
+    <string name="merchant_earnings_success_amount">Số tiền: %1$s ₫</string>
+    <string name="merchant_earnings_success_wallet">Nhận bởi: Ví %1$s</string>
+    <string name="merchant_earnings_success_current_balance">Số dư hiện tại: %1$s ₫</string>
+    <string name="merchant_earnings_confirm">Xác nhận</string>
+
+    <string name="merchant_menu_manage_title">Quản lý thực đơn</string>
+    <string name="merchant_menu_manage_subtitle">Cập nhật món ăn và phát hành khuyến mãi</string>
+    <string name="merchant_tab_voucher">Voucher</string>
+    <string name="merchant_menu_empty_food">Chưa có món ăn nào.\nHãy bấm nút + để thêm món.</string>
+    <string name="merchant_menu_add_food_desc">Thêm món</string>
+    <string name="merchant_menu_empty_voucher">Chưa có voucher nào.\nHãy bấm nút + để thêm voucher.</string>
+    <string name="merchant_menu_add_voucher_desc">Thêm Voucher</string>
+    <string name="merchant_voucher_delete_confirm_title">Xác nhận xóa</string>
+    <string name="merchant_voucher_delete_confirm_desc">Bạn có chắc chắn muốn xóa voucher %1$s không?</string>
+    <string name="common_delete">Xóa</string>
+    <string name="common_cancel">Hủy</string>
+    <string name="common_edit">Sửa</string>
+    <string name="common_confirm">Xác nhận</string>
+    <string name="merchant_voucher_discount_label">GIẢM GIÁ</string>
+    <string name="merchant_voucher_min_order_prefix">Đơn tối thiểu: %1$s</string>
+    <string name="merchant_voucher_max_discount_prefix">Giảm tối đa: %1$s</string>
+    <string name="merchant_voucher_expiry_prefix">HSD: %1$s</string>
+    <string name="merchant_voucher_no_expiry">Không giới hạn HSD</string>
+    <string name="merchant_food_status_available">Đang bán</string>
+    <string name="merchant_food_status_unavailable">Tạm hết</string>
+    <string name="merchant_voucher_add_title">Thêm Voucher mới</string>
+    <string name="merchant_voucher_edit_title">Chỉnh sửa Voucher</string>
+    <string name="merchant_voucher_code_label">Mã Voucher</string>
+    <string name="merchant_voucher_code_hint">Ví dụ: KHUYENMAI50</string>
+    <string name="merchant_voucher_error_empty_code">Mã voucher không được để trống</string>
+    <string name="merchant_voucher_type_percent">Phần trăm (%)</string>
+    <string name="merchant_voucher_type_fixed">Số tiền cố định (đ)</string>
+    <string name="merchant_voucher_percent_label">Phần trăm giảm (%)</string>
+    <string name="merchant_voucher_percent_hint">Ví dụ: 15</string>
+    <string name="merchant_voucher_error_empty">Không được để trống</string>
+    <string name="merchant_voucher_error_percent_range">Phần trăm phải từ 1 đến 100</string>
+    <string name="merchant_voucher_amount_label">Số tiền giảm (đ)</string>
+    <string name="merchant_voucher_amount_hint">Ví dụ: 20000</string>
+    <string name="merchant_voucher_error_amount_positive">Số tiền giảm phải lớn hơn 0</string>
+    <string name="merchant_voucher_max_amount_label">Giảm tối đa (đ) - Không bắt buộc</string>
+    <string name="merchant_voucher_max_amount_hint">Ví dụ: 30000</string>
+    <string name="merchant_voucher_error_max_amount">Số tiền giảm tối đa không hợp lệ</string>
+    <string name="merchant_voucher_min_order_label">Đơn tối thiểu (đ)</string>
+    <string name="merchant_voucher_min_order_hint">Ví dụ: 50000</string>
+    <string name="merchant_voucher_error_min_order">Giá trị đơn tối thiểu không hợp lệ</string>
+    <string name="merchant_voucher_expiry_label">Ngày hết hạn - Không bắt buộc</string>
+    <string name="merchant_voucher_expiry_hint">YYYY-MM-DD (Ví dụ: 2026-12-31)</string>
+    <string name="merchant_voucher_error_expiry_format">Định dạng phải là YYYY-MM-DD</string>
+    <string name="merchant_voucher_status_label">Trạng thái hoạt động</string>
+    <string name="merchant_voucher_error_discount_invalid">Thông tin giảm giá không hợp lệ</string>
+    <string name="merchant_voucher_k_suffix">%1$sK</string>
+    <string name="merchant_voucher_percent_suffix">%1$s%%</string>
+
+    <string name="merchant_orders_manage_title">Quản lý đơn hàng</string>
+    <string name="merchant_orders_manage_subtitle">Theo dõi trạng thái và chế biến món ăn</string>
+    <string name="merchant_orders_chat_badge_plus">99+</string>
+    <string name="merchant_orders_cancel_reason_store">Cửa hàng hủy đơn</string>
+    <string name="merchant_orders_note_prefix">Ghi chú: %1$s</string>
+    <string name="merchant_orders_action_prepared">Chuẩn bị xong</string>
+
+    <string name="order_detail_title">Chi tiết đơn hàng</string>
+    <string name="order_detail_review_action">Đánh giá</string>
+    <string name="order_detail_item_price_format">%1$d x %2$s</string>
+
+    <!-- Order History Screen -->
+    <string name="order_history_cancel_dialog_title">Hủy đơn hàng</string>
+    <string name="order_history_cancel_dialog_desc">Vui lòng cho biết lý do bạn muốn hủy đơn hàng này:</string>
+    <string name="order_history_cancel_dialog_hint">Ví dụ: Đổi ý, đặt nhầm món...</string>
+    <string name="order_history_cancel_confirm">Xác nhận hủy</string>
+    <string name="order_history_error_title">Không thể tải đơn hàng</string>
+    <string name="order_history_error_retry">Thử lại</string>
+    <string name="order_history_cart_empty_title">Giỏ hàng đang trống</string>
+    <string name="order_history_cart_empty_subtitle">Các món bạn thêm nhưng chưa thanh toán sẽ nằm ở đây.</string>
+    <string name="order_history_cart_empty_action">Khám phá món ngon</string>
+    <string name="order_history_active_empty_title">Chưa có đơn đang giao</string>
+    <string name="order_history_active_empty_subtitle">Các đơn đã thanh toán và đang được chuẩn bị, lấy hàng hoặc giao đến bạn sẽ xuất hiện tại đây.</string>
+    <string name="order_history_reorder_success_toast">Đã thêm món vào giỏ hàng</string>
+    <string name="order_history_history_empty_title">Chưa có lịch sử đơn hàng</string>
+    <string name="order_history_history_empty_subtitle">Những đơn đã giao thành công hoặc đã hủy sẽ được lưu tại đây.</string>
+    <string name="order_history_header_subtitle">%1$d món trong giỏ • %2$d đơn đang xử lý • %3$d đơn đã lưu</string>
+    <string name="order_history_cart_summary_title">%1$d món chưa thanh toán</string>
+    <string name="order_history_cart_summary_total">Tạm tính %1$s</string>
+    <string name="order_history_default_food_name">Đơn hàng từ FoodieNow</string>
+    <string name="order_history_action_cancel">Hủy đơn</string>
+    <string name="order_history_action_track">Theo dõi</string>
+    <string name="order_history_action_detail">Chi tiết</string>
+    <string name="order_history_action_reorder">Đặt lại</string>
+    <string name="order_history_tab_cart">Giỏ hàng</string>
+    <string name="order_history_tab_active">Đang giao</string>
+    <string name="order_history_tab_history">Lịch sử</string>
+
+    <string name="order_status_waiting_payment">Đợi thanh toán</string>
+    <string name="order_status_waiting_confirmation">Chờ xác nhận</string>
+    <string name="order_status_preparing">Đang chuẩn bị</string>
+    <string name="order_status_waiting_shipper">Chờ shipper</string>
+    <string name="order_status_delivering">Đang giao</string>
+    <string name="order_status_completed">Đã giao</string>
+    <string name="order_status_cancelled_by_customer">Khách hàng hủy</string>
+    <string name="order_status_cancelled_by_store">Cửa hàng hủy</string>
+    <string name="order_status_no_shipper_found">Không có shipper</string>
+    <string name="order_status_payment_failed">Thanh toán lỗi</string>
+    <string name="order_status_delivery_timeout">Quá giờ giao</string>
+
+    <string name="address_book_title">Sổ địa chỉ</string>
+    <string name="address_book_empty_title">Chưa có địa chỉ nào.</string>
+    <string name="address_book_empty_action">Thêm địa chỉ đầu tiên</string>
+
+    <string name="address_book_delete_confirm_title">Xác nhận xóa</string>
+    <string name="address_book_delete_confirm_desc">Bạn có chắc chắn muốn xóa địa chỉ này không?</string>
+    <string name="address_book_default_confirm_title">Xác nhận đặt mặc định</string>
+    <string name="address_book_default_confirm_desc">Bạn có chắc chắn muốn đặt địa chỉ này làm địa chỉ mặc định không?</string>
+    <string name="common_agree">Đồng ý</string>
+
+    <string name="address_book_add_title">Thêm địa chỉ mới</string>
+    <string name="address_book_search_placeholder">Tìm kiếm địa chỉ...</string>
+    <string name="address_book_alias_label">Tên gợi nhớ (VD: Nhà, Công ty)</string>
+    <string name="address_book_add_confirm_btn">Xác nhận thêm địa chỉ</string>
+    <string name="address_book_search_hint">Tìm kiếm và chọn địa chỉ để xem trên bản đồ</string>
+
+    <string name="address_book_set_default_btn">Đặt làm mặc định</string>
+    <string name="address_book_delete_btn">Xóa địa chỉ</string>
+    <string name="address_book_default_badge">Mặc định</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_loading">Đang tải hồ sơ...</string>
+    <string name="profile_error_title">Không thể tải hồ sơ</string>
+    <string name="profile_error_retry">Thử lại</string>
+    <string name="profile_voucher_warehouse">Kho mã</string>
+
+    <string name="profile_section_orders_deals">Đơn hàng và ưu đãi</string>
+    <string name="profile_section_account">Tài khoản</string>
+    <string name="profile_section_support_settings">Hỗ trợ và cài đặt</string>
+
+    <string name="profile_desc_order_history">Theo dõi đơn đã đặt và trạng thái giao hàng</string>
+    <string name="profile_desc_activity_history">Xem thanh toán, điểm thưởng và hoạt động gần đây</string>
+    <string name="profile_desc_must_try">Các món phù hợp khẩu vị của bạn</string>
+    <string name="profile_desc_address">Quản lý địa chỉ giao hàng mặc định</string>
+    <string name="profile_desc_payment">COD, FoodiePay và ví điện tử</string>
+    <string name="profile_desc_invite">Nhận voucher khi bạn bè đặt đơn đầu tiên</string>
+    <string name="profile_desc_wallet">Quản lý nạp rút tiền</string>
+    <string name="profile_desc_payment_settings">Cài đặt thanh toán liên kết</string>
+    <string name="profile_desc_settings">Ngôn ngữ, giao diện và thông báo</string>
+    <string name="profile_desc_password">Cập nhật mật khẩu đăng nhập</string>
+    <string name="profile_desc_help">Câu hỏi thường gặp và hỗ trợ khách hàng</string>
+    <string name="profile_desc_shop_owner">Mở gian hàng và quản lý đơn bán</string>
+    <string name="profile_desc_logout">Thoát khỏi tài khoản trên thiết bị này</string>
+
+    <string name="profile_logout_loading_title">Đang đăng xuất</string>
+    <string name="profile_logout_loading_desc">FoodieNow đang kết thúc phiên đăng nhập và bảo vệ thông tin tài khoản trên thiết bị này.</string>
+    <string name="profile_header_subtitle">Quản lý tài khoản FoodieNow</string>
+    <string name="profile_edit_avatar_desc">Chỉnh sửa hồ sơ</string>
+    <string name="profile_avatar_desc">Ảnh đại diện</string>
 </resources>

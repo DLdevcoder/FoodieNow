@@ -24,13 +24,9 @@ class AddEditFoodViewModel @Inject constructor(
     var name by mutableStateOf("")
     var price by mutableStateOf("")
     var description by mutableStateOf("")
-    val predefinedCategories = listOf("Cơm", "Mì", "Đồ uống", "Bánh mì", "Đồ ăn vặt", "Fast food", "Ăn chay", "Món cuốn", "Khác")
-    var selectedCategory by mutableStateOf("")
-    var isOtherCategory by mutableStateOf(false)
-    var customCategoryName by mutableStateOf("")
 
-    // Từ điển ẩn tải từ DB để dò ID
-    private var dbCategories by mutableStateOf<List<Category>>(emptyList())
+    var availableCategories by mutableStateOf<List<Category>>(emptyList())
+    var selectedCategory by mutableStateOf<Category?>(null)
 
     var imageBytes by mutableStateOf<ByteArray?>(null)
     var isSaving by mutableStateOf(false)
@@ -48,10 +44,8 @@ class AddEditFoodViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                // 1. Tải ngầm danh sách Categories từ DB làm từ điển quy đổi
-                dbCategories = merchantRepository.getCategories()
+                availableCategories = merchantRepository.getCategories()
 
-                // 2. Tải thông tin món ăn (nếu đang Edit)
                 if (foodId != null) {
                     val food = foodRepository.getFoodById(foodId)
                     name = food.name
@@ -60,18 +54,7 @@ class AddEditFoodViewModel @Inject constructor(
                     storeId = food.storeId
                     imageUrl = food.imageUrl
 
-                    // Lấy ID từ món ăn, dò ngược lại ra tên Category
-                    val existingCategory = dbCategories.find { it.id == food.categoryId }
-                    val categoryName = existingCategory?.name ?: ""
-
-                    if (categoryName in predefinedCategories) {
-                        selectedCategory = categoryName
-                        isOtherCategory = false
-                    } else if (categoryName.isNotBlank()) {
-                        selectedCategory = ""
-                        customCategoryName = categoryName
-                        isOtherCategory = true
-                    }
+                    selectedCategory = availableCategories.find { it.id == food.categoryId }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -79,19 +62,12 @@ class AddEditFoodViewModel @Inject constructor(
         }
     }
 
-    private fun formatCategoryText(input: String): String {
-        if (input.isBlank()) return ""
-        return input.trim().lowercase().replaceFirstChar { it.uppercase() }
-    }
-
     fun onSave(errorEmptyFields: String, errorEmptyCategory: String, errorSaveFailed: String) {
         if (name.isBlank() || price.isBlank() || storeId.isBlank()) {
             errorMessage = errorEmptyFields
             return
         }
-
-        val rawCategoryName = if (isOtherCategory) customCategoryName else selectedCategory
-        if (rawCategoryName.isBlank()) {
+        if (selectedCategory == null) {
             errorMessage = errorEmptyCategory
             return
         }
@@ -100,18 +76,7 @@ class AddEditFoodViewModel @Inject constructor(
             isSaving = true
             errorMessage = null
             try {
-                val formattedName = formatCategoryText(rawCategoryName)
-
-                // Quy đổi Tên -> ID
-                var finalCategoryId = dbCategories.find { it.name.equals(formattedName, ignoreCase = true) }?.id
-
-                // Nếu DB chưa có Category này (Khách nhập 'Khác' tên mới toanh), tạo trên DB để lấy ID
-                if (finalCategoryId == null) {
-                    val newCategory = merchantRepository.createCategory(formattedName)
-                    finalCategoryId = newCategory.id
-                    // Cập nhật lại từ điển ngầm
-                    dbCategories = dbCategories + newCategory
-                }
+                val finalCategoryId = selectedCategory?.id
 
                 val food = Food(
                     id = foodId ?: "",
@@ -126,7 +91,7 @@ class AddEditFoodViewModel @Inject constructor(
                 if (foodId == null) {
                     foodRepository.addFood(food, imageBytes)
                 } else {
-                    merchantRepository.updateFood(food)
+                    merchantRepository.updateFood(food, imageBytes)
                 }
                 uploadSuccess = true
             } catch (e: Exception) {

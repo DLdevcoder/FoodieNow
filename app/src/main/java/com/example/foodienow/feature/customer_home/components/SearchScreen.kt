@@ -59,7 +59,13 @@ fun SearchScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val focusRequester = remember { FocusRequester() }
-    val suggestions = listOf("Cơm tấm", "Phở bò", "Bún chả", "Trà sữa", "Ăn vặt")
+    val suggestions = listOf(
+        stringResource(R.string.search_suggestion_com_tam),
+        stringResource(R.string.search_suggestion_pho_bo),
+        stringResource(R.string.search_suggestion_bun_cha),
+        stringResource(R.string.search_suggestion_tra_sua),
+        stringResource(R.string.search_suggestion_an_vat)
+    )
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -121,7 +127,7 @@ fun SearchScreen(
                         .padding(18.dp)
                 ) {
                     Text(
-                        text = "Tìm nhanh món quen",
+                        text = stringResource(R.string.search_quick_suggestions_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -138,15 +144,15 @@ fun SearchScreen(
                     }
                     Spacer(modifier = Modifier.height(28.dp))
                     FoodieEmptyState(
-                        title = "Bạn muốn ăn gì hôm nay?",
+                        title = stringResource(R.string.search_empty_state_title),
                         subtitle = stringResource(R.string.home_search_hint)
                     )
                 }
             } else if (uiState.searchResults.isEmpty()) {
                 FoodieEmptyState(
-                    title = "Không tìm thấy món phù hợp",
-                    subtitle = "Thử tên món khác hoặc kiểm tra lại dấu tiếng Việt.",
-                    actionLabel = "Xóa tìm kiếm",
+                    title = stringResource(R.string.search_no_results_title),
+                    subtitle = stringResource(R.string.search_no_results_subtitle),
+                    actionLabel = stringResource(R.string.search_clear_action),
                     onAction = { viewModel.onSearchQueryChange("") },
                     modifier = Modifier.align(Alignment.Center)
                 )

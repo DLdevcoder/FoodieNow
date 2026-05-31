@@ -47,7 +47,6 @@ fun AddEditFoodScreen(
     val errorEmptyFields = stringResource(R.string.error_empty_food_fields)
     val errorEmptyCategory = stringResource(R.string.error_empty_category)
     val errorSaveFailed = stringResource(R.string.error_save_food_failed)
-    val categoryOther = stringResource(R.string.category_other)
 
     LaunchedEffect(Unit) {
         viewModel.storeId = storeId
@@ -163,7 +162,7 @@ fun AddEditFoodScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = if (viewModel.isOtherCategory) categoryOther else viewModel.selectedCategory,
+                value = viewModel.selectedCategory?.name ?: "",
                 onValueChange = {},
                 readOnly = true,
                 label = { Text(stringResource(R.string.merchant_food_category_label)) },
@@ -199,49 +198,37 @@ fun AddEditFoodScreen(
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(bottom = 20.dp)
                         )
-
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            viewModel.predefinedCategories.forEach { category ->
-                                CategoryChip(
-                                    name = category,
-                                    isSelected = viewModel.selectedCategory == category && !viewModel.isOtherCategory,
-                                    onClick = {
-                                        viewModel.selectedCategory = category
-                                        viewModel.isOtherCategory = false
-                                        showCategoryBottomSheet = false
-                                    }
-                                )
-                            }
-                            CategoryChip(
-                                name = categoryOther,
-                                isSelected = viewModel.isOtherCategory,
-                                onClick = {
-                                    viewModel.selectedCategory = ""
-                                    viewModel.isOtherCategory = true
-                                    showCategoryBottomSheet = false
-                                }
+                        if (viewModel.availableCategories.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.merchant_food_loading_categories),
+                                color = Color.Gray,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
+                        } else {
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                // Duyệt qua danh sách đã tải từ DB
+                                viewModel.availableCategories.forEach { category ->
+                                    CategoryChip(
+                                        name = category.name,
+                                        isSelected = viewModel.selectedCategory?.id == category.id,
+                                        onClick = {
+                                            viewModel.selectedCategory = category
+                                            showCategoryBottomSheet = false
+                                        }
+                                    )
+                                }
+                            }
                         }
-
                         Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
             }
 
-            if (viewModel.isOtherCategory) {
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = viewModel.customCategoryName,
-                    onValueChange = { viewModel.customCategoryName = it },
-                    label = { Text(stringResource(R.string.merchant_food_custom_category_label)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
+            // Đã xoá phần hiển thị ô nhập liệu "Khác"
 
             Spacer(modifier = Modifier.height(12.dp))
 

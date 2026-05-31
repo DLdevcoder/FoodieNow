@@ -27,11 +27,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.foodienow.R
 import com.example.foodienow.core.designsystem.theme.ColorBackground
 import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.feature.merchant.MerchantMenuTab
@@ -94,11 +96,11 @@ fun MerchantMainScreen(
                 tonalElevation = 8.dp
             ) {
                 val tabs = listOf(
-                    Triple(Icons.Default.List, "Đơn hàng", 0),
-                    Triple(Icons.Default.MenuBook, "Thực đơn", 1),
-                    Triple(Icons.Default.AccountBalanceWallet, "Thu nhập", 2),
-                    Triple(Icons.Default.Notifications, "Thông báo", 3),
-                    Triple(Icons.Default.Person, "Hồ sơ", 4)
+                    Triple(Icons.Default.List, stringResource(R.string.merchant_tab_orders), 0),
+                    Triple(Icons.Default.MenuBook, stringResource(R.string.merchant_tab_menu), 1),
+                    Triple(Icons.Default.AccountBalanceWallet, stringResource(R.string.merchant_tab_earnings), 2),
+                    Triple(Icons.Default.Notifications, stringResource(R.string.bottom_nav_notifications), 3),
+                    Triple(Icons.Default.Person, stringResource(R.string.bottom_nav_me), 4)
                 )
 
                 tabs.forEach { (icon, label, index) ->
