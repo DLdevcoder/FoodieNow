@@ -18,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -182,69 +183,78 @@ private fun ShipperTopSection(
         else -> "Chào buổi tối 🌙"
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        PromoGradientStart,
-                        MaterialTheme.colorScheme.primary,
-                        PromoGradientEnd
-                    )
-                )
-            )
-            .statusBarsPadding()
-            .padding(start = 18.dp, top = 8.dp, end = 18.dp, bottom = 14.dp)
+    Surface(
+        color = Color.Transparent,
+        contentColor = Color.White
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = greeting,
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Tự động nhận đơn",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Switch(
-                        checked = isAutoAcceptEnabled,
-                        onCheckedChange = onToggleAutoAccept,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFF4CAF50),
-                            uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            PromoGradientStart,
+                            MaterialTheme.colorScheme.primary,
+                            PromoGradientEnd
                         )
                     )
-                }
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (activeOrderCount > 0) {
+                )
+                .statusBarsPadding()
+                .padding(start = 18.dp, top = 16.dp, end = 18.dp, bottom = 18.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(MaterialTheme.shapes.large)
+                        .background(Color.White.copy(alpha = 0.18f)),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = Icons.Default.DeliveryDining,
                         contentDescription = null,
+                        modifier = Modifier.size(27.dp),
                         tint = Color.White
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "$activeOrderCount đơn",
+                        text = greeting,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
                         color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    val subtitleText = if (activeOrderCount > 0) {
+                        "Tự động nhận đơn • $activeOrderCount đơn"
+                    } else {
+                        "Tự động nhận đơn"
+                    }
+                    Text(
+                        text = subtitleText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.84f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+
+                Switch(
+                    checked = isAutoAcceptEnabled,
+                    onCheckedChange = onToggleAutoAccept,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = Color(0xFF4CAF50),
+                        uncheckedThumbColor = Color.White,
+                        uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f)
+                    )
+                )
             }
         }
     }

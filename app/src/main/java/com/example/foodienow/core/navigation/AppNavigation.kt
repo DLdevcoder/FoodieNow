@@ -47,6 +47,8 @@ import com.example.foodienow.feature.payment.PaymentScreen
 import com.example.foodienow.feature.profile.ProfileScreen
 import com.example.foodienow.feature.main.CustomerMainScreen
 import com.example.foodienow.feature.customer_home.components.SearchScreen
+import com.example.foodienow.feature.customer_home.components.GoodMealScreen
+import com.example.foodienow.feature.customer_home.components.FeaturedStoresScreen
 import com.example.foodienow.feature.main.ShipperMainScreen
 import com.example.foodienow.domain.model.Food
 import com.example.foodienow.feature.category_detail.CategoryDetailScreen
@@ -140,7 +142,13 @@ fun AppNavigation() {
             )
         }
 
-        composable(route = "search_screen") {
+        composable(
+            route = "search_screen?storeId={storeId}&storeName={storeName}",
+            arguments = listOf(
+                navArgument("storeId") { type = NavType.StringType; defaultValue = "" },
+                navArgument("storeName") { type = NavType.StringType; defaultValue = "" }
+            )
+        ) {
             SearchScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateToFoodDetail = { food ->
@@ -263,6 +271,24 @@ fun AppNavigation() {
             )
         }
 
+        composable(route = Screen.GoodMeal.route) {
+            GoodMealScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToFoodDetail = { food ->
+                    navController.navigate("food_detail/${food.id}")
+                }
+            )
+        }
+
+        composable(route = Screen.FeaturedStores.route) {
+            FeaturedStoresScreen(
+                onBack = { navController.popBackStack() },
+                onStoreClick = { store ->
+                    navController.navigate("search_screen?storeId=${store.id}&storeName=${Uri.encode(store.name)}")
+                }
+            )
+        }
+
         composable(route = Screen.Vouchers.route) {
             com.example.foodienow.feature.profile.VoucherScreen(
                 onBack = { navController.popBackStack() }
@@ -369,7 +395,9 @@ fun AppNavigation() {
                             cartViewModel.addToCart(food, quantity)
                         }
                     },
-                    onNavigateToStore = { /* TODO */ },
+                    onNavigateToStore = { storeId ->
+                        navController.navigate("store_detail/$storeId")
+                    },
                     onNavigateToAllReviews = {
                         navController.navigate("food_reviews/${uiState.food!!.id}")
                     },
@@ -378,6 +406,60 @@ fun AppNavigation() {
                     }
                 )
             }
+        }
+
+        composable(
+            route = Screen.StoreDetail.route,
+            arguments = listOf(navArgument("storeId") { type = NavType.StringType })
+        ) {
+            val viewModel: com.example.foodienow.feature.store_detail.StoreDetailViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
+
+            val cartViewModel: CartViewModel = hiltViewModel()
+            val cartUiState by cartViewModel.uiState.collectAsState()
+
+            var showClearCartDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+            var pendingAddFood by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Food?>(null) }
+            var pendingAddQty by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(0) }
+
+            if (showClearCartDialog && pendingAddFood != null) {
+                com.example.foodienow.feature.cart.components.ClearCartDialog(
+                    onConfirm = {
+                        cartViewModel.clearCart()
+                        cartViewModel.addToCart(pendingAddFood!!, pendingAddQty)
+                        showClearCartDialog = false
+                        navController.navigate(Screen.Cart.route)
+                    },
+                    onDismiss = {
+                        showClearCartDialog = false
+                    }
+                )
+            }
+
+            com.example.foodienow.feature.store_detail.StoreDetailScreen(
+                uiState = uiState,
+                onBackClick = { navController.popBackStack() },
+                onFoodClick = { food ->
+                    navController.navigate("food_detail/${food.id}")
+                },
+                onAddToCart = { food, quantity ->
+                    val currentCartStoreId = cartUiState.cartItems.keys.firstOrNull()?.storeId
+
+                    if (currentCartStoreId != null && currentCartStoreId != food.storeId) {
+                        pendingAddFood = food
+                        pendingAddQty = quantity
+                        showClearCartDialog = true
+                    } else {
+                        cartViewModel.addToCart(food, quantity)
+                    }
+                },
+                onNavigateToChat = { storeId, receiverId, storeName ->
+                    navController.navigate("chat/$storeId/$receiverId?title=$storeName")
+                },
+                onRetry = {
+                    viewModel.loadStoreDetail()
+                }
+            )
         }
 
         composable(

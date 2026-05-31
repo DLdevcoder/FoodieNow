@@ -31,6 +31,16 @@ import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.RiceBowl
+import androidx.compose.material.icons.filled.SoupKitchen
+import androidx.compose.material.icons.filled.LocalDrink
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.OutdoorGrill
+import androidx.compose.material.icons.filled.BreakfastDining
+import androidx.compose.material.icons.filled.SetMeal
+import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -87,7 +97,12 @@ fun CustomerHomeScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToCategory: (categoryId: String, categoryName: String) -> Unit,
     onNavigateToCart: () -> Unit,
-    onNavigateToChatList: () -> Unit
+    onNavigateToChatList: () -> Unit,
+    onNavigateToGoodMeal: () -> Unit = {},
+    onNavigateToNearMeStores: () -> Unit = {},
+    onNavigateToMustTry: () -> Unit = {},
+    onNavigateToStore: (Store) -> Unit = {},
+    onNavigateToAddress: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -97,7 +112,6 @@ fun CustomerHomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .background(FoodieCream),
             contentPadding = PaddingValues(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
@@ -106,6 +120,7 @@ fun CustomerHomeScreen(
                 HomeTopSection(
                     onNavigateToSearch = onNavigateToSearch,
                     onNavigateToChatList = onNavigateToChatList,
+                    onNavigateToAddress = onNavigateToAddress,
                     address = uiState.address,
                     unreadMessageCount = uiState.unreadMessageCount
                 )
@@ -136,24 +151,27 @@ fun CustomerHomeScreen(
                     )
                 }
 
-                item {
-                    HorizontalFoodSection(
-                        title = stringResource(R.string.home_section_good_meal),
-                        subtitle = stringResource(R.string.home_section_good_meal_subtitle),
-                        foods = uiState.recommendedFoods.sortedByDescending { it.soldCount },
-                        isLoading = uiState.isLoading,
-                        onFoodClick = onNavigateToFoodDetail,
-                        onSeeAllClick = onNavigateToSearch
-                    )
-                }
-
-                if (uiState.isLoading || uiState.featuredStores.isNotEmpty()) {
+                if (uiState.hasDefaultAddress) {
                     item {
-                        RestaurantsSection(
-                            stores = uiState.featuredStores,
+                        HorizontalFoodSection(
+                            title = stringResource(R.string.home_section_good_meal),
+                            subtitle = stringResource(R.string.home_section_good_meal_subtitle),
+                            foods = uiState.nearbyFoods.sortedByDescending { it.soldCount },
                             isLoading = uiState.isLoading,
-                            onSeeAllClick = onNavigateToSearch
+                            onFoodClick = onNavigateToFoodDetail,
+                            onSeeAllClick = onNavigateToGoodMeal
                         )
+                    }
+
+                    if (uiState.isLoading || uiState.featuredStores.isNotEmpty()) {
+                        item {
+                            RestaurantsSection(
+                                stores = uiState.featuredStores,
+                                isLoading = uiState.isLoading,
+                                onSeeAllClick = onNavigateToNearMeStores,
+                                onStoreClick = onNavigateToStore
+                            )
+                        }
                     }
                 }
 
@@ -166,7 +184,7 @@ fun CustomerHomeScreen(
                         ),
                         isLoading = uiState.isLoading,
                         onFoodClick = onNavigateToFoodDetail,
-                        onSeeAllClick = onNavigateToSearch
+                        onSeeAllClick = onNavigateToMustTry
                     )
                 }
             }
@@ -178,6 +196,7 @@ fun CustomerHomeScreen(
 private fun HomeTopSection(
     onNavigateToSearch: () -> Unit,
     onNavigateToChatList: () -> Unit,
+    onNavigateToAddress: () -> Unit,
     address: String,
     unreadMessageCount: Int
 ) {
@@ -201,7 +220,7 @@ private fun HomeTopSection(
                 )
             )
             .statusBarsPadding()
-            .padding(start = 18.dp, top = 2.dp, end = 18.dp, bottom = 10.dp)
+            .padding(start = 18.dp, top = 10.dp, end = 18.dp, bottom = 10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -225,6 +244,7 @@ private fun HomeTopSection(
             }
             DeliverySummary(
                 address = address,
+                onNavigateToAddress = onNavigateToAddress,
                 modifier = Modifier
                     .weight(1.42f)
                     .widthIn(min = 156.dp)
@@ -256,10 +276,11 @@ private fun HomeTopSection(
 @Composable
 private fun DeliverySummary(
     address: String,
+    onNavigateToAddress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onNavigateToAddress),
         shape = MaterialTheme.shapes.large,
         color = Color.White.copy(alpha = 0.16f)
     ) {
@@ -440,7 +461,7 @@ private fun CategoriesSection(
     onCategoryClick: (Category) -> Unit
 ) {
     val displayCategories = if (categories.isNotEmpty()) {
-        categories.take(10)
+        categories.distinctBy { it.name.trim().lowercase() }.take(10)
     } else {
         listOf(
             Category(name = stringResource(R.string.home_category_1)),
@@ -468,7 +489,8 @@ private fun CategoriesSection(
                         repeat(2) {
                             Box(
                                 modifier = Modifier
-                                    .size(76.dp)
+                                    .width(96.dp)
+                                    .height(76.dp)
                                     .clip(MaterialTheme.shapes.large)
                                     .shimmerEffect()
                             )
@@ -484,7 +506,7 @@ private fun CategoriesSection(
                         columnCategories.forEach { category ->
                             CategoryChip(
                                 label = category.name,
-                                imageUrl = category.imageUrl,
+                                icon = getCategoryIcon(category.name),
                                 onClick = { onCategoryClick(category) }
                             )
                         }
@@ -545,7 +567,8 @@ private fun HorizontalFoodSection(
 private fun RestaurantsSection(
     stores: List<Store>,
     isLoading: Boolean,
-    onSeeAllClick: () -> Unit
+    onSeeAllClick: () -> Unit,
+    onStoreClick: (Store) -> Unit
 ) {
     SectionContainer {
         SectionHeader(
@@ -569,7 +592,7 @@ private fun RestaurantsSection(
                         address = store.address,
                         rating = store.rating,
                         reviewCount = store.reviewCount,
-                        onClick = onSeeAllClick,
+                        onClick = { onStoreClick(store) },
                         modifier = Modifier.width(198.dp)
                     )
                 }
@@ -935,5 +958,22 @@ private fun compactCount(count: Int): String {
         }
         count > 0 -> count.toString()
         else -> stringResource(R.string.home_food_new_short)
+    }
+}
+
+private fun getCategoryIcon(name: String): ImageVector {
+    val normalized = name.lowercase().trim()
+    return when {
+        normalized.contains("cơm") || normalized.contains("com") -> Icons.Default.RiceBowl
+        normalized.contains("phở") || normalized.contains("pho") || normalized.contains("bún") || normalized.contains("bun") -> Icons.Default.SoupKitchen
+        normalized.contains("uống") || normalized.contains("drink") || normalized.contains("uong") -> Icons.Default.LocalDrink
+        normalized.contains("vặt") || normalized.contains("vat") || normalized.contains("snack") -> Icons.Default.Fastfood
+        normalized.contains("lẩu") || normalized.contains("nướng") || normalized.contains("lau") || normalized.contains("nuong") || normalized.contains("grill") -> Icons.Default.OutdoorGrill
+        normalized.contains("bánh mì") || normalized.contains("banh mi") || normalized.contains("xôi") || normalized.contains("xoi") -> Icons.Default.BreakfastDining
+        normalized.contains("sản") || normalized.contains("san") || normalized.contains("seafood") -> Icons.Default.SetMeal
+        normalized.contains("gà") || normalized.contains("ga") || normalized.contains("chiên") || normalized.contains("chien") || normalized.contains("fried") -> Icons.Default.Fastfood
+        normalized.contains("chay") || normalized.contains("veg") -> Icons.Default.Grass
+        normalized.contains("miệng") || normalized.contains("mieng") || normalized.contains("tráng") || normalized.contains("trang") || normalized.contains("dessert") -> Icons.Default.Cake
+        else -> Icons.Default.Restaurant
     }
 }

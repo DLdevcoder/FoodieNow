@@ -89,6 +89,14 @@ import com.example.foodienow.domain.model.Food
 import com.example.foodienow.domain.model.Order
 import com.example.foodienow.domain.model.OrderStatus
 import com.example.foodienow.feature.customer_home.components.formatPrice
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 private enum class OrdersTab(
     @StringRes val titleResId: Int,
@@ -107,6 +115,7 @@ fun OrderHistoryScreen(
     onNavigateToCart: () -> Unit = {},
     onNavigateToFoodDetail: (Food) -> Unit = {},
     initialTab: Int = 0,
+    showBackButton: Boolean = true,
     viewModel: OrderHistoryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -118,6 +127,7 @@ fun OrderHistoryScreen(
         OrderStatus.WAITING_STORE_CONFIRMATION,
         OrderStatus.PREPARING,
         OrderStatus.WAITING_SHIPPER,
+        OrderStatus.PICKING_UP,
         OrderStatus.DELIVERING
     )
     val activeOrders = uiState.orders.filter { it.status in activeStatuses }
@@ -178,7 +188,9 @@ fun OrderHistoryScreen(
             OrdersHeader(
                 cartCount = cartItems.values.sum(),
                 activeCount = activeOrders.size,
-                historyCount = historyOrders.size
+                historyCount = historyOrders.size,
+                showBackButton = showBackButton,
+                onBack = onBack
             )
         }
     ) { paddingValues ->
@@ -266,65 +278,73 @@ fun OrderHistoryScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OrdersHeader(
     cartCount: Int,
     activeCount: Int,
-    historyCount: Int
+    historyCount: Int,
+    showBackButton: Boolean,
+    onBack: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        PromoGradientStart,
-                        MaterialTheme.colorScheme.primary,
-                        PromoGradientEnd
-                    )
-                )
-            )
-            .statusBarsPadding()
-            .padding(horizontal = 18.dp, vertical = 16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(MaterialTheme.shapes.large)
-                    .background(Color.White.copy(alpha = 0.18f)),
-                contentAlignment = Alignment.Center
+    TopAppBar(
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ReceiptLong,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(PromoGradientStart, PromoGradientEnd)
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                Column {
+                    Text(
+                        text = stringResource(R.string.my_orders_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.order_history_header_subtitle, cartCount, activeCount, historyCount),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.my_orders_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = stringResource(R.string.order_history_header_subtitle, cartCount, activeCount, historyCount),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.84f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+        },
+        navigationIcon = {
+            if (showBackButton) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.common_back),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
-        }
-    }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        modifier = Modifier.statusBarsPadding()
+    )
 }
 
 @Composable
@@ -355,7 +375,6 @@ private fun OrdersSegmentedTabs(
                     selected = selectedIndex == index,
                     title = stringResource(tab.titleResId),
                     count = counts.getOrElse(index) { 0 },
-                    icon = tab.icon,
                     modifier = Modifier.weight(1f),
                     onClick = { onSelected(index) }
                 )
@@ -369,33 +388,30 @@ private fun OrdersSegment(
     selected: Boolean,
     title: String,
     count: Int,
-    icon: ImageVector,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
     Surface(
         modifier = modifier
-            .height(48.dp)
+            .height(44.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
         color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+        contentColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 9.dp),
+            modifier = Modifier.padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(17.dp))
-            Spacer(modifier = Modifier.width(5.dp))
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.width(5.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             CountPill(count = count, selected = selected)
         }
     }
@@ -403,20 +419,30 @@ private fun OrdersSegment(
 
 @Composable
 private fun CountPill(count: Int, selected: Boolean) {
-    Surface(
-        shape = CircleShape,
-        color = if (selected) {
-            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f)
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        },
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minWidth = 24.dp)
+            .height(22.dp)
+            .clip(CircleShape)
+            .background(
+                if (selected) {
+                    Color.White.copy(alpha = 0.2f)
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
+            )
+            .padding(horizontal = 7.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = count.toString(),
-            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.ExtraBold,
+            color = if (selected) {
+                Color.White
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
             maxLines = 1
         )
     }
@@ -480,50 +506,74 @@ private fun CartSummaryCard(
     total: Long,
     onNavigateToCart: () -> Unit
 ) {
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.extraLarge)
-            .background(Brush.linearGradient(listOf(PromoGradientStart, PromoGradientEnd)))
-            .padding(16.dp)
+            .clip(MaterialTheme.shapes.large),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max)
         ) {
             Box(
                 modifier = Modifier
-                    .size(54.dp)
-                    .clip(MaterialTheme.shapes.large)
-                    .background(Color.White.copy(alpha = 0.18f)),
-                contentAlignment = Alignment.Center
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(PromoGradientStart, PromoGradientEnd)
+                        )
+                    )
+            )
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color.White)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.order_history_cart_summary_title, itemCount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    text = stringResource(R.string.order_history_cart_summary_total, total.formatPrice()),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.86f)
-                )
-            }
-            Button(
-                onClick = onNavigateToCart,
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = MaterialTheme.colorScheme.primary
-                ),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
-            ) {
-                Text(stringResource(R.string.cart_checkout), fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ShoppingCart,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.order_history_cart_summary_title, itemCount),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.order_history_cart_summary_total, total.formatPrice()),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Button(
+                    onClick = onNavigateToCart,
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    ),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(stringResource(R.string.cart_checkout), fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
@@ -536,13 +586,19 @@ private fun CartFoodCard(
     onNavigateToFoodDetail: (Food) -> Unit,
     onUpdateQuantity: (Food, Int) -> Unit
 ) {
-    FoodieCard(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onNavigateToFoodDetail(food) }
+            .clip(MaterialTheme.shapes.large),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.large)
+                .clickable { onNavigateToFoodDetail(food) }
+                .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -622,6 +678,7 @@ private fun CartFoodCard(
         }
     }
 }
+
 @Composable
 private fun OrdersListTab(
     orders: List<Order>,
@@ -677,163 +734,235 @@ private fun OrderCardItem(
 ) {
     val style = order.status.toOrderStatusStyle()
     val defaultFoodName = stringResource(R.string.order_history_default_food_name)
+    val activeStatuses = setOf(
+        OrderStatus.WAITING_PAYMENT,
+        OrderStatus.WAITING_STORE_CONFIRMATION,
+        OrderStatus.PREPARING,
+        OrderStatus.WAITING_SHIPPER,
+        OrderStatus.PICKING_UP,
+        OrderStatus.DELIVERING
+    )
+    val isActive = order.status in activeStatuses
 
-    FoodieCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { order.id?.let(onNavigateToOrderDetail) }
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large),
+        shape = MaterialTheme.shapes.large,
+        color = if (isActive) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.07f)
+        } else {
+            MaterialTheme.colorScheme.surface
+        },
+        tonalElevation = if (isActive) 4.dp else 1.dp
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max)
+                .clickable { order.id?.let(onNavigateToOrderDetail) }
+        ) {
+            if (isActive) {
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(style.color.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(style.icon, contentDescription = null, tint = style.color, modifier = Modifier.size(22.dp))
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.order_card_title_no_id),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = order.createdAt.toDisplayTime(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                VoucherBadge(label = style.label, containerColor = style.color)
+                        .width(4.dp)
+                        .fillMaxHeight()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(PromoGradientStart, PromoGradientEnd)
+                            )
+                        )
+                )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.16f))
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FoodImage(
-                    imageUrl = order.previewImageUrl,
-                    contentDescription = order.previewFoodName,
-                    modifier = Modifier.size(74.dp)
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (order.otherItemsCount != null && order.otherItemsCount > 0) {
-                            stringResource(
-                                R.string.order_food_name_with_others,
-                                order.previewFoodName ?: defaultFoodName,
-                                order.otherItemsCount
-                            )
-                        } else {
-                            order.previewFoodName ?: defaultFoodName
-                        },
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.padding(14.dp).weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                            .background(style.color.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            Icons.Default.LocationOn,
+                            imageVector = style.icon,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(15.dp)
+                            tint = style.color,
+                            modifier = Modifier.size(22.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.order_card_title_no_id) + (order.id?.let { " #${it.takeLast(6)}" } ?: ""),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (isActive) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
                         Text(
-                            text = order.deliveryAddress,
+                            text = order.createdAt.toDisplayTime(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    VoucherBadge(
+                        label = style.label,
+                        containerColor = style.color.copy(alpha = 0.9f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FoodImage(
+                        imageUrl = order.previewImageUrl,
+                        contentDescription = order.previewFoodName,
+                        modifier = Modifier.size(74.dp)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (order.otherItemsCount != null && order.otherItemsCount > 0) {
+                                stringResource(
+                                    R.string.order_food_name_with_others,
+                                    order.previewFoodName ?: defaultFoodName,
+                                    order.otherItemsCount
+                                )
+                            } else {
+                                order.previewFoodName ?: defaultFoodName
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = order.deliveryAddress,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.16f))
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Payments,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(17.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = order.totalPrice.formatPrice(),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Payments,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(17.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = order.totalPrice.formatPrice(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (onNavigateToTracking != null) {
-                        if (order.status.canCustomerCancel) {
-                            OutlinedButton(
-                                onClick = { onCancelClick?.invoke(order) },
-                                shape = MaterialTheme.shapes.medium,
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Text(stringResource(R.string.order_history_action_cancel), fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (onNavigateToTracking != null) {
+                            if (order.status.canCustomerCancel) {
+                                OutlinedButton(
+                                    onClick = { onCancelClick?.invoke(order) },
+                                    shape = MaterialTheme.shapes.medium,
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = ErrorRed),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Text(stringResource(R.string.order_history_action_cancel), fontWeight = FontWeight.Bold)
+                                }
+                            } else {
+                                Button(
+                                    onClick = { order.id?.let(onNavigateToTracking) },
+                                    shape = MaterialTheme.shapes.medium,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = Color.White
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Text(stringResource(R.string.order_history_action_track), fontWeight = FontWeight.Bold)
+                                }
                             }
                         } else {
-                            Button(
-                                onClick = { order.id?.let(onNavigateToTracking) },
+                            OutlinedButton(
+                                onClick = { order.id?.let(onNavigateToOrderDetail) },
                                 shape = MaterialTheme.shapes.medium,
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                             ) {
-                                Text(stringResource(R.string.order_history_action_track), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.order_history_action_detail), fontWeight = FontWeight.Bold)
                             }
-                        }
-                    } else {
-                        // TAB LỊCH SỬ
-                        OutlinedButton(
-                            onClick = { order.id?.let(onNavigateToOrderDetail) },
-                            shape = MaterialTheme.shapes.medium,
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                        ) {
-                            Text(stringResource(R.string.order_history_action_detail), fontWeight = FontWeight.Bold)
-                        }
 
-                        if (onReorder != null && order.status == OrderStatus.COMPLETED) {
-                            Button(
-                                onClick = { order.id?.let(onReorder) },
-                                shape = MaterialTheme.shapes.medium,
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Text(stringResource(R.string.order_history_action_reorder), fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                            if (onReorder != null && order.status == OrderStatus.COMPLETED) {
+                                Button(
+                                    onClick = { order.id?.let(onReorder) },
+                                    shape = MaterialTheme.shapes.medium,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = Color.White
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Text(stringResource(R.string.order_history_action_reorder), fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -842,6 +971,7 @@ private fun OrderCardItem(
         }
     }
 }
+
 @Composable
 private fun OrdersLoadingState(modifier: Modifier = Modifier) {
     LazyColumn(
@@ -857,7 +987,13 @@ private fun OrdersLoadingState(modifier: Modifier = Modifier) {
 
 @Composable
 private fun OrderSkeletonCard() {
-    FoodieCard(modifier = Modifier.fillMaxWidth()) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp,
+        shadowElevation = 1.dp
+    ) {
         Row(
             modifier = Modifier.padding(14.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),

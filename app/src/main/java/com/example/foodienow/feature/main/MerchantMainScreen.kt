@@ -4,8 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
@@ -91,66 +96,75 @@ fun MerchantMainScreen(
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                tonalElevation = 3.dp,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
-                val tabs = listOf(
-                    Triple(Icons.Default.List, stringResource(R.string.merchant_tab_orders), 0),
-                    Triple(Icons.Default.MenuBook, stringResource(R.string.merchant_tab_menu), 1),
-                    Triple(Icons.Default.AccountBalanceWallet, stringResource(R.string.merchant_tab_earnings), 2),
-                    Triple(Icons.Default.Notifications, stringResource(R.string.bottom_nav_notifications), 3),
-                    Triple(Icons.Default.Person, stringResource(R.string.bottom_nav_me), 4)
-                )
-
-                tabs.forEach { (icon, label, index) ->
-                    val showBadge = when (index) {
-                        0 -> currentPendingOrdersMap.isNotEmpty() && !hasViewedOrders && selectedTab != 0
-                        3 -> notificationState.unreadCount > 0 && !hasViewedNotifications && selectedTab != 3
-                        else -> false
-                    }
-                    NavigationBarItem(
-                        icon = {
-                            Box {
-                                Icon(icon, contentDescription = label)
-                                if (showBadge) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .offset(x = 5.dp, y = (-3).dp)
-                                            .size(7.dp)
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.error)
-                                    )
-                                }
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = label,
-                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                maxLines = 1
-                            )
-                        },
-                        selected = selectedTab == index,
-                        onClick = {
-                            selectedTab = index
-                            if (index == 0) {
-                                hasViewedOrders = true
-                            }
-                            if (index == 3) {
-                                hasViewedNotifications = true
-                            }
-                        },
-                        alwaysShowLabel = false,
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.surface,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.height(72.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
+                ) {
+                    val tabs = listOf(
+                        Triple(Icons.Default.List, stringResource(R.string.merchant_tab_orders), 0),
+                        Triple(Icons.Default.MenuBook, stringResource(R.string.merchant_tab_menu), 1),
+                        Triple(Icons.Default.AccountBalanceWallet, stringResource(R.string.merchant_tab_earnings), 2),
+                        Triple(Icons.Default.Notifications, stringResource(R.string.bottom_nav_notifications), 3),
+                        Triple(Icons.Default.Person, stringResource(R.string.bottom_nav_me), 4)
                     )
+
+                    tabs.forEach { (icon, label, index) ->
+                        val selected = selectedTab == index
+                        val showBadge = when (index) {
+                            0 -> currentPendingOrdersMap.isNotEmpty() && !hasViewedOrders && selectedTab != 0
+                            3 -> notificationState.unreadCount > 0 && !hasViewedNotifications && selectedTab != 3
+                            else -> false
+                        }
+                        NavigationBarItem(
+                            icon = {
+                                Box {
+                                    Icon(icon, contentDescription = label)
+                                    if (showBadge) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .offset(x = 5.dp, y = (-3).dp)
+                                                .size(7.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.error)
+                                        )
+                                    }
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = label,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                    maxLines = 1
+                                )
+                            },
+                            selected = selected,
+                            onClick = {
+                                selectedTab = index
+                                if (index == 0) {
+                                    hasViewedOrders = true
+                                }
+                                if (index == 3) {
+                                    hasViewedNotifications = true
+                                }
+                            },
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
                 }
             }
         },
@@ -190,6 +204,8 @@ fun MerchantMainScreen(
                 )
                 3 -> NotificationScreen(
                     onBack = { selectedTab = 0 },
+                    onNavigateToDestination = { route -> rootNavController.navigate(route) },
+                    showBackButton = false,
                     viewModel = notificationViewModel
                 )
                 4 -> ProfileScreen(

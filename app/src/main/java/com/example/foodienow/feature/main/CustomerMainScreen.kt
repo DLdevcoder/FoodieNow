@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
+import android.net.Uri
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodienow.R
 import com.example.foodienow.domain.model.Food
@@ -191,7 +192,16 @@ fun CustomerMainScreen(
                     onNavigateToSearch = { rootNavController.navigate("search_screen") },
                     onNavigateToCategory = onNavigateToCategory,
                     onNavigateToCart = onNavigateToCart,
-                    onNavigateToChatList = onNavigateToChatList
+                    onNavigateToChatList = onNavigateToChatList,
+                    onNavigateToGoodMeal = { rootNavController.navigate(Screen.GoodMeal.route) },
+                    onNavigateToNearMeStores = { rootNavController.navigate(Screen.FeaturedStores.route) },
+                    onNavigateToMustTry = { rootNavController.navigate(Screen.MustTry.route) },
+                    onNavigateToStore = { store ->
+                        rootNavController.navigate("store_detail/${store.id}")
+                    },
+                    onNavigateToAddress = {
+                        rootNavController.navigate(Screen.Address.route)
+                    }
                 )
                 1 -> OrderHistoryScreen(
                     onBack = { selectedTab = 0 },
@@ -204,10 +214,13 @@ fun CustomerMainScreen(
                     onNavigateToCart = { rootNavController.navigate(Screen.Payment.route) },
                     onNavigateToFoodDetail = onNavigateToFoodDetail,
                     initialTab = orderHistoryInitialTab,
+                    showBackButton = false,
                     viewModel = orderHistoryViewModel
                 )
                 2 -> NotificationScreen(
                     onBack = { selectedTab = 0 },
+                    onNavigateToDestination = { route -> rootNavController.navigate(route) },
+                    showBackButton = false,
                     viewModel = notificationViewModel
                 )
                 3 -> ProfileScreen(

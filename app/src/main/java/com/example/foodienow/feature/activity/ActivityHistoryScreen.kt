@@ -409,7 +409,14 @@ private fun ActivityHistoryCard(item: ActivityHistoryItem) {
             }
             stringResource(
                 R.string.activity_history_wallet_subtitle,
-                item.description ?: "",
+                (item.description ?: "")
+                    .replace("Thanh toan don hang", "Thanh toán đơn hàng", ignoreCase = true)
+                    .replace("Nhan thanh toan don hang", "Nhận thanh toán đơn hàng", ignoreCase = true)
+                    .replace("Thanh toan Merchant don hang", "Thanh toán Merchant đơn hàng", ignoreCase = true)
+                    .replace("Thanh toan Shipper don hang", "Thanh toán Shipper đơn hàng", ignoreCase = true)
+                    .replace("Thanh toan", "Thanh toán", ignoreCase = true)
+                    .replace("don hang", "đơn hàng", ignoreCase = true)
+                    .replace("Nhan thanh toan", "Nhận thanh toán", ignoreCase = true),
                 amountFormatted
             )
         }

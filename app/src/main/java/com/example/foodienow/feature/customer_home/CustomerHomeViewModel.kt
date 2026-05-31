@@ -28,8 +28,9 @@ data class HomeUiState(
     val searchResults: List<Food> = emptyList(),
     val address: String = "Chọn địa chỉ giao hàng",
     val errorMessage: String? = null,
-    // THÊM: Thuộc tính lưu số lượng tin nhắn chưa đọc
-    val unreadMessageCount: Int = 0
+    val unreadMessageCount: Int = 0,
+    val hasDefaultAddress: Boolean = false,
+    val nearbyFoods: List<Food> = emptyList()
 )
 
 @HiltViewModel
@@ -38,7 +39,8 @@ class CustomerHomeViewModel @Inject constructor(
     private val addressRepository: MockAddressRepository,
     private val chatRepository: ChatRepository,
     private val authRepository: AuthRepository,
-    private val merchantRepository: MerchantRepository
+    private val merchantRepository: MerchantRepository,
+    private val savedStateHandle: androidx.lifecycle.SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -80,25 +82,45 @@ class CustomerHomeViewModel @Inject constructor(
                 addressRepository.addresses.collect { addresses ->
                     val defaultAddressObj = addresses.firstOrNull { it.isDefault }
                     val defaultAddress = defaultAddressObj?.detail ?: "Chọn địa chỉ giao hàng"
-                    val customerLat = defaultAddressObj?.latitude ?: 21.028511
-                    val customerLng = defaultAddressObj?.longitude ?: 105.804817
+                    val hasDefaultAddress = defaultAddressObj != null
 
                     foodRepository.getRecommendedFoods().collect { realFoods ->
                         val allStores = merchantRepository.getAllStores()
                         val storeSales = realFoods.groupBy { it.storeId }
                             .mapValues { entry -> entry.value.sumOf { it.soldCount } }
 
-                        val featuredStores = allStores.filter { store ->
-                            val sLat = store.lat
-                            val sLng = store.lng
-                            if (sLat != null && sLng != null) {
-                                calculateDistance(customerLat, customerLng, sLat, sLng) <= 3.0
+                        val featuredStores = if (hasDefaultAddress && defaultAddressObj != null) {
+                            val customerLat = defaultAddressObj.latitude
+                            val customerLng = defaultAddressObj.longitude
+                            if (customerLat != null && customerLng != null) {
+                                allStores.filter { store ->
+                                    val sLat = store.lat
+                                    val sLng = store.lng
+                                    if (sLat != null && sLng != null) {
+                                        calculateDistance(customerLat, customerLng, sLat, sLng) <= 3.0
+                                    } else {
+                                        false
+                                    }
+                                }
                             } else {
-                                false
+                                allStores
                             }
+                        } else {
+                            emptyList()
                         }
                         .sortedByDescending { store -> storeSales[store.id] ?: 0 }
                         .take(10)
+
+                        val featuredStoreIds = featuredStores.map { it.id }.toSet()
+                        val nearbyFoods = if (hasDefaultAddress) {
+                            realFoods.filter { it.storeId in featuredStoreIds }
+                        } else {
+                            emptyList()
+                        }
+
+                        val initStoreId = savedStateHandle.get<String>("storeId").orEmpty()
+                        val initStoreName = savedStateHandle.get<String>("storeName").orEmpty()
+                        val isStoreSearch = initStoreId.isNotEmpty()
 
                         _uiState.update {
                             it.copy(
@@ -107,7 +129,11 @@ class CustomerHomeViewModel @Inject constructor(
                                 featuredStores = featuredStores,
                                 categories = fetchedCategories,
                                 address = defaultAddress,
-                                errorMessage = null
+                                hasDefaultAddress = hasDefaultAddress,
+                                nearbyFoods = nearbyFoods,
+                                errorMessage = null,
+                                searchQuery = if (isStoreSearch) initStoreName else it.searchQuery,
+                                searchResults = if (isStoreSearch) realFoods.filter { food -> food.storeId == initStoreId } else it.searchResults
                             )
                         }
                     }

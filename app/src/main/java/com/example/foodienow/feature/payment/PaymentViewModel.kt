@@ -181,7 +181,7 @@ class PaymentViewModel @Inject constructor(
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
-                            errorMessage = error.message ?: "Khong ap dung duoc ma giam gia.",
+                            errorMessage = error.message ?: "Không áp dụng được mã giảm giá.",
                             infoMessage = null
                         )
                     }
@@ -203,7 +203,7 @@ class PaymentViewModel @Inject constructor(
     ) {
         if (deliveryAddress.isBlank()) {
             _uiState.update {
-                it.copy(errorMessage = "Dia chi nhan hang khong duoc de trong.", infoMessage = null)
+                it.copy(errorMessage = "Địa chỉ nhận hàng không được để trống.", infoMessage = null)
             }
             return
         }
@@ -220,7 +220,7 @@ class PaymentViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
-                            errorMessage = "Phien dang nhap khong hop le. Vui long dang nhap lai."
+                            errorMessage = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại."
                         )
                     }
                     return@launch
@@ -244,7 +244,7 @@ class PaymentViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
-                            errorMessage = "Gio hang dang trong."
+                            errorMessage = "Giỏ hàng đang trống."
                         )
                     }
                     return@launch
@@ -254,7 +254,7 @@ class PaymentViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
-                            errorMessage = "Chi co the thanh toan mon trong cung mot cua hang."
+                            errorMessage = "Chỉ có thể thanh toán món trong cùng một cửa hàng."
                         )
                     }
                     return@launch
@@ -264,7 +264,7 @@ class PaymentViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
-                            errorMessage = "Vui long chon vi dien tu de thanh toan."
+                            errorMessage = "Vui lòng chọn ví điện tử để thanh toán."
                         )
                     }
                     return@launch
@@ -276,7 +276,7 @@ class PaymentViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
-                            errorMessage = "Vui long cai dat thong tin phuong thuc thanh toan truoc."
+                            errorMessage = "Vui lòng cài đặt thông tin phương thức thanh toán trước."
                         )
                     }
                     return@launch
@@ -294,7 +294,7 @@ class PaymentViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isProcessing = false,
-                                errorMessage = error.message ?: "Giao dich vi dien tu that bai."
+                                errorMessage = error.message ?: "Giao dịch ví điện tử thất bại."
                             )
                         }
                     }
@@ -342,7 +342,7 @@ class PaymentViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = e.message ?: "Da xay ra loi khi xu ly thanh toan."
+                        errorMessage = e.message ?: "Đã xảy ra lỗi khi xử lý thanh toán."
                     )
                 }
             }
@@ -394,7 +394,7 @@ class PaymentViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isProcessing = false,
-                                infoMessage = "Thanh toan thanh cong."
+                                infoMessage = "Thanh toán thành công."
                             )
                         }
                         runCatching { cartRepository.clearCart() }
@@ -418,7 +418,7 @@ class PaymentViewModel @Inject constructor(
                                 errorMessage = if (isJwtError) {
                                     "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
                                 } else {
-                                    error.message ?: "Thanh toan that bai. Du lieu don hang da duoc rollback."
+                                    error.message ?: "Thanh toán thất bại. Dữ liệu đơn hàng đã được rollback."
                                 }
                             )
                         }
@@ -427,7 +427,7 @@ class PaymentViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isProcessing = false,
-                        errorMessage = e.message ?: "Da xay ra loi khi xu ly thanh toan."
+                        errorMessage = e.message ?: "Đã xảy ra lỗi khi xử lý thanh toán."
                     )
                 }
             }
@@ -464,13 +464,13 @@ class PaymentViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
-                            errorMessage = e.message ?: "Da xay ra loi khi xu ly thanh toan."
+                            errorMessage = e.message ?: "Đã xảy ra lỗi khi xử lý thanh toán."
                         )
                     }
                 }
             }
         } else {
-            _uiState.update { it.copy(errorMessage = "Giao dich da bi huy hoac that bai.") }
+            _uiState.update { it.copy(errorMessage = "Giao dịch đã bị hủy hoặc thất bại.") }
         }
     }
 

@@ -178,11 +178,12 @@ fun ShipperMainScreen(
                     }
                 )
                 1 -> ShipperEarningsScreen(
-                    onBack = { selectedTab = 0 },
                     onNavigateToPaymentSettings = { rootNavController.navigate("payment_settings_screen") }
                 )
                 2 -> NotificationScreen(
                     onBack = { selectedTab = 0 },
+                    onNavigateToDestination = { route -> rootNavController.navigate(route) },
+                    showBackButton = false,
                     viewModel = notificationViewModel
                 )
                 3 -> ProfileScreen(

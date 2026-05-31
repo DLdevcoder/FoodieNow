@@ -26,6 +26,8 @@ sealed class Screen(val route: String) {
     object PaymentSettings : Screen("payment_settings_screen")
     object Wallet : Screen("wallet_screen")
     object MustTry : Screen("must_try_screen")
+    object GoodMeal : Screen("good_meal_screen")
+    object FeaturedStores : Screen("featured_stores_screen")
     object Vouchers : Screen("vouchers_screen")
     object RewardPoints : Screen("reward_points_screen")
     object InviteFriends : Screen("invite_friends_screen")
@@ -34,6 +36,9 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings_screen")
     object FoodDetail : Screen("food_detail/{foodId}") {
         fun createRoute(foodId: String) = "food_detail/$foodId"
+    }
+    object StoreDetail : Screen("store_detail/{storeId}") {
+        fun createRoute(storeId: String) = "store_detail/$storeId"
     }
 
     // Merchant

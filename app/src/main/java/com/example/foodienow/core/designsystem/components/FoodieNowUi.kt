@@ -183,7 +183,8 @@ fun CategoryChip(
 
     Surface(
         modifier = modifier
-            .size(76.dp)
+            .width(96.dp)
+            .height(76.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
         color = containerColor,
